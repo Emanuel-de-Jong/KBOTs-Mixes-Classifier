@@ -22,10 +22,10 @@ class Mert():
         
         try:
             waveform, sr = torchaudio.load(path)
-            if waveform[0][5] == 0 and waveform[0][25] == 0 and waveform[0][50] == 0 and \
-                    waveform[1][5] == 0 and waveform[1][25] == 0 and waveform[1][50] == 0:
-                self.error(f"{path} is corrupt! Only 0s.")
-                return None
+            # if waveform[0][5] == 0 and waveform[0][25] == 0 and waveform[0][50] == 0 and \
+            #         waveform[1][5] == 0 and waveform[1][25] == 0 and waveform[1][50] == 0:
+            #     self.error(f"{path} is corrupt! Only 0s.")
+            #     return None
             
             resample_rate = self.processor.sampling_rate
             if sr != resample_rate:
