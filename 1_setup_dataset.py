@@ -1,10 +1,23 @@
 import unidecode
-import csv
+import shutil
 import re
 import os
 from pathlib import Path
 
-MIN_PLAYLIST_SONGS = 10
+PLAYLISTS_TO_REMOVE = [
+    "Chill EDM",
+    "Gamer",
+    "Groovy EDM",
+    "Pioneer EDM",
+    "Nature Vibe",
+    "Pioneer",
+    "Romantic"
+]
+PLAYLISTS_TO_MERGE = {
+    "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
+    "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
+    "Dark and Psych Rock": ["Dark Rock", "Psych Rock"]
+}
 
 music_dir = Path("music")
 
@@ -17,10 +30,29 @@ for folder in os.listdir(music_dir):
             new_name = new_name[7:]
         if new_name.lower().endswith(" mix"):
             new_name = new_name[:-4]
+        
         new_name = new_name.strip()
         new_path = music_dir / new_name
+
+        if os.path.basename(new_path) in PLAYLISTS_TO_REMOVE:
+            shutil.rmtree(folder_path)
+            continue
+
         if new_path != folder_path:
             folder_path.rename(new_path)
+
+# Merge playlists
+for target, sources in PLAYLISTS_TO_MERGE.items():
+    target_dir = music_dir / target
+    target_dir.mkdir(exist_ok=True)
+    for src in sources:
+        src_dir = music_dir / src
+        if src_dir.exists() and src_dir.is_dir():
+            for mp3_file in src_dir.glob("*.mp3"):
+                dest_file = target_dir / mp3_file.name
+                shutil.copy2(mp3_file, dest_file)
+            
+            shutil.rmtree(src_dir)
 
 # Clean mp3 names
 for p in music_dir.glob("*/*.mp3"):
@@ -35,38 +67,3 @@ for p in music_dir.glob("*/*.mp3"):
         
         if not new_path.exists():
             p.rename(new_path)
-
-# Generate label file
-playlist_counts = []
-for folder in music_dir.iterdir():
-    if folder.is_dir():
-        mp3_count = len(list(folder.glob("*.mp3")))
-        if mp3_count < MIN_PLAYLIST_SONGS:
-            playlist_counts.append((folder.name, mp3_count))
-
-playlist_counts.sort(key=lambda x: x[1])
-if playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
-    for name, count in playlist_counts:
-        print(f"{name}: {count}")
-
-cache_dir = Path("cache")
-cache_dir.mkdir(exist_ok=True)
-with open(cache_dir / "labels.csv", "w", newline="") as f:
-    w = csv.writer(f)
-    w.writerow(["filepath","label"])
-    for lbl_dir in music_dir.iterdir():
-        if lbl_dir.is_dir():
-            songs = list(lbl_dir.glob("*.mp3"))
-            i = 0
-            for p in songs:
-                i += 1
-                if i > 5:
-                    break
-
-                w.writerow([str(p.resolve()), lbl_dir.name])
-            
-            # if len(songs) < MIN_PLAYLIST_SONGS:
-            #     needed = MIN_PLAYLIST_SONGS - len(songs)
-            #     for i in range(needed):
-            #         song = songs[i % len(songs)]
-            #         w.writerow([str(song.resolve()), lbl_dir.name])
