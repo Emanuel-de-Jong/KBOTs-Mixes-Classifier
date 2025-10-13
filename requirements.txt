@@ -9,3 +9,4 @@ pandas
 joblib
 ffmpeg-python
 poetry
+unidecode
