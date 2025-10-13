@@ -18,7 +18,7 @@ all_labels = np.unique(Y)
 
 knn = KNeighborsClassifier(n_neighbors=5, metric="cosine", n_jobs=-1, weights="distance")
 
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 scores = cross_val_score(knn, X, Y, cv=cv, scoring="accuracy")
 print(f"Mean accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
 

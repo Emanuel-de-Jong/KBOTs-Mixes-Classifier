@@ -19,6 +19,13 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     vec = mert.run(row.filepath)
     if vec is None:
         continue
+    if not isinstance(vec, np.ndarray):
+        print(f"Skipping {row.filepath}: returned {type(vec)} instead of ndarray.")
+        continue
+    # MERT should output 1024-dim embeddings
+    if vec.shape != (1024,):
+        print(f"Skipping {row.filepath}: wrong shape {vec.shape}.")
+        continue
 
     embeddings.append(vec)
     labels.append(row.label)
