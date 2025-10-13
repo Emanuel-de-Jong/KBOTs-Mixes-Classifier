@@ -7,9 +7,11 @@ from sklearn.metrics import top_k_accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
 X = np.load("X_emb.npy")
-y = pd.read_csv("y_labels.csv", squeeze=True).astype(str)
+y = pd.read_csv("y_labels.csv").iloc[:, 0].astype(str)
 le = LabelEncoder().fit(y)
 Y = le.transform(y)
+
+all_labels = np.unique(Y)
 
 knn = KNeighborsClassifier(n_neighbors=5, metric="cosine", n_jobs=-1)
 
@@ -21,7 +23,7 @@ top3_scores = []
 for train_idx, val_idx in cv.split(X, Y):
     knn.fit(X[train_idx], Y[train_idx])
     probs = knn.predict_proba(X[val_idx])
-    top3 = top_k_accuracy_score(Y[val_idx], probs, k=3)
+    top3 = top_k_accuracy_score(Y[val_idx], probs, k=3, labels=all_labels)
     top3_scores.append(top3)
 
 print(f"Mean Top-3 accuracy: {np.mean(top3_scores):.3f}")
