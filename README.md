@@ -13,7 +13,7 @@ Finds the right playlist for a new song.
     - Manual:
         1. `python 1_setup_dataset.py`.
         2. `python 2_gen_labels.py`.
-        3. `python 3_extract_embeddings.py`. This will take a while.
+        3. `python 3_extract_embs.py`. This will take a while.
         4. `python 4_train.py`.
     - Automatic:
         1. `train.bat`. This will take a while.
