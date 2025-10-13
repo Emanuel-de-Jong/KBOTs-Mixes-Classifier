@@ -1,5 +1,7 @@
 music/**/*.mp3
 labels.csv
+y_labels.csv
+X_emb.npy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
