@@ -46,9 +46,9 @@ for folder in music_dir.iterdir():
             playlist_counts.append((folder.name, mp3_count))
 
 playlist_counts.sort(key=lambda x: x[1])
-# if playlist_counts[0][1] < 10:
-#     for name, count in playlist_counts:
-#         print(f"{name}: {count}")
+if playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
+    for name, count in playlist_counts:
+        print(f"{name}: {count}")
 
 with open("labels.csv", "w", newline="") as f:
     w = csv.writer(f)
@@ -59,8 +59,8 @@ with open("labels.csv", "w", newline="") as f:
             i = 0
             for p in songs:
                 i += 1
-                # if i > 3:
-                #     break
+                if i > 5:
+                    break
 
                 w.writerow([str(p.resolve()), lbl_dir.name])
             
