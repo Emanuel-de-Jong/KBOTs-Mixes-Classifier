@@ -5,16 +5,14 @@ import os
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 10.0
+    CHUNK_LENGTH_SECONDS = 20.0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True, torch_dtype=torch.float16) \
-            .to(self.device) \
-            .eval()
+        self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True).to(self.device).eval()
         self.processor = Wav2Vec2FeatureExtractor.from_pretrained(self.MODEL_NAME, trust_remote_code=True, use_fast=False)
     
     def run(self, path):
@@ -50,8 +48,7 @@ class Mert():
                 
                 input_audio_chunk = chunk.numpy()
 
-                inputs = self.processor(input_audio_chunk, sampling_rate=resample_rate, return_tensors="pt")
-                inputs = {k: v.half().to(self.device) if v.dtype == torch.float32 else v.to(self.device) for k, v in inputs.items()}
+                inputs = self.processor(input_audio_chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
 
                 with torch.no_grad():
                     outputs = self.model(**inputs)

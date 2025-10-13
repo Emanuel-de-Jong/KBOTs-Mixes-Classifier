@@ -2,6 +2,8 @@ import joblib
 from pathlib import Path
 from Mert import Mert
 
+LOW_SONG_COUNT_TRES = 15
+
 mert = Mert()
 music_dir = Path("music")
 test_dir = Path("test")
@@ -22,7 +24,7 @@ for playlist_dir in test_dir.iterdir():
             continue
 
         music_dir_songs = list((music_dir / playlist_dir.name).glob("*.mp3"))
-        low_song_count = len(music_dir_songs) < 10
+        low_song_count = len(music_dir_songs) <= LOW_SONG_COUNT_TRES
 
         last_song = songs[-1]
         vec = mert.run(str(last_song))
