@@ -21,7 +21,7 @@ for playlist_dir in test_dir.iterdir():
         if not songs:
             continue
 
-        music_dir_songs = (music_dir / playlist_dir).glob("*.mp3")
+        music_dir_songs = list((music_dir / playlist_dir.name).glob("*.mp3"))
         low_song_count = len(music_dir_songs) < 10
 
         last_song = songs[-1]

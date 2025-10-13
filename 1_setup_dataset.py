@@ -11,12 +11,30 @@ PLAYLISTS_TO_REMOVE = [
     "Pioneer EDM",
     "Nature Vibe",
     "Pioneer",
-    "Romantic"
+    "Romantic",
+    "Jazz",
+    "Ambient Techno",
+    "Chill Alternate Rock",
+    "DnB",
+    "Funk",
+    "Grunge",
+    "Blues",
+    "Folk",
+    "IDM",
+    "Punk",
+    "Acoustic",
+    "Groovy House",
 ]
 PLAYLISTS_TO_MERGE = {
+    # New
     "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
     "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
-    "Dark and Psych Rock": ["Dark Rock", "Psych Rock"]
+    "Dark and Psyc Rock": ["Dark Rock", "Psyc Rock"],
+    # Combined
+    "Progressive House": ["Mainstream Progressive House"],
+    "Slap House": ["Chill Slap House"],
+    "Swing": ["Electro Swing"],
+    "Synthwave": ["Synth Funk"],
 }
 
 music_dir = Path("music")

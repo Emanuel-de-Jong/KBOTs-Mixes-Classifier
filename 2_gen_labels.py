@@ -1,12 +1,12 @@
+import random
 import csv
 from pathlib import Path
 
-MIN_PLAYLIST_SONGS = 10
-MAX_PLAYLIST_SONGS = 50
+MIN_PLAYLIST_SONGS = 9
+MAX_PLAYLIST_SONGS = 10
 
 music_dir = Path("music")
 
-# Generate label file
 playlist_counts = []
 for folder in music_dir.iterdir():
     if folder.is_dir():
@@ -15,7 +15,7 @@ for folder in music_dir.iterdir():
             playlist_counts.append((folder.name, mp3_count))
 
 playlist_counts.sort(key=lambda x: x[1])
-if playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
+if len(playlist_counts) > 0 and playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
     for name, count in playlist_counts:
         print(f"{name}: {count}")
 
@@ -27,6 +27,8 @@ with open(cache_dir / "labels.csv", "w", newline="") as f:
     for lbl_dir in music_dir.iterdir():
         if lbl_dir.is_dir():
             songs = list(lbl_dir.glob("*.mp3"))
+            random.shuffle(songs)
+            
             added_songs = 0
             for p in songs:
                 w.writerow([str(p.resolve()), lbl_dir.name])
