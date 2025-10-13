@@ -12,7 +12,12 @@ cache_dir = Path("cache")
 knn = joblib.load(cache_dir / "playlist_knn.joblib")
 le  = joblib.load(cache_dir / "label_encoder.joblib")
 
-vec = mert.run(path).reshape(1, -1)
+vec = mert.run(path)
+if vec is None:
+    print("Critical problem!")
+    sys.exit(0)
+
+vec = vec.reshape(1, -1)
 
 probs = knn.predict_proba(vec)[0]
 top = probs.argsort()[::-1][:5]

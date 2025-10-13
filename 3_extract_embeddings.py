@@ -17,6 +17,8 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     #     break
 
     vec = mert.run(row.filepath)
+    if vec is None:
+        continue
 
     embs.append(vec)
     labels.append(row.label)
