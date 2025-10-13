@@ -8,7 +8,7 @@ mert = Mert()
 
 cache_dir = Path("cache")
 df = pd.read_csv(cache_dir / "labels.csv")
-embs, labels = [], []
+embeddings, labels = [], []
 
 song_batch_count = 0
 for _, row in tqdm(df.iterrows(), total=len(df)):
@@ -20,10 +20,10 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     if vec is None:
         continue
 
-    embs.append(vec)
+    embeddings.append(vec)
     labels.append(row.label)
 
-X = np.stack(embs)
+X = np.stack(embeddings)
 
 pd.Series(labels).to_csv(cache_dir / "y_labels.csv", index=False, header=["labels"])
 np.save(cache_dir / "X_emb.npy", X)
