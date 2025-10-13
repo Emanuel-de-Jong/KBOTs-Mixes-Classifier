@@ -4,6 +4,7 @@ from Mert import Mert
 
 mert = Mert()
 music_dir = Path("music")
+test_dir = Path("test")
 cache_dir = Path("cache")
 knn = joblib.load(cache_dir / "playlist_knn.joblib")
 le  = joblib.load(cache_dir / "label_encoder.joblib")
@@ -14,13 +15,14 @@ fail_count = 0
 filtered_pass_count = 0
 filtered_fail_count = 0
 
-for playlist_dir in music_dir.iterdir():
+for playlist_dir in test_dir.iterdir():
     if playlist_dir.is_dir():
         songs = sorted(playlist_dir.glob("*.mp3"))
         if not songs:
             continue
 
-        low_song_count = len(songs) < 10
+        music_dir_songs = (music_dir / playlist_dir).glob("*.mp3")
+        low_song_count = len(music_dir_songs) < 10
 
         last_song = songs[-1]
         vec = mert.run(str(last_song))

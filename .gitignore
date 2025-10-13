@@ -1,5 +1,6 @@
 music/
 !music/.gitkeep
+test/
 cache/
 *.log
 

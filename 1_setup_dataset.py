@@ -20,6 +20,7 @@ PLAYLISTS_TO_MERGE = {
 }
 
 music_dir = Path("music")
+test_dir = Path("test")
 
 # Clean folder names
 for folder in os.listdir(music_dir):
@@ -67,3 +68,16 @@ for p in music_dir.glob("*/*.mp3"):
         
         if not new_path.exists():
             p.rename(new_path)
+
+# Fill test dir
+if not test_dir.exists():
+    for subdir in music_dir.iterdir():
+        if subdir.is_dir():
+            mp3_files = sorted(subdir.glob("*.mp3"))
+            if mp3_files:
+                test_subdir = test_dir / subdir.name
+                test_subdir.mkdir(parents=True, exist_ok=True)
+
+                src_file = mp3_files[0]
+                dest_file = test_subdir / src_file.name
+                shutil.move(str(src_file), str(dest_file))
