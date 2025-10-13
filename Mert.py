@@ -20,6 +20,7 @@ class Mert():
         print(f"Processing: {os.path.basename(path)}")
         
         waveform, sr = torchaudio.load(path)
+        print(waveform[0][50:100])
 
         resample_rate = self.processor.sampling_rate
         if sr != resample_rate:
@@ -53,7 +54,5 @@ class Mert():
             chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().float().numpy().squeeze()
             chunk_vecs.append(chunk_vec)
         
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        
+        print("Success!")
         return np.mean(chunk_vecs, axis=0)

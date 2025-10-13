@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 MIN_PLAYLIST_SONGS = 10
+MAX_PLAYLIST_SONGS = 50
 
 music_dir = Path("music")
 
@@ -26,13 +27,13 @@ with open(cache_dir / "labels.csv", "w", newline="") as f:
     for lbl_dir in music_dir.iterdir():
         if lbl_dir.is_dir():
             songs = list(lbl_dir.glob("*.mp3"))
-            i = 0
+            added_songs = 0
             for p in songs:
-                i += 1
-                if i > 5:
-                    break
-
                 w.writerow([str(p.resolve()), lbl_dir.name])
+                
+                added_songs += 1
+                if added_songs >= MAX_PLAYLIST_SONGS:
+                    break
             
             # if len(songs) < MIN_PLAYLIST_SONGS:
             #     needed = MIN_PLAYLIST_SONGS - len(songs)

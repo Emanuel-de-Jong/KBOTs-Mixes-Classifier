@@ -1,6 +1,9 @@
 # KBOT's Mixes Classifier
 Finds the right playlist for a new song.
 
+## Requirements
+- ffmpeg
+
 ## Setup
 1. `pip install poetry`.
 2. `poetry install`.
@@ -16,4 +19,4 @@ Finds the right playlist for a new song.
         1. `train.bat`. This will take a while.
 
 ## Usage
-1. `python run.py PATH_TO_SONG.mp3`.
+1. `poetry run python run.py PATH_TO_SONG.mp3`.
