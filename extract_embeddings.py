@@ -10,7 +10,7 @@ CHUNK_LENGTH_SECONDS = 2.0
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 model_name = "m-a-p/MERT-v1-330M"
-model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device).eval()
+model = AutoModel.from_pretrained(model_name, trust_remote_code=True, torch_dtype=torch.float16).to(device).eval()
 processor = Wav2Vec2FeatureExtractor.from_pretrained(model_name, trust_remote_code=True, use_fast=False)
 
 df = pd.read_csv("labels.csv")
@@ -32,16 +32,14 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     chunk_embeddings = []
     for chunk in chunks:
         input_audio_chunk = chunk.numpy()
-        inputs = processor(
-            input_audio_chunk, 
-            sampling_rate=resample_rate, 
-            return_tensors="pt"
-        ).to(device)
+
+        inputs = processor(input_audio_chunk, sampling_rate=resample_rate, return_tensors="pt")
+        inputs = {k: v.half().to(device) if v.dtype == torch.float32 else v.to(device) for k, v in inputs.items()}
 
         with torch.no_grad():
             outputs = model(**inputs)
         
-        chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().numpy().squeeze()
+        chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().float().numpy().squeeze()
         chunk_embeddings.append(chunk_vec)
         
         del inputs, outputs
@@ -50,10 +48,10 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     
     del waveform, audio_samples, chunks
     
-    file_vec = np.mean(chunk_embeddings, axis=0) 
-    
-    embs.append(file_vec)
-    labels.append(row.label)
+    if chunk_embeddings:
+        file_vec = np.mean(chunk_embeddings, axis=0) 
+        embs.append(file_vec)
+        labels.append(row.label)
 
 X = np.stack(embs)
 pd.Series(labels).to_csv("y_labels.csv", index=False)
