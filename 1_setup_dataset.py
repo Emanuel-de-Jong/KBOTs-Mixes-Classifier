@@ -1,6 +1,5 @@
 import unidecode
 import csv
-import sys
 import re
 import os
 from pathlib import Path
@@ -50,7 +49,9 @@ if playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
     for name, count in playlist_counts:
         print(f"{name}: {count}")
 
-with open("labels.csv", "w", newline="") as f:
+cache_dir = Path("cache")
+cache_dir.mkdir(exist_ok=True)
+with open(cache_dir / "labels.csv", "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["filepath","label"])
     for lbl_dir in music_dir.iterdir():

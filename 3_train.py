@@ -5,9 +5,12 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import top_k_accuracy_score
 from sklearn.preprocessing import LabelEncoder
+from pathlib import Path
 
-X = np.load("X_emb.npy")
-y = pd.read_csv("y_labels.csv").iloc[:, 0].astype(str)
+cache_dir = Path("cache")
+X = np.load(cache_dir / "X_emb.npy")
+y = pd.read_csv(cache_dir / "y_labels.csv").iloc[:, 0].astype(str)
+
 le = LabelEncoder().fit(y)
 Y = le.transform(y)
 
@@ -30,5 +33,5 @@ print(f"Mean Top-3 accuracy: {np.mean(top3_scores):.3f}")
 
 knn.fit(X, Y)
 
-joblib.dump(knn, "playlist_knn.joblib")
-joblib.dump(le, "label_encoder.joblib")
+joblib.dump(knn, cache_dir / "playlist_knn.joblib")
+joblib.dump(le, cache_dir / "label_encoder.joblib")
