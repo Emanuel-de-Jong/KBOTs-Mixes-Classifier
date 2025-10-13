@@ -55,5 +55,12 @@ with open("labels.csv", "w", newline="") as f:
     w.writerow(["filepath","label"])
     for lbl_dir in music_dir.iterdir():
         if lbl_dir.is_dir():
-            for p in lbl_dir.glob("*.mp3"):
+            songs = list(lbl_dir.glob("*.mp3"))
+            for p in songs:
                 w.writerow([str(p.resolve()), lbl_dir.name])
+            
+            if len(songs) < MIN_PLAYLIST_SONGS:
+                needed = MIN_PLAYLIST_SONGS - len(songs)
+                for i in range(needed):
+                    song = songs[i % len(songs)]
+                    w.writerow([str(song.resolve()), lbl_dir.name])

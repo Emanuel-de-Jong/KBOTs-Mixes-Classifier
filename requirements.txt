@@ -10,3 +10,6 @@ joblib
 ffmpeg-python
 poetry
 unidecode
+nnAudio
+huggingface_hub
+hf_xet
