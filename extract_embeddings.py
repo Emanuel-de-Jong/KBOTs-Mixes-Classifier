@@ -16,7 +16,12 @@ processor = Wav2Vec2FeatureExtractor.from_pretrained(model_name, trust_remote_co
 df = pd.read_csv("labels.csv")
 embs, labels = [], []
 
+i = 0
 for _, row in tqdm(df.iterrows(), total=len(df)):
+    i += 1
+    if i > 5:
+        break
+    
     path = row.filepath
     waveform, sr = torchaudio.load(path)
 
@@ -28,9 +33,17 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     audio_samples = waveform.squeeze(0)
     samples_per_chunk = int(CHUNK_LENGTH_SECONDS * resample_rate)
     
-    chunks = torch.split(audio_samples, samples_per_chunk)
+    total_samples = len(audio_samples)
+    num_full_chunks = total_samples // samples_per_chunk
+    
+    print(f"Audio length: {total_samples/sr:.2f}s, Total samples: {total_samples}, Full chunks: {num_full_chunks}")
+    
     chunk_embeddings = []
-    for chunk in chunks:
+    for i in range(num_full_chunks):
+        start_idx = i * samples_per_chunk
+        end_idx = (i + 1) * samples_per_chunk
+        chunk = audio_samples[start_idx:end_idx]
+        
         input_audio_chunk = chunk.numpy()
 
         inputs = processor(input_audio_chunk, sampling_rate=resample_rate, return_tensors="pt")
@@ -44,14 +57,15 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
         
         del inputs, outputs
         if device == "cuda":
-            torch.cuda.empty_cache() 
+            torch.cuda.empty_cache()
     
-    del waveform, audio_samples, chunks
+    del waveform, audio_samples
     
     if chunk_embeddings:
         file_vec = np.mean(chunk_embeddings, axis=0) 
         embs.append(file_vec)
         labels.append(row.label)
+        print(f"Successfully processed {len(chunk_embeddings)} chunks")
 
 X = np.stack(embs)
 pd.Series(labels).to_csv("y_labels.csv", index=False)
