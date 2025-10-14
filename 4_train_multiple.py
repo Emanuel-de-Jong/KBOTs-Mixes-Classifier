@@ -10,10 +10,17 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
-from collections import defaultdict
+from imblearn.over_sampling import SMOTE
 from sklearn.utils import resample
 from sklearn.svm import SVC
 from pathlib import Path
+
+# 0: As is
+# 1: Undersampling
+# 2: Oversampling
+SAMPLING = 1
+VERBOSE = False
+CV = 4
 
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)
@@ -22,26 +29,27 @@ X = np.load(cache_dir / "X_emb.npy")
 y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
 
-cv = 4
-verbose = False
-
 test_size = 0.1
-X_train_unbalanced, X_test, y_train_unbalanced, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
 
-df = pd.DataFrame({'label': y_train_unbalanced.values})
-df['idx'] = df.index
-min_n = df['label'].value_counts().min()
+if SAMPLING == 1:
+    df = pd.DataFrame({'label': y_train.values})
+    df['idx'] = df.index
+    min_n = df['label'].value_counts().min()
 
-selected_idxs = (
-    df.groupby('label')['idx']
-      .apply(lambda idxs: resample(idxs, replace=False, n_samples=min_n, random_state=1))
-      .explode()
-      .astype(int)
-      .values
-)
+    selected_idxs = (
+        df.groupby('label')['idx']
+        .apply(lambda idxs: resample(idxs, replace=False, n_samples=min_n, random_state=1))
+        .explode()
+        .astype(int)
+        .values
+    )
 
-X_train = X_train_unbalanced[selected_idxs]
-y_train = y_train_unbalanced.iloc[selected_idxs].reset_index(drop=True)
+    X_train = X_train[selected_idxs]
+    y_train = y_train.iloc[selected_idxs].reset_index(drop=True)
+elif SAMPLING == 2:
+    smote = SMOTE(random_state=1)
+    X_train, y_train = smote.fit_resample(X_train, y_train)
 
 def write(msg):
     with open(train_dir / "train.log", "a") as f:
@@ -95,10 +103,10 @@ def train_KNeighbors():
     search = GridSearchCV(
         model,
         search_params,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -142,10 +150,10 @@ def train_SVC():
     search = GridSearchCV(
         model,
         search_params,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -175,10 +183,10 @@ def train_GaussianNB():
     search = GridSearchCV(
         model,
         search_params,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -217,10 +225,10 @@ def train_LogisticRegression():
     search = GridSearchCV(
         model,
         search_params,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -261,10 +269,10 @@ def train_MLP():
     search = GridSearchCV(
         model,
         search_params,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -288,9 +296,9 @@ def train_DecisionTree():
         },
     ]
 
-    search = GridSearchCV(model, search_params, cv=cv)
+    search = GridSearchCV(model, search_params, cv=CV)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -317,11 +325,11 @@ def train_RandomForest():
     search = RandomizedSearchCV(model,
         search_params,
         n_iter=50,
-        cv=cv,
+        cv=CV,
         random_state=1,
         n_jobs=-1)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     search.fit(X_train, y_train)
@@ -348,12 +356,12 @@ def train_ExtraTrees():
     search = RandomizedSearchCV(model,
         search_params,
         n_iter=50,
-        cv=cv,
+        cv=CV,
         random_state=1,
         n_jobs=-1)
     search.fit(X_train, y_train)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     print_search_results(model_name, search)
@@ -380,26 +388,26 @@ def train_GradientBoosting():
         model,
         search_params,
         n_iter=25,
-        cv=cv,
+        cv=CV,
         n_jobs=-1)
     search.fit(X_train, y_train)
     
-    if verbose:
+    if VERBOSE:
         search.verbose = 3
 
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
 
-# train_KNeighbors()
-# train_SVC()
-# train_GaussianNB()
-# train_LogisticRegression()
-# train_MLP()
-# train_DecisionTree()
-# train_RandomForest()
-# train_ExtraTrees()
-# train_GradientBoosting()
+train_KNeighbors()
+train_SVC()
+train_GaussianNB()
+train_LogisticRegression()
+train_MLP()
+train_DecisionTree()
+train_RandomForest()
+train_ExtraTrees()
+train_GradientBoosting()
 
 for model_name in models.keys():
     test(model_name)
