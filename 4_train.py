@@ -1,37 +1,69 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+import json
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix, top_k_accuracy_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import top_k_accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from pathlib import Path
 
 cache_dir = Path("cache")
 X = np.load(cache_dir / "X_emb.npy")
-y = pd.read_csv(cache_dir / "y_labels.csv").iloc[:, 0].astype(str)
+y = pd.read_csv(cache_dir / "y_labels.csv").iloc[:, 0].astype(int)
 
-le = LabelEncoder().fit(y)
-Y = le.transform(y)
+with open(cache_dir / "num_to_label.json", "r") as f:
+    labels = json.load(f)
 
-all_labels = np.unique(Y)
+test_size = 0.2
 
-knn = KNeighborsClassifier(n_neighbors=5, metric="cosine", n_jobs=-1, weights="uniform")
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
 
-cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
-scores = cross_val_score(knn, X, Y, cv=cv, scoring="accuracy")
-print(f"Mean accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
+models = {}
 
-top3_scores = []
-for train_idx, val_idx in cv.split(X, Y):
-    knn.fit(X[train_idx], Y[train_idx])
-    probs = knn.predict_proba(X[val_idx])
-    top3 = top_k_accuracy_score(Y[val_idx], probs, k=3, labels=all_labels)
-    top3_scores.append(top3)
+train_distribution = y_train.value_counts()
+print(train_distribution)
 
-print(f"Mean Top-3 accuracy: {np.mean(top3_scores):.3f}")
+def print_grid_search_results(grid_search, params):
+    print('Grid search best params')
+    for key in params.keys():
+        print(f'{key}: {grid_search.best_params_[key]}')
 
-knn.fit(X, Y)
+model = KNeighborsClassifier(n_jobs=-1)
 
-joblib.dump(knn, cache_dir / "playlist_knn.joblib")
-joblib.dump(le, cache_dir / "label_encoder.joblib")
+grid_search_params = {
+    'n_neighbors': [3, 5],
+    'metric': ['cosine', 'minkowski'],
+    'weights': ['uniform', 'distance'],
+    }
+
+grid_search = GridSearchCV(model, grid_search_params, cv=5)
+grid_search.fit(X_train, y_train)
+print_grid_search_results(grid_search, grid_search_params)
+
+models['knn'] = grid_search.best_estimator_
+
+def test(model_name):
+    print(model_name)
+
+    model = models[model_name]
+    y_pred = model.predict(X_test)
+
+    report = classification_report(y_test, y_pred, target_names = labels)
+    print(report)
+
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(cm, display_labels = labels)
+    disp.plot()
+
+    plt.xticks(rotation=90)
+    plt.show()
+
+for model_name in models.keys():
+    test(model_name)

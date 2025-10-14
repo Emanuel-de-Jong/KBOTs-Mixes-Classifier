@@ -49,7 +49,7 @@ class Mert():
             if len(raw_data) == 0:
                 raise Exception("No audio data after trimming")
             
-            audio_data = np.frombuffer(raw_data, dtype=np.float32)
+            audio_data = np.frombuffer(raw_data, dtype=np.float32).copy()
             
             waveform = torch.from_numpy(audio_data).float()
             return waveform, resample_rate
