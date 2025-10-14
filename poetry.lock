@@ -369,6 +369,21 @@ docs = ["ipython", "matplotlib", "numpydoc", "sphinx"]
 tests = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
+name = "daal"
+version = "2025.8.0"
+description = "Intel® oneAPI Data Analytics Library"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "daal-2025.8.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:f5f7c8b8d2fcadcd73b195e1c9dc296b096f1094df2c84cb7e91c2a11a8d4e2d"},
+    {file = "daal-2025.8.0-py2.py3-none-win_amd64.whl", hash = "sha256:069e345ed6c0111777d2ba06cc7dbdff72effd924e723a12f9fac2710e4bf9bb"},
+]
+
+[package.dependencies]
+tbb = "==2022.*"
+
+[[package]]
 name = "decorator"
 version = "5.2.1"
 description = "Decorators for Humans"
@@ -2159,6 +2174,31 @@ maintenance = ["conda-lock (==3.0.1)"]
 tests = ["matplotlib (>=3.5.0)", "mypy (>=1.15)", "numpydoc (>=1.2.0)", "pandas (>=1.4.0)", "polars (>=0.20.30)", "pooch (>=1.6.0)", "pyamg (>=4.2.1)", "pyarrow (>=12.0.0)", "pytest (>=7.1.2)", "pytest-cov (>=2.9.0)", "ruff (>=0.11.7)", "scikit-image (>=0.19.0)"]
 
 [[package]]
+name = "scikit-learn-intelex"
+version = "2025.8.0"
+description = "Intel(R) Extension for Scikit-learn is a seamless way to speed up your Scikit-learn application."
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "scikit_learn_intelex-2025.8.0-py310-none-manylinux_2_28_x86_64.whl", hash = "sha256:df72d5ef152356012d7281c206b8852dc1f5686daa6478484eae3676eb6a3212"},
+    {file = "scikit_learn_intelex-2025.8.0-py310-none-win_amd64.whl", hash = "sha256:7bd9b2bbba9c922c776ad642fedec03c3a03d529762ba4ac7baf517040114d9b"},
+    {file = "scikit_learn_intelex-2025.8.0-py311-none-manylinux_2_28_x86_64.whl", hash = "sha256:bbd700d28299dcf83aba803008988816a3e4b91babf0323138a387cd0e221cf2"},
+    {file = "scikit_learn_intelex-2025.8.0-py311-none-win_amd64.whl", hash = "sha256:64853e03d0eac85d3308ad49f5df6bb658238350fa4c824cbfc3658b3aa246d8"},
+    {file = "scikit_learn_intelex-2025.8.0-py312-none-manylinux_2_28_x86_64.whl", hash = "sha256:c10121be3df94a8d145b839b6d30b7a796361ca408d46aed9c93e21bf2a9608a"},
+    {file = "scikit_learn_intelex-2025.8.0-py312-none-win_amd64.whl", hash = "sha256:45c25583be94b80895a01bf6cc5b9f631291b810b5cf266488edfdb171f175d8"},
+    {file = "scikit_learn_intelex-2025.8.0-py313-none-manylinux_2_28_x86_64.whl", hash = "sha256:866d46c82fa2e1b5f49e44f65b2e6e68894bb8289585b75bd6e1adfbd51e3715"},
+    {file = "scikit_learn_intelex-2025.8.0-py313-none-win_amd64.whl", hash = "sha256:1fc06bd4b2b0fd30e5734011e719f2a22b3410ffcf606b835105541bffb77243"},
+    {file = "scikit_learn_intelex-2025.8.0-py39-none-manylinux_2_28_x86_64.whl", hash = "sha256:0bac30244b951aa1f4498c213fefeb3002fabfbb495cbc0025c60d0858722771"},
+    {file = "scikit_learn_intelex-2025.8.0-py39-none-win_amd64.whl", hash = "sha256:48b7d324329dc0537683887a5bafcfb7ce9a88de89fd74b6a7291c32e5a303b8"},
+]
+
+[package.dependencies]
+daal = "2025.8.0"
+numpy = ">=1.19"
+scikit-learn = ">=0.22"
+
+[[package]]
 name = "scipy"
 version = "1.16.2"
 description = "Fundamental algorithms for scientific computing in Python"
@@ -2353,6 +2393,33 @@ mpmath = ">=1.1.0,<1.4"
 
 [package.extras]
 dev = ["hypothesis (>=6.70.0)", "pytest (>=7.1.0)"]
+
+[[package]]
+name = "tbb"
+version = "2022.2.0"
+description = "Intel® oneAPI Threading Building Blocks (oneTBB)"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "tbb-2022.2.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:522189f3e370a6b9c92b8a7fbdecf3633f7c53f0ea4eb8d6891a7f5f00c78099"},
+    {file = "tbb-2022.2.0-py3-none-win_amd64.whl", hash = "sha256:acbce7632d4d7acc6bdfe9849a57ab1624490198699eb16ea63243cfb4fd4cfa"},
+]
+
+[package.dependencies]
+tcmlib = "==1.*"
+
+[[package]]
+name = "tcmlib"
+version = "1.4.0"
+description = "Thread Composability Manager"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "tcmlib-1.4.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:b2a2b68c100cc2a6163d394353b3013ab2479e70300b9bc1cb7f7822bcc38a40"},
+    {file = "tcmlib-1.4.0-py2.py3-none-win_amd64.whl", hash = "sha256:ab24f73c52b224cb744a0c0c28fcef8e51aec3c88aa6b39202c149495d6d2ea0"},
+]
 
 [[package]]
 name = "threadpoolctl"
@@ -2663,4 +2730,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12.0"
-content-hash = "faf4601567265e52e240974f9f6ef5fc4935558bde568bc7e07f6abcf0917a25"
+content-hash = "b8ae4bf8fe0e8b048d00c23c4f6a33ad988aa033150f8076d8a221ff11990d14"

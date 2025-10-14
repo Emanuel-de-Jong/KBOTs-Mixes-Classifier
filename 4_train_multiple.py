@@ -7,6 +7,7 @@ import time
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
+from sklearnex import patch_sklearn, config_context
 from sklearn.utils import resample
 from pathlib import Path
 
@@ -27,6 +28,8 @@ TRAIN_FUNCTIONS = [
     Classifier.train_ExtraTrees,
     Classifier.train_GradientBoosting
 ]
+
+patch_sklearn()
 
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)
@@ -72,11 +75,12 @@ def print_search_results(model_name, search):
         write(f'{key}: {val}')
 
 models = {}
-for train_func in TRAIN_FUNCTIONS:
-    start = time.time()
-    train_func(X_train, y_train, models, CV, VERBOSE, print_search_results)
-    elapsed = time.time() - start
-    write(f"{train_func.__name__} took {elapsed:.2f} seconds or {elapsed // 60} minutes.")
+with config_context(target_offload="gpu:0"):
+    for train_func in TRAIN_FUNCTIONS:
+        start = time.time()
+        train_func(X_train, y_train, models, CV, VERBOSE, print_search_results)
+        elapsed = time.time() - start
+        write(f"{train_func.__name__} took {elapsed:.2f} seconds or {elapsed // 60} minutes.")
 
 def test(model_name):
     write(f'\n=== {model_name} Test ===')
