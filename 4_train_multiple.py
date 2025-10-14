@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import joblib
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
@@ -15,12 +16,17 @@ from pathlib import Path
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)
 cache_dir = Path("cache")
-X = np.load(cache_dir / "X_emb.npy")
-y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
+unbalanced_X = np.load(cache_dir / "X_emb.npy")
+unbalanced_y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
 
 cv = 4
 verbose = True
+
+smallest_label_data_count = unbalanced_y.value_counts().min()
+
+X = unbalanced_X
+y = unbalanced_y
 
 test_size = 0.1
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
@@ -54,7 +60,7 @@ def test(model_name):
     disp.plot()
 
     plt.xticks(rotation=90)
-    plt.savefig(train_dir / f'{model_name}.png')
+    plt.savefig(train_dir / f'test_{model_name}.png')
 
 def train_KNeighbors():
     model_name = 'KNeighbors'
@@ -374,14 +380,17 @@ def train_GradientBoosting():
     models[model_name] = search.best_estimator_
 
 train_KNeighbors()
-train_SVC()
-train_GaussianNB()
-train_LogisticRegression()
-train_MLP()
-train_DecisionTree()
-train_RandomForest()
-train_ExtraTrees()
-train_GradientBoosting()
+# train_SVC()
+# train_GaussianNB()
+# train_LogisticRegression()
+# train_MLP()
+# train_DecisionTree()
+# train_RandomForest()
+# train_ExtraTrees()
+# train_GradientBoosting()
 
 for model_name in models.keys():
     test(model_name)
+
+for name, model in models.items():
+    joblib.dump(model, train_dir / f'model_{name}.joblib')

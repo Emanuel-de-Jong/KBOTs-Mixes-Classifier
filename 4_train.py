@@ -52,6 +52,6 @@ disp = ConfusionMatrixDisplay(cm, display_labels = labels)
 disp.plot()
 
 plt.xticks(rotation=90)
-plt.savefig(train_dir / f'Model.png')
+plt.savefig(train_dir / f'test.png')
 
 joblib.dump(model, cache_dir / "model.joblib")
