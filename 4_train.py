@@ -49,14 +49,38 @@ def test(model_name):
     plt.xticks(rotation=90)
     plt.savefig(train_dir / f'{model_name}.png')
 
-def KNeighbors():
+def train_KNeighbors():
     model_name = 'KNeighbors'
     model = KNeighborsClassifier(n_jobs=-1)
 
     grid_search_params = {
-        'n_neighbors': [3, 5],
-        'metric': ['cosine', 'minkowski'],
+        'n_neighbors': [3, 5, 7, 9],
         'weights': ['uniform', 'distance'],
+        'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+        'p': [1.0, 2.0, 3.0],
+        'metric': ['minkowski', 'cosine'],
+    }
+
+    grid_search = GridSearchCV(model, grid_search_params, cv=5)
+    grid_search.fit(X_train, y_train)
+    print_grid_search_results(model_name, grid_search, grid_search_params)
+
+    models[model_name] = grid_search.best_estimator_
+
+def train_SVC():
+    model_name = 'SVC'
+    model = SVC()
+
+    grid_search_params = {
+        'C': [0.8, 1.0, 1.2],
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+        'degree': list(range(1, 8)),
+        'gamma': ['scale', 'auto'],
+        'coef0': [0.0, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4],
+        'shrinking': [True, False],
+        'probability': [True, False],
+        'tol': [0.0006, 0.0008, 0.001, 0.002, 0.004, 0.006],
+        'break_ties': [True, False],
         }
 
     grid_search = GridSearchCV(model, grid_search_params, cv=5)
@@ -65,7 +89,8 @@ def KNeighbors():
 
     models[model_name] = grid_search.best_estimator_
 
-KNeighbors()
+train_KNeighbors()
+train_SVC()
 
 for model_name in models.keys():
     test(model_name)
