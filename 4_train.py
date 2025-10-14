@@ -88,33 +88,33 @@ def train_SVC():
     model = SVC(random_state=1)
 
     search_params = [
-            {
-                'C': [0.8, 1.0, 1.2],
-                'kernel': ['linear'],
-                'break_ties': [True, False],
-            },
-            {
-                'C': [0.8, 1.0, 1.2],
-                'kernel': ['poly'],
-                'degree': [2, 3, 4, 5, 6, 7],
-                'gamma': ['scale', 'auto'],
-                'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
-                'break_ties': [True, False],
-            },
-            {
-                'C': [0.8, 1.0, 1.2],
-                'kernel': ['rbf'],
-                'gamma': ['scale', 'auto'],
-                'break_ties': [True, False],
-            },
-            {
-                'C': [0.8, 1.0, 1.2],
-                'kernel': ['sigmoid'],
-                'gamma': ['scale', 'auto'],
-                'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
-                'break_ties': [True, False],
-            },
-        ]
+        {
+            'C': [0.8, 1.0, 1.2],
+            'kernel': ['linear'],
+            'break_ties': [True, False],
+        },
+        {
+            'C': [0.8, 1.0, 1.2],
+            'kernel': ['poly'],
+            'degree': [2, 3, 4, 5, 6, 7],
+            'gamma': ['scale', 'auto'],
+            'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
+            'break_ties': [True, False],
+        },
+        {
+            'C': [0.8, 1.0, 1.2],
+            'kernel': ['rbf'],
+            'gamma': ['scale', 'auto'],
+            'break_ties': [True, False],
+        },
+        {
+            'C': [0.8, 1.0, 1.2],
+            'kernel': ['sigmoid'],
+            'gamma': ['scale', 'auto'],
+            'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
+            'break_ties': [True, False],
+        },
+    ]
 
     search = GridSearchCV(
         model,
@@ -131,16 +131,16 @@ def train_SVC():
 #     model = DecisionTreeClassifier(random_state=1)
 
 #     search_params = [
-#             {
-#                 'criterion': ['gini', 'entropy'],
-#                 'splitter': ['best', 'random'],
-#                 'max_depth': [None, 5, 20, 200],
-#                 # 'min_samples_split': [2, 5, 20, 200],
-#                 # 'min_samples_leaf': [1, 2, 3],
-#                 'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
-#                 'class_weight': [None, 'balanced'],
-#             },
-#         ]
+#         {
+#             'criterion': ['gini', 'entropy'],
+#             'splitter': ['best', 'random'],
+#             'max_depth': [None, 5, 20, 200],
+#             'min_samples_split': [2, 5, 20],
+#             'min_samples_leaf': [1, 2, 3],
+#             'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
+#             'class_weight': [None, 'balanced'],
+#         },
+#     ]
 
 #     search = GridSearchCV(model, search_params, cv=cv)
 #     search.fit(X_train, y_train)
@@ -148,47 +148,45 @@ def train_SVC():
 
 #     models[model_name] = search.best_estimator_
 
-def train_GaussianNB():
-    model_name = 'GaussianNB'
-    model = GaussianNB()
+def train_RandomForest():
+    model_name = 'RandomForest'
+    model = RandomForestClassifier(random_state=1, n_jobs=-1)
 
     search_params = [
-            {
-                'var_smoothing': [
-                    1e-1,
-                    1e-3,
-                    1e-4,
-                    1e-5,
-                    1e-6,
-                    1e-7,
-                    1e-8, 4e-8, 8e-8, 9e-8,
-                    1e-9, 2e-9, 4e-9, 8e-9,
-                    1e-10, 5e-10],
-            },
-        ]
+        {
+            'n_estimators': [50],
+            'criterion': ['gini', 'entropy'],
+            'max_depth': [5, 20, 200],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 3, 5],
+            'max_features': ['sqrt', 0.01, 0.1, 0.5],
+            'class_weight': [None, 'balanced'],
+        },
+    ]
 
-    search = GridSearchCV(
-        model,
+    search = RandomizedSearchCV(model,
         search_params,
+        n_iter=50,
         cv=cv,
+        random_state=1,
         n_jobs=-1)
     search.fit(X_train, y_train)
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
 
-def train_RandomForest():
-    model_name = 'RandomForest'
-    model = RandomForestClassifier(random_state=1, n_jobs=-1)
+def train_ExtraTrees():
+    model_name = 'ExtraTrees'
+    model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
 
     search_params = [
             {
                 'n_estimators': [50],
                 'criterion': ['gini', 'entropy'],
-                'max_depth': [None, 5, 20, 200],
+                'max_depth': [5, 20, 200],
                 'min_samples_split': [2, 5, 10],
                 'min_samples_leaf': [1, 3, 5],
-                'max_features': [None, 'sqrt', 0.01, 0.1, 0.5],
+                'max_features': ['sqrt', 0.01, 0.1, 0.5],
                 'class_weight': [None, 'balanced'],
             },
         ]
@@ -204,11 +202,80 @@ def train_RandomForest():
 
     models[model_name] = search.best_estimator_
 
+def train_GaussianNB():
+    model_name = 'GaussianNB'
+    model = GaussianNB()
+
+    search_params = [
+        {
+            'var_smoothing': [
+                1e-1,
+                1e-3,
+                1e-4,
+                1e-5,
+                1e-6,
+                1e-7,
+                1e-8, 4e-8, 8e-8, 9e-8,
+                1e-9, 2e-9, 4e-9, 8e-9,
+                1e-10, 5e-10],
+        },
+    ]
+
+    search = GridSearchCV(
+        model,
+        search_params,
+        cv=cv,
+        n_jobs=-1)
+    search.fit(X_train, y_train)
+    print_search_results(model_name, search)
+
+    models[model_name] = search.best_estimator_
+
+def train_LogisticRegression():
+    model_name = 'LogisticRegression'
+    model = LogisticRegression(random_state=1, n_jobs=-1, max_iter=2000)
+
+    search_params = [
+        {
+            'penalty': ['l2'],
+            'C': [0.8, 1.0, 1.2],
+            'fit_intercept': [True, False],
+            'class_weight': [None, 'balanced'],
+            'solver': ['lbfgs', 'newton-cg', 'newton-cholesky', 'sag', 'saga'],
+        },
+        {
+            'penalty': ['l1'],
+            'C': [0.8, 1.0, 1.2],
+            'fit_intercept': [True, False],
+            'class_weight': [None, 'balanced'],
+            'solver': ['saga'],
+        },
+        {
+            'penalty': ['elasticnet'],
+            'C': [0.8, 1.0, 1.2],
+            'fit_intercept': [True, False],
+            'class_weight': [None, 'balanced'],
+            'solver': ['saga'],
+        },
+    ]
+
+    search = GridSearchCV(
+        model,
+        search_params,
+        cv=cv,
+        n_jobs=-1)
+    search.fit(X_train, y_train)
+    print_search_results(model_name, search)
+
+    models[model_name] = search.best_estimator_
+
 # train_KNeighbors()
 # train_SVC()
 # train_DecisionTree()
+# train_RandomForest()
+# train_ExtraTrees()
 # train_GaussianNB()
-train_RandomForest()
+# train_LogisticRegression()
 
 for model_name in models.keys():
     test(model_name)
