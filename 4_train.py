@@ -26,7 +26,7 @@ test_size = 0.1
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
 
 def write(msg):
-    with open(cache_dir / "train.log", "a") as f:
+    with open(train_dir / "train.log", "a") as f:
         f.write(f"{msg}\n")
     print(msg)
 
