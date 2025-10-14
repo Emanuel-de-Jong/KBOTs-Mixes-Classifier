@@ -5,7 +5,7 @@ import os
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 20.0
+    CHUNK_LENGTH_SECONDS = 15.0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
@@ -37,13 +37,23 @@ class Mert():
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
             
-            total_samples = len(audio_samples)
-            num_full_chunks = total_samples // samples_per_chunk
+            start_skip_samples = int(20.0 * resample_rate)
+            end_skip_samples = int(20.0 * resample_rate)
             
-            chunk_vecs = []
+            total_samples = len(audio_samples)
+            
+            usable_samples = total_samples - start_skip_samples - end_skip_samples
+            
+            if usable_samples < samples_per_chunk:
+                self.error(f"{path} is too short after skipping! Usable: {usable_samples}, needed: {samples_per_chunk}")
+                return None
+            
+            num_full_chunks = usable_samples // samples_per_chunk
+            
+            chunk_data = []
             for i in range(num_full_chunks):
-                start_idx = i * samples_per_chunk
-                end_idx = (i + 1) * samples_per_chunk
+                start_idx = start_skip_samples + (i * samples_per_chunk)
+                end_idx = start_idx + samples_per_chunk
                 chunk = audio_samples[start_idx:end_idx]
                 
                 input_audio_chunk = chunk.numpy()
@@ -54,10 +64,10 @@ class Mert():
                     outputs = self.model(**inputs)
                 
                 chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().float().numpy().squeeze()
-                chunk_vecs.append(chunk_vec)
+                chunk_data.append(chunk_vec)
             
-            print("Success!")
-            return np.mean(chunk_vecs, axis=0)
+            print(f"Success! Generated {len(chunk_data)} chunks")
+            return chunk_data
         
         except Exception as e:
             self.error(f"{path} is corrupt! Error: {e}")

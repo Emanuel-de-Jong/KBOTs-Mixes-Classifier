@@ -1,15 +1,12 @@
 import joblib
 from pathlib import Path
-from Mert import Mert
+from Classifier import Classifier
 
 LOW_SONG_COUNT_TRES = 15
 
-mert = Mert()
+classifier = Classifier()
 music_dir = Path("music")
 test_dir = Path("test")
-cache_dir = Path("cache")
-knn = joblib.load(cache_dir / "playlist_knn.joblib")
-le  = joblib.load(cache_dir / "label_encoder.joblib")
 
 results = []
 pass_count = 0
@@ -27,16 +24,13 @@ for playlist_dir in test_dir.iterdir():
         low_song_count = len(music_dir_songs) <= LOW_SONG_COUNT_TRES
 
         last_song = songs[-1]
-        vec = mert.run(str(last_song))
-        if vec is None:
+        top = classifier.infer(last_song)
+        if top is None or len(top) == 0:
             continue
 
-        vec = vec.reshape(1, -1)
-        probs = knn.predict_proba(vec)[0]
-        pred_idx = probs.argmax()
-        pred_label = le.classes_[pred_idx]
+        first_result = top[0]
 
-        passed = pred_label == playlist_dir.name
+        passed = first_result[0] == playlist_dir.name
         if passed:
             pass_count += 1
             if not low_song_count:
@@ -49,7 +43,7 @@ for playlist_dir in test_dir.iterdir():
         results.append({
             "playlist": playlist_dir.name,
             "song": last_song.name,
-            "predicted": pred_label,
+            "predicted": first_result[0],
             "passed": passed,
             "low_song_count": low_song_count
         })

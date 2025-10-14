@@ -16,19 +16,20 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
     # if song_batch_count > 25:
     #     break
 
-    vec = mert.run(row.filepath)
-    if vec is None:
+    chunk_data = mert.run(row.filepath)
+    if chunk_data is None:
         continue
-    if not isinstance(vec, np.ndarray):
-        print(f"Skipping {row.filepath}: returned {type(vec)} instead of ndarray.")
-        continue
-    # MERT should output 1024-dim embeddings
-    if vec.shape != (1024,):
-        print(f"Skipping {row.filepath}: wrong shape {vec.shape}.")
-        continue
+    
+    for vec in chunk_data:
+        if not isinstance(vec, np.ndarray):
+            print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
+            continue
+        if vec.shape != (1024,):
+            print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
+            continue
 
-    embeddings.append(vec)
-    labels.append(row.label)
+        embeddings.append(vec)
+        labels.append(row.label)
 
 X = np.stack(embeddings)
 
