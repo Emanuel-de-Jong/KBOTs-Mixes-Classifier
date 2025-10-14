@@ -1,7 +1,9 @@
+
+cache/
 music/
 !music/.gitkeep
 test/
-cache/
+train/
 *.log
 
 # Byte-compiled / optimized / DLL files
