@@ -19,35 +19,27 @@ class Mert():
     def load_audio_ffmpeg(self, path):
         resample_rate = self.processor.sampling_rate
         
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(suffix='.f32', delete=False) as temp_file:
             temp_path = temp_file.name
         
         try:
-            cmd = [
-                'ffmpeg',
-                '-i', path,
-                '-ac', '1',
-                '-ar', str(resample_rate),
-                '-acodec', 'pcm_f32le',
-                '-y',
+            result = subprocess.run([
+                "ffmpeg",
+                "-y",
+                "-i", path,
+                "-f", "f32le",
+                "-acodec", "pcm_f32le",
+                "-ac", "1",
+                "-ar", "24000",
                 temp_path
-            ]
-            
-            result = subprocess.run(cmd, capture_output=True)
+            ], capture_output=True)
+
             if result.returncode != 0:
                 error_msg = result.stderr.decode('utf-8', errors='ignore')
                 raise Exception(f"FFmpeg error: {error_msg}")
             
             with open(temp_path, 'rb') as f:
                 raw_data = f.read()
-            
-            element_size = np.dtype(np.float32).itemsize
-            remainder = len(raw_data) % element_size
-            if remainder != 0:
-                raw_data = raw_data[:-remainder]
-            
-            if len(raw_data) == 0:
-                raise Exception("No audio data after trimming")
             
             audio_data = np.frombuffer(raw_data, dtype=np.float32).copy()
             
@@ -62,12 +54,7 @@ class Mert():
         print(f"Processing: {os.path.basename(path)}")
         
         try:
-            waveform, resample_rate = self.load_audio_ffmpeg(path)
-            
-            if waveform.dim() > 1:
-                audio_samples = waveform.mean(dim=0)
-            else:
-                audio_samples = waveform.squeeze(0)
+            audio_samples, resample_rate = self.load_audio_ffmpeg(path)
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
             
