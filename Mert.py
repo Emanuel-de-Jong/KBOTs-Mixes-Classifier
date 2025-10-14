@@ -33,30 +33,13 @@ class Mert():
                 temp_path
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, capture_output=True)
             if result.returncode != 0:
-                raise Exception(f"FFmpeg error: {result.stderr}")
-            
-            cmd_info = [
-                'ffprobe',
-                '-v', 'error',
-                '-show_entries', 'format=duration',
-                '-of', 'default=noprint_wrappers=1:nokey=1',
-                path
-            ]
-            
-            result_info = subprocess.run(cmd_info, capture_output=True, text=True)
-            if result_info.returncode == 0:
-                duration = float(result_info.stdout.strip())
-                expected_samples = int(duration * resample_rate)
-            else:
-                expected_samples = None
+                error_msg = result.stderr.decode('utf-8', errors='ignore')
+                raise Exception(f"FFmpeg error: {error_msg}")
             
             with open(temp_path, 'rb') as f:
                 audio_data = np.frombuffer(f.read(), dtype=np.float32)
-            
-            if expected_samples and len(audio_data) < expected_samples * 0.5:
-                raise Exception(f"Audio too short. Expected ~{expected_samples}, got {len(audio_data)}")
             
             waveform = torch.from_numpy(audio_data).float()
             return waveform, resample_rate
