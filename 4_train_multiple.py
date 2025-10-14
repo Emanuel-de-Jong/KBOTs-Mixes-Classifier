@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
+from collections import defaultdict
 from sklearn.svm import SVC
 from pathlib import Path
 
@@ -21,12 +22,32 @@ unbalanced_y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
 
 cv = 4
-verbose = True
+verbose = False
 
 smallest_label_data_count = unbalanced_y.value_counts().min()
 
-X = unbalanced_X
-y = unbalanced_y
+label_indices = defaultdict(list)
+for idx, label in enumerate(unbalanced_y):
+    label_indices[label].append(idx)
+
+selected_indices = []
+rng = np.random.default_rng(1)
+for label, indices in label_indices.items():
+    indices = np.array(indices)
+    if len(indices) > smallest_label_data_count:
+        chosen = rng.choice(indices, smallest_label_data_count, replace=False)
+    else:
+        chosen = indices
+    selected_indices.extend(chosen)
+
+selected_indices = np.array(selected_indices)
+rng.shuffle(selected_indices)
+
+X = unbalanced_X[selected_indices]
+y = unbalanced_y.iloc[selected_indices].reset_index(drop=True)
+
+# X = unbalanced_X
+# y = unbalanced_y
 
 test_size = 0.1
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
@@ -379,7 +400,7 @@ def train_GradientBoosting():
 
     models[model_name] = search.best_estimator_
 
-train_KNeighbors()
+# train_KNeighbors()
 # train_SVC()
 # train_GaussianNB()
 # train_LogisticRegression()
