@@ -39,7 +39,17 @@ class Mert():
                 raise Exception(f"FFmpeg error: {error_msg}")
             
             with open(temp_path, 'rb') as f:
-                audio_data = np.frombuffer(f.read(), dtype=np.float32)
+                raw_data = f.read()
+            
+            element_size = np.dtype(np.float32).itemsize
+            remainder = len(raw_data) % element_size
+            if remainder != 0:
+                raw_data = raw_data[:-remainder]
+            
+            if len(raw_data) == 0:
+                raise Exception("No audio data after trimming")
+            
+            audio_data = np.frombuffer(raw_data, dtype=np.float32)
             
             waveform = torch.from_numpy(audio_data).float()
             return waveform, resample_rate
@@ -60,18 +70,12 @@ class Mert():
                 audio_samples = waveform.squeeze(0)
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
-            print(f"samples_per_chunk: {samples_per_chunk}")
             
             start_skip_samples = int(20.0 * resample_rate)
-            print(f"start_skip_samples: {start_skip_samples}")
             end_skip_samples = int(20.0 * resample_rate)
-            print(f"end_skip_samples: {end_skip_samples}")
             
             total_samples = len(audio_samples)
-            print(f"total_samples: {total_samples}")
-            
             usable_samples = total_samples - start_skip_samples - end_skip_samples
-            print(f"usable_samples: {usable_samples}")
             
             if usable_samples < samples_per_chunk:
                 self.error(f"{path} is too short after skipping! Usable: {usable_samples}, needed: {samples_per_chunk}")
