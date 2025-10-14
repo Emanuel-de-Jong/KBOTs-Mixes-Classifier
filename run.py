@@ -1,7 +1,7 @@
 import sys
 from Classifier import Classifier
 
-path = "test/Bassline/Club Angel - Control Dem.mp3"
+path = "test/hardstyle.mp3"
 if len(sys.argv) > 1:
     path = sys.argv[1]
 

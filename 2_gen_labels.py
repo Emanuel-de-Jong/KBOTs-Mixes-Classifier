@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 
 MIN_PLAYLIST_SONGS = 11
-MAX_PLAYLIST_SONGS = 15
+MAX_PLAYLIST_SONGS = 14
 
 music_dir = Path("music")
 cache_dir = Path("cache")
