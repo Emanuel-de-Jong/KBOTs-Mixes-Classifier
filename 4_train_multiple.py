@@ -11,46 +11,37 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from collections import defaultdict
+from sklearn.utils import resample
 from sklearn.svm import SVC
 from pathlib import Path
 
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)
 cache_dir = Path("cache")
-unbalanced_X = np.load(cache_dir / "X_emb.npy")
-unbalanced_y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
+X = np.load(cache_dir / "X_emb.npy")
+y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
 
 cv = 4
 verbose = False
 
-smallest_label_data_count = unbalanced_y.value_counts().min()
-
-label_indices = defaultdict(list)
-for idx, label in enumerate(unbalanced_y):
-    label_indices[label].append(idx)
-
-selected_indices = []
-rng = np.random.default_rng(1)
-for label, indices in label_indices.items():
-    indices = np.array(indices)
-    if len(indices) > smallest_label_data_count:
-        chosen = rng.choice(indices, smallest_label_data_count, replace=False)
-    else:
-        chosen = indices
-    selected_indices.extend(chosen)
-
-selected_indices = np.array(selected_indices)
-rng.shuffle(selected_indices)
-
-X = unbalanced_X[selected_indices]
-y = unbalanced_y.iloc[selected_indices].reset_index(drop=True)
-
-# X = unbalanced_X
-# y = unbalanced_y
-
 test_size = 0.1
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
+X_train_unbalanced, X_test, y_train_unbalanced, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
+
+df = pd.DataFrame({'label': y_train_unbalanced.values})
+df['idx'] = df.index
+min_n = df['label'].value_counts().min()
+
+selected_idxs = (
+    df.groupby('label')['idx']
+      .apply(lambda idxs: resample(idxs, replace=False, n_samples=min_n, random_state=1))
+      .explode()
+      .astype(int)
+      .values
+)
+
+X_train = X_train_unbalanced[selected_idxs]
+y_train = y_train_unbalanced.iloc[selected_idxs].reset_index(drop=True)
 
 def write(msg):
     with open(train_dir / "train.log", "a") as f:

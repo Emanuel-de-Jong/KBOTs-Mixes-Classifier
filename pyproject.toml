@@ -22,6 +22,8 @@ unidecode = ">=1.4.0"
 nnAudio = ">=0.3.3"
 huggingface_hub = ">=0.35.3"
 hf_xet = ">=1.1.10"
+matplotlib = ">=3.10.7"
+imbalanced-learn = ">=0.14.0"
 
 [[tool.poetry.source]]
 name = "pytorch-gpu"
