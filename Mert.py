@@ -1,5 +1,6 @@
 import numpy as np
-import torchaudio
+import subprocess
+import tempfile
 import torch
 import os
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
@@ -15,20 +16,60 @@ class Mert():
         self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True).to(self.device).eval()
         self.processor = Wav2Vec2FeatureExtractor.from_pretrained(self.MODEL_NAME, trust_remote_code=True, use_fast=False)
     
+    def load_audio_ffmpeg(self, path):
+        resample_rate = self.processor.sampling_rate
+        
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+            temp_path = temp_file.name
+        
+        try:
+            cmd = [
+                'ffmpeg',
+                '-i', path,
+                '-ac', '1',
+                '-ar', str(resample_rate),
+                '-acodec', 'pcm_f32le',
+                '-y',
+                temp_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"FFmpeg error: {result.stderr}")
+            
+            cmd_info = [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                path
+            ]
+            
+            result_info = subprocess.run(cmd_info, capture_output=True, text=True)
+            if result_info.returncode == 0:
+                duration = float(result_info.stdout.strip())
+                expected_samples = int(duration * resample_rate)
+            else:
+                expected_samples = None
+            
+            with open(temp_path, 'rb') as f:
+                audio_data = np.frombuffer(f.read(), dtype=np.float32)
+            
+            if expected_samples and len(audio_data) < expected_samples * 0.5:
+                raise Exception(f"Audio too short. Expected ~{expected_samples}, got {len(audio_data)}")
+            
+            waveform = torch.from_numpy(audio_data).float()
+            return waveform, resample_rate
+            
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+    
     def run(self, path):
         print(f"Processing: {os.path.basename(path)}")
         
         try:
-            waveform, sr = torchaudio.load(path)
-            # if waveform[0][5] == 0 and waveform[0][25] == 0 and waveform[0][50] == 0 and \
-            #         waveform[1][5] == 0 and waveform[1][25] == 0 and waveform[1][50] == 0:
-            #     self.error(f"{path} is corrupt! Only 0s.")
-            #     return None
-            
-            resample_rate = self.processor.sampling_rate
-            if sr != resample_rate:
-                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=resample_rate).cpu()
-                waveform = resampler(waveform.cpu())
+            waveform, resample_rate = self.load_audio_ffmpeg(path)
             
             if waveform.dim() > 1:
                 audio_samples = waveform.mean(dim=0)
@@ -36,13 +77,18 @@ class Mert():
                 audio_samples = waveform.squeeze(0)
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
+            print(f"samples_per_chunk: {samples_per_chunk}")
             
             start_skip_samples = int(20.0 * resample_rate)
+            print(f"start_skip_samples: {start_skip_samples}")
             end_skip_samples = int(20.0 * resample_rate)
+            print(f"end_skip_samples: {end_skip_samples}")
             
             total_samples = len(audio_samples)
+            print(f"total_samples: {total_samples}")
             
             usable_samples = total_samples - start_skip_samples - end_skip_samples
+            print(f"usable_samples: {usable_samples}")
             
             if usable_samples < samples_per_chunk:
                 self.error(f"{path} is too short after skipping! Usable: {usable_samples}, needed: {samples_per_chunk}")
