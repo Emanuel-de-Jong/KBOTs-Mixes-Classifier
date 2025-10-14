@@ -85,6 +85,7 @@ def train_KNeighbors(X_train, y_train, models, CV, VERBOSE, print_search_results
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_SVC(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'SVC'
@@ -132,6 +133,7 @@ def train_SVC(X_train, y_train, models, CV, VERBOSE, print_search_results):
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_GaussianNB(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'GaussianNB'
@@ -165,6 +167,7 @@ def train_GaussianNB(X_train, y_train, models, CV, VERBOSE, print_search_results
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'LogisticRegression'
@@ -207,6 +210,7 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'MLP'
@@ -251,6 +255,7 @@ def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_DecisionTree(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'DecisionTree'
@@ -277,6 +282,7 @@ def train_DecisionTree(X_train, y_train, models, CV, VERBOSE, print_search_resul
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_RandomForest(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'RandomForest'
@@ -308,22 +314,23 @@ def train_RandomForest(X_train, y_train, models, CV, VERBOSE, print_search_resul
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'ExtraTrees'
     model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
 
     search_params = [
-            {
-                'n_estimators': [50],
-                'criterion': ['gini', 'entropy'],
-                'max_depth': [5, 20, 200],
-                'min_samples_split': [2, 5, 10],
-                'min_samples_leaf': [1, 3, 5],
-                'max_features': ['sqrt', 0.01, 0.1, 0.5],
-                'class_weight': [None, 'balanced'],
-            },
-        ]
+        {
+            'n_estimators': [50],
+            'criterion': ['gini', 'entropy'],
+            'max_depth': [5, 20, 200],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 3, 5],
+            'max_features': ['sqrt', 0.01, 0.1, 0.5],
+            'class_weight': [None, 'balanced'],
+        },
+    ]
 
     search = RandomizedSearchCV(model,
         search_params,
@@ -339,6 +346,7 @@ def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name
 
 def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'GradientBoosting'
@@ -346,7 +354,6 @@ def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_r
 
     search_params = [
         {
-            'loss': ['log_loss'],
             'learning_rate': [0.05, 0.1, 0.15],
             'subsample': [1.0, 0.8],
             'criterion': ['friedman_mse', 'squared_error'],
@@ -370,3 +377,4 @@ def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_r
     print_search_results(model_name, search)
 
     models[model_name] = search.best_estimator_
+    return model_name

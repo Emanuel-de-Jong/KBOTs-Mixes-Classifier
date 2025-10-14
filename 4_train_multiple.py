@@ -7,7 +7,7 @@ import time
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
-from sklearnex import patch_sklearn, config_context
+from sklearnex import patch_sklearn, set_config
 from sklearn.utils import resample
 from pathlib import Path
 
@@ -26,10 +26,11 @@ TRAIN_FUNCTIONS = [
     Classifier.train_DecisionTree,
     Classifier.train_RandomForest,
     Classifier.train_ExtraTrees,
-    Classifier.train_GradientBoosting
+    Classifier.train_GradientBoosting,
 ]
 
 patch_sklearn()
+set_config(target_offload="gpu")
 
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)
@@ -74,14 +75,6 @@ def print_search_results(model_name, search):
     for key, val in search.best_params_.items():
         write(f'{key}: {val}')
 
-models = {}
-with config_context(target_offload="gpu:0"):
-    for train_func in TRAIN_FUNCTIONS:
-        start = time.time()
-        train_func(X_train, y_train, models, CV, VERBOSE, print_search_results)
-        elapsed = time.time() - start
-        write(f"{train_func.__name__} took {elapsed:.2f} seconds or {elapsed // 60} minutes.")
-
 def test(model_name):
     write(f'\n=== {model_name} Test ===')
     model = models[model_name]
@@ -100,8 +93,12 @@ def test(model_name):
     plt.savefig(train_dir / f'test_{model_name}_{SAMPLING}.png', bbox_inches='tight')
     plt.close()
 
-for model_name in models.keys():
+models = {}
+for train_func in TRAIN_FUNCTIONS:
+    start = time.time()
+    model_name = train_func(X_train, y_train, models, CV, VERBOSE, print_search_results)
+    elapsed = time.time() - start
+    write(f"{train_func.__name__} took {elapsed:.2f} seconds or {elapsed // 60} minutes.")
+    
     test(model_name)
-
-for name, model in models.items():
-    joblib.dump(model, train_dir / f'model_{name}_{SAMPLING}.joblib')
+    joblib.dump(models[model_name], train_dir / f'model_{model_name}_{SAMPLING}.joblib')
