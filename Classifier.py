@@ -179,7 +179,7 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
             'C': [0.8, 1.0, 1.2],
             'fit_intercept': [True, False],
             'class_weight': [None, 'balanced'],
-            'solver': ['lbfgs', 'newton-cg', 'newton-cholesky', 'sag', 'saga'],
+            'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'],
         },
         {
             'penalty': ['l1'],
@@ -214,11 +214,12 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
 
 def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'MLP'
-    model = MLPClassifier(random_state=1, early_stopping=True, max_iter=500)
+    model = MLPClassifier(random_state=1, early_stopping=True)
 
     search_params = [
         {
             'solver': ['adam'],
+            'max_iter': [500],
             'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
             'activation': ['relu', 'logistic', 'tanh'],
             'alpha': [0.00005, 0.0001, 0.0005],
@@ -227,12 +228,14 @@ def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
         },
         {
             'solver': ['lbfgs'],
+            'max_iter': [1000],
             'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
             'activation': ['relu', 'logistic', 'tanh'],
             'alpha': [0.00005, 0.0001, 0.0005],
         },
         {
             'solver': ['sgd'],
+            'max_iter': [500],
             'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
             'activation': ['relu', 'logistic', 'tanh'],
             'alpha': [0.00005, 0.0001, 0.0005],
@@ -337,37 +340,6 @@ def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results
         n_iter=50,
         cv=CV,
         random_state=1,
-        n_jobs=-1)
-    search.fit(X_train, y_train)
-    
-    if VERBOSE:
-        search.verbose = 3
-
-    print_search_results(model_name, search)
-
-    models[model_name] = search.best_estimator_
-    return model_name
-
-def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'GradientBoosting'
-    model = GradientBoostingClassifier(random_state=1)
-
-    search_params = [
-        {
-            'learning_rate': [0.05, 0.1, 0.15],
-            'subsample': [1.0, 0.8],
-            'criterion': ['friedman_mse', 'squared_error'],
-            'min_samples_split': [2, 4, 6],
-            'max_depth': [2, 3, 4],
-            'max_features': ['sqrt', 0.1, 0.5],
-        },
-    ]
-
-    search = RandomizedSearchCV(
-        model,
-        search_params,
-        n_iter=25,
-        cv=CV,
         n_jobs=-1)
     search.fit(X_train, y_train)
     

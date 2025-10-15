@@ -26,7 +26,6 @@ TRAIN_FUNCTIONS = [
     Classifier.train_DecisionTree,
     Classifier.train_RandomForest,
     Classifier.train_ExtraTrees,
-    Classifier.train_GradientBoosting,
 ]
 
 patch_sklearn()
