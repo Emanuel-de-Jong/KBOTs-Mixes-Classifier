@@ -28,8 +28,8 @@ TRAIN_FUNCTIONS = [
     Classifier.train_ExtraTrees,
 ]
 
-patch_sklearn()
-set_config(target_offload="gpu")
+# patch_sklearn()
+# set_config(target_offload="gpu")
 
 train_dir = Path("train")
 train_dir.mkdir(exist_ok=True)

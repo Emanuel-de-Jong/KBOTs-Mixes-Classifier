@@ -194,6 +194,7 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
             'fit_intercept': [True, False],
             'class_weight': [None, 'balanced'],
             'solver': ['saga'],
+            'l1_ratio': [0.25, 0.5, 0.75]
         },
     ]
 
