@@ -58,17 +58,26 @@ def train_KNeighbors(X_train, y_train, models, CV, VERBOSE, print_search_results
     model_name = 'KNeighbors'
     model = KNeighborsClassifier(n_jobs=-1)
 
+    # search_params = [
+    #     {
+    #         'metric': ['minkowski'],
+    #         'n_neighbors': [3, 5, 7, 9],
+    #         'weights': ['uniform', 'distance'],
+    #         'p': [1.0, 2.0, 3.0],
+    #     },
+    #     {
+    #         'metric': ['cosine'],
+    #         'n_neighbors': [3, 5, 7, 9],
+    #         'weights': ['uniform', 'distance'],
+    #     },
+    # ]
+
     search_params = [
         {
             'metric': ['minkowski'],
-            'n_neighbors': [3, 5, 7, 9],
-            'weights': ['uniform', 'distance'],
-            'p': [1.0, 2.0, 3.0],
-        },
-        {
-            'metric': ['cosine'],
-            'n_neighbors': [3, 5, 7, 9],
-            'weights': ['uniform', 'distance'],
+            'n_neighbors': [3],
+            'weights': ['distance'],
+            'p': [1.0],
         },
     ]
 
@@ -91,32 +100,43 @@ def train_SVC(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'SVC'
     model = SVC(random_state=1)
 
+    # search_params = [
+    #     {
+    #         'kernel': ['linear'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'break_ties': [True, False],
+    #     },
+    #     {
+    #         'kernel': ['poly'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'degree': [2, 3, 4, 5, 6, 7],
+    #         'gamma': ['scale', 'auto'],
+    #         'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
+    #         'break_ties': [True, False],
+    #     },
+    #     {
+    #         'kernel': ['rbf'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'gamma': ['scale', 'auto'],
+    #         'break_ties': [True, False],
+    #     },
+    #     {
+    #         'kernel': ['sigmoid'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'gamma': ['scale', 'auto'],
+    #         'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
+    #         'break_ties': [True, False],
+    #     },
+    # ]
+
     search_params = [
         {
-            'kernel': ['linear'],
-            'C': [0.8, 1.0, 1.2],
-            'break_ties': [True, False],
-        },
-        {
             'kernel': ['poly'],
-            'C': [0.8, 1.0, 1.2],
-            'degree': [2, 3, 4, 5, 6, 7],
-            'gamma': ['scale', 'auto'],
-            'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
-            'break_ties': [True, False],
-        },
-        {
-            'kernel': ['rbf'],
-            'C': [0.8, 1.0, 1.2],
-            'gamma': ['scale', 'auto'],
-            'break_ties': [True, False],
-        },
-        {
-            'kernel': ['sigmoid'],
-            'C': [0.8, 1.0, 1.2],
-            'gamma': ['scale', 'auto'],
-            'coef0': [0.0, 0.2, 0.6, 1.0, 1.2],
-            'break_ties': [True, False],
+            'C': [1.2],
+            'degree': [5],
+            'gamma': ['scale'],
+            'coef0': [1.0],
+            'break_ties': [False],
         },
     ]
 
@@ -139,18 +159,24 @@ def train_GaussianNB(X_train, y_train, models, CV, VERBOSE, print_search_results
     model_name = 'GaussianNB'
     model = GaussianNB()
 
+    # search_params = [
+    #     {
+    #         'var_smoothing': [
+    #             1e-1,
+    #             1e-3,
+    #             1e-4,
+    #             1e-5,
+    #             1e-6,
+    #             1e-7,
+    #             1e-8, 4e-8, 8e-8, 9e-8,
+    #             1e-9, 2e-9, 4e-9, 8e-9,
+    #             1e-10, 5e-10],
+    #     },
+    # ]
+
     search_params = [
         {
-            'var_smoothing': [
-                1e-1,
-                1e-3,
-                1e-4,
-                1e-5,
-                1e-6,
-                1e-7,
-                1e-8, 4e-8, 8e-8, 9e-8,
-                1e-9, 2e-9, 4e-9, 8e-9,
-                1e-10, 5e-10],
+            'var_smoothing': [1e-5],
         },
     ]
 
@@ -173,28 +199,38 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
     model_name = 'LogisticRegression'
     model = LogisticRegression(random_state=1, n_jobs=-1, max_iter=2000)
 
+    # search_params = [
+    #     {
+    #         'penalty': ['l2'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'fit_intercept': [True, False],
+    #         'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    #     {
+    #         'penalty': ['l1'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'fit_intercept': [True, False],
+    #         'solver': ['saga'],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    #     {
+    #         'penalty': ['elasticnet'],
+    #         'C': [0.8, 1.0, 1.2],
+    #         'fit_intercept': [True, False],
+    #         'solver': ['saga'],
+    #         'l1_ratio': [0.25, 0.5, 0.75]
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
     search_params = [
         {
-            'penalty': ['l2'],
-            'C': [0.8, 1.0, 1.2],
-            'fit_intercept': [True, False],
-            'class_weight': [None, 'balanced'],
-            'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'],
-        },
-        {
             'penalty': ['l1'],
-            'C': [0.8, 1.0, 1.2],
-            'fit_intercept': [True, False],
-            'class_weight': [None, 'balanced'],
+            'C': [1.0],
+            'fit_intercept': [True],
             'solver': ['saga'],
-        },
-        {
-            'penalty': ['elasticnet'],
-            'C': [0.8, 1.0, 1.2],
-            'fit_intercept': [True, False],
-            'class_weight': [None, 'balanced'],
-            'solver': ['saga'],
-            'l1_ratio': [0.25, 0.5, 0.75]
+            'class_weight': [None],
         },
     ]
 
@@ -217,32 +253,44 @@ def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
     model_name = 'MLP'
     model = MLPClassifier(random_state=1, early_stopping=True)
 
+    # search_params = [
+    #     {
+    #         'solver': ['adam'],
+    #         'max_iter': [500],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #         'epsilon': [8e-7, 1e-8, 2e-9],
+    #         'learning_rate_init': [0.0005, 0.001, 0.005],
+    #     },
+    #     {
+    #         'solver': ['lbfgs'],
+    #         'max_iter': [1000],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #     },
+    #     {
+    #         'solver': ['sgd'],
+    #         'max_iter': [500],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #         'learning_rate': ['constant', 'adaptive'],
+    #         'learning_rate_init': [0.0005, 0.001, 0.005],
+    #         'momentum': [0.88, 0.9, 0.92],
+    #     },
+    # ]
+
     search_params = [
         {
             'solver': ['adam'],
             'max_iter': [500],
-            'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-            'activation': ['relu', 'logistic', 'tanh'],
-            'alpha': [0.00005, 0.0001, 0.0005],
-            'epsilon': [8e-7, 1e-8, 2e-9],
-            'learning_rate_init': [0.0005, 0.001, 0.005],
-        },
-        {
-            'solver': ['lbfgs'],
-            'max_iter': [1000],
-            'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-            'activation': ['relu', 'logistic', 'tanh'],
-            'alpha': [0.00005, 0.0001, 0.0005],
-        },
-        {
-            'solver': ['sgd'],
-            'max_iter': [500],
-            'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-            'activation': ['relu', 'logistic', 'tanh'],
-            'alpha': [0.00005, 0.0001, 0.0005],
-            'learning_rate': ['constant', 'adaptive'],
-            'learning_rate_init': [0.0005, 0.001, 0.005],
-            'momentum': [0.88, 0.9, 0.92],
+            'hidden_layer_sizes': [(100,)],
+            'activation': ['tanh'],
+            'alpha': [5e-5],
+            'epsilon': [8e-7],
+            'learning_rate_init': [0.005],
         },
     ]
 
@@ -265,15 +313,27 @@ def train_DecisionTree(X_train, y_train, models, CV, VERBOSE, print_search_resul
     model_name = 'DecisionTree'
     model = DecisionTreeClassifier(random_state=1)
 
+    # search_params = [
+    #     {
+    #         'criterion': ['gini', 'entropy'],
+    #         'splitter': ['best', 'random'],
+    #         'max_depth': [None, 5, 20, 200],
+    #         'min_samples_split': [2, 5, 20],
+    #         'min_samples_leaf': [1, 2, 3],
+    #         'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
     search_params = [
         {
-            'criterion': ['gini', 'entropy'],
-            'splitter': ['best', 'random'],
-            'max_depth': [None, 5, 20, 200],
-            'min_samples_split': [2, 5, 20],
-            'min_samples_leaf': [1, 2, 3],
-            'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
-            'class_weight': [None, 'balanced'],
+            'criterion': ['entropy'],
+            'splitter': ['best'],
+            'max_depth': [None],
+            'min_samples_split': [2],
+            'min_samples_leaf': [1],
+            'max_features': [None],
+            'class_weight': [None],
         },
     ]
 
@@ -292,15 +352,27 @@ def train_RandomForest(X_train, y_train, models, CV, VERBOSE, print_search_resul
     model_name = 'RandomForest'
     model = RandomForestClassifier(random_state=1, n_jobs=-1)
 
+    # search_params = [
+    #     {
+    #         'n_estimators': [50],
+    #         'criterion': ['gini', 'entropy'],
+    #         'max_depth': [5, 20, 200],
+    #         'min_samples_split': [2, 5, 10],
+    #         'min_samples_leaf': [1, 3, 5],
+    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
     search_params = [
         {
             'n_estimators': [50],
-            'criterion': ['gini', 'entropy'],
-            'max_depth': [5, 20, 200],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 3, 5],
-            'max_features': ['sqrt', 0.01, 0.1, 0.5],
-            'class_weight': [None, 'balanced'],
+            'criterion': ['entropy'],
+            'max_depth': [20],
+            'min_samples_split': [2],
+            'min_samples_leaf': [3],
+            'max_features': [0.1],
+            'class_weight': [None],
         },
     ]
 
@@ -324,15 +396,27 @@ def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results
     model_name = 'ExtraTrees'
     model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
 
+    # search_params = [
+    #     {
+    #         'n_estimators': [50],
+    #         'criterion': ['gini', 'entropy'],
+    #         'max_depth': [5, 20, 200],
+    #         'min_samples_split': [2, 5, 10],
+    #         'min_samples_leaf': [1, 3, 5],
+    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
     search_params = [
         {
             'n_estimators': [50],
-            'criterion': ['gini', 'entropy'],
-            'max_depth': [5, 20, 200],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 3, 5],
-            'max_features': ['sqrt', 0.01, 0.1, 0.5],
-            'class_weight': [None, 'balanced'],
+            'criterion': ['entropy'],
+            'max_depth': [20],
+            'min_samples_split': [5],
+            'min_samples_leaf': [3],
+            'max_features': [0.5],
+            'class_weight': [None],
         },
     ]
 
