@@ -11,9 +11,12 @@ from enum import Enum
 class SamplingType(Enum):
     RAW = 0
     UNDERSAMPLING = 1
-    OVERSAMPLING = 2
+    PARTIAL_UNDERSAMPLING = 2
+    OVERSAMPLING = 3
 
-SAMPLING = SamplingType.UNDERSAMPLING
+SAMPLING = SamplingType.OVERSAMPLING
+PARTIAL_UNDERSAMPLING_TRES = 100
+OVERSAMPLING_TRES = 130
 
 cache_dir = Path("cache")
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
@@ -22,22 +25,45 @@ X_test = joblib.load(cache_dir / "embs_test.joblib")
 y_train = joblib.load(cache_dir / "labels_train.joblib")
 y_test = joblib.load(cache_dir / "labels_test.joblib")
 
+# print(f'X_train shape: {X_train.shape}')
+# print(f'X_train type: {type(X_train)}')
+# print(f'X_train[0][0] value type: {type(X_train[0][0])}')
+# print(f'y_train shape: {y_train.shape}')
+# print(f'y_train type: {type(y_train)}')
+# print(f'y_train[0] value type: {type(y_train[0])}')
+
+def undersample(label_num, sample_target):
+    global X_train, y_train
+
+    label_idxs = y_train[y_train == label_num].index.to_numpy()
+    if len(label_idxs) <= sample_target:
+        return
+
+    sampled_label_idxs = resample(label_idxs, replace=False, n_samples=sample_target, random_state=1)
+
+    other_idxs = y_train[y_train != label_num].index.to_numpy()
+
+    final_idxs = np.concatenate([other_idxs, sampled_label_idxs]).astype(int)
+    final_idxs.sort()
+
+    X_train = X_train[final_idxs]
+    y_train = y_train.iloc[final_idxs].reset_index(drop=True)
+
 if SAMPLING == SamplingType.UNDERSAMPLING:
-    df = pd.DataFrame({'label': y_train.values})
-    df['idx'] = df.index
-    min_n = df['label'].value_counts().min()
-
-    selected_idxs = (
-        df.groupby('label')['idx']
-        .apply(lambda idxs: resample(idxs, replace=False, n_samples=min_n, random_state=1))
-        .explode()
-        .astype(int)
-        .values
-    )
-
-    X_train = X_train[selected_idxs]
-    y_train = y_train.iloc[selected_idxs].reset_index(drop=True)
+    min_sample_count = y_train.value_counts().min()
+    for label_num in range(len(labels)):
+        undersample(label_num, min_sample_count)
+elif SAMPLING == SamplingType.PARTIAL_UNDERSAMPLING:
+    for label_num in range(len(labels)):
+        label_count = len(y_train[y_train == label_num])
+        if label_count > PARTIAL_UNDERSAMPLING_TRES:
+            undersample(label_num, PARTIAL_UNDERSAMPLING_TRES)
 elif SAMPLING == SamplingType.OVERSAMPLING:
+    for label_num in range(len(labels)):
+        label_count = len(y_train[y_train == label_num])
+        if label_count > OVERSAMPLING_TRES:
+            undersample(label_num, OVERSAMPLING_TRES)
+    
     smote = SMOTE(random_state=1)
     X_train, y_train = smote.fit_resample(X_train, y_train)
 
