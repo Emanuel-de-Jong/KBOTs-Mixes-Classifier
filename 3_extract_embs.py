@@ -35,9 +35,9 @@ def extract(songs, max_chunks):
     return np.stack(embeddings), pd.Series(labels)
 
 embs, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-joblib.dump(embs, cache_dir / cache_dir / "embs_train.joblib")
-joblib.dump(labels, cache_dir / cache_dir / "labels_train.joblib")
+joblib.dump(embs, cache_dir / "embs_train.joblib")
+joblib.dump(labels, cache_dir / "labels_train.joblib")
 
 embs, labels = extract(songs_test, MAX_CHUNKS_TEST)
-joblib.dump(embs, cache_dir / cache_dir / "embs_test.joblib")
-joblib.dump(labels, cache_dir / cache_dir / "labels_test.joblib")
+joblib.dump(embs, cache_dir / "embs_test.joblib")
+joblib.dump(labels, cache_dir / "labels_test.joblib")
