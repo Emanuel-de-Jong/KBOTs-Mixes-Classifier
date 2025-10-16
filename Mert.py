@@ -78,7 +78,8 @@ class Mert():
                 chunk = audio_samples[start_idx:end_idx]
                 chunks.append(chunk.numpy())
 
-            chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
+            if len(chunks) > max_chunks:
+                chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
             
             chunk_data = []
             for chunk in chunks:

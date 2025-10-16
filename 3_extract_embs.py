@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import joblib
 from pathlib import Path
 from Mert import Mert
 from tqdm import tqdm
@@ -29,14 +30,14 @@ def extract(songs, max_chunks):
                 continue
 
             embeddings.append(vec)
-            labels.append(row.label)
+            labels.append(int(row.label))
 
     return np.stack(embeddings), pd.Series(labels)
 
-X, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-np.save(cache_dir / "X_emb_train.npy", X)
-labels.to_csv(cache_dir / "y_labels_train.csv", index=False, header=["labels"])
+embs, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
+joblib.dump(embs, cache_dir / cache_dir / "embs_train.joblib")
+joblib.dump(labels, cache_dir / cache_dir / "labels_train.joblib")
 
-X, labels = extract(songs_test, MAX_CHUNKS_TEST)
-np.save(cache_dir / "X_emb_test.npy", X)
-labels.to_csv(cache_dir / "y_labels_test.csv", index=False, header=["labels"])
+embs, labels = extract(songs_test, MAX_CHUNKS_TEST)
+joblib.dump(embs, cache_dir / cache_dir / "embs_test.joblib")
+joblib.dump(labels, cache_dir / cache_dir / "labels_test.joblib")

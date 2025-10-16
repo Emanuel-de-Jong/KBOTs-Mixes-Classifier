@@ -54,8 +54,7 @@ class Classifier():
 
 
 
-def train_KNeighbors(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'KNeighbors'
+def train_KNeighbors(c, CV, VERBOSE, print_search_results):
     model = KNeighborsClassifier(n_jobs=-1)
 
     # search_params = [
@@ -90,14 +89,12 @@ def train_KNeighbors(X_train, y_train, models, CV, VERBOSE, print_search_results
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_SVC(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'SVC'
+def train_SVC(c, CV, VERBOSE, print_search_results):
     model = SVC(random_state=1)
 
     # search_params = [
@@ -149,14 +146,12 @@ def train_SVC(X_train, y_train, models, CV, VERBOSE, print_search_results):
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_GaussianNB(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'GaussianNB'
+def train_GaussianNB(c, CV, VERBOSE, print_search_results):
     model = GaussianNB()
 
     # search_params = [
@@ -189,14 +184,12 @@ def train_GaussianNB(X_train, y_train, models, CV, VERBOSE, print_search_results
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'LogisticRegression'
+def train_LogisticRegression(c, CV, VERBOSE, print_search_results):
     model = LogisticRegression(random_state=1, n_jobs=-1, max_iter=2000)
 
     # search_params = [
@@ -243,14 +236,12 @@ def train_LogisticRegression(X_train, y_train, models, CV, VERBOSE, print_search
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'MLP'
+def train_MLP(c, CV, VERBOSE, print_search_results):
     model = MLPClassifier(random_state=1, early_stopping=True)
 
     # search_params = [
@@ -303,14 +294,12 @@ def train_MLP(X_train, y_train, models, CV, VERBOSE, print_search_results):
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_DecisionTree(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'DecisionTree'
+def train_DecisionTree(c, CV, VERBOSE, print_search_results):
     model = DecisionTreeClassifier(random_state=1)
 
     # search_params = [
@@ -342,14 +331,12 @@ def train_DecisionTree(X_train, y_train, models, CV, VERBOSE, print_search_resul
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_RandomForest(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'RandomForest'
+def train_RandomForest(c, CV, VERBOSE, print_search_results):
     model = RandomForestClassifier(random_state=1, n_jobs=-1)
 
     # search_params = [
@@ -386,14 +373,12 @@ def train_RandomForest(X_train, y_train, models, CV, VERBOSE, print_search_resul
     if VERBOSE:
         search.verbose = 3
 
-    search.fit(X_train, y_train)
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'ExtraTrees'
+def train_ExtraTrees(c, CV, VERBOSE, print_search_results):
     model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
 
     # search_params = [
@@ -426,18 +411,16 @@ def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results
         cv=CV,
         random_state=1,
         n_jobs=-1)
-    search.fit(X_train, y_train)
     
     if VERBOSE:
         search.verbose = 3
 
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
-    return model_name
+    return search.best_estimator_
 
-def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_results):
-    model_name = 'GradientBoosting'
+def train_GradientBoosting(c, CV, VERBOSE, print_search_results):
     model = GradientBoostingClassifier(random_state=1)
 
     # search_params = [
@@ -470,11 +453,11 @@ def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_r
         n_iter=25,
         cv=CV,
         n_jobs=-1)
-    search.fit(X_train, y_train)
     
     if VERBOSE:
         search.verbose = 3
 
-    print_search_results(model_name, search)
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
 
-    models[model_name] = search.best_estimator_
+    return search.best_estimator_
