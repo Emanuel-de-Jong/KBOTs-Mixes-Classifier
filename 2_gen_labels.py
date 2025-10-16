@@ -6,12 +6,13 @@ from pathlib import Path
 MIN_PLAYLIST_SONGS = 10
 MAX_PLAYLIST_SONGS = 14
 
-music_dir = Path("music")
+train_dir = Path("train")
+test_dir = Path("test")
 cache_dir = Path("cache")
 cache_dir.mkdir(exist_ok=True)
 
 playlist_counts = []
-for folder in music_dir.iterdir():
+for folder in train_dir.iterdir():
     if folder.is_dir():
         mp3_count = len(list(folder.glob("*.mp3")))
         if mp3_count < MIN_PLAYLIST_SONGS:
@@ -22,17 +23,17 @@ if len(playlist_counts) > 0 and playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
     for name, count in playlist_counts:
         print(f"{name}: {count}")
 
-num_to_label = sorted([folder.name for folder in music_dir.iterdir() if folder.is_dir()])
+num_to_label = sorted([folder.name for folder in train_dir.iterdir() if folder.is_dir()])
 label_to_num = {label: i for i, label in enumerate(num_to_label)}
 with open(cache_dir / "num_to_label.json", "w") as f:
     json.dump(num_to_label, f, indent=4)
 with open(cache_dir / "label_to_num.json", "w") as f:
     json.dump(label_to_num, f, indent=4)
 
-with open(cache_dir / "labels.csv", "w", newline="") as f:
+with open(cache_dir / "labels_train.csv", "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["filepath","label"])
-    for playlist_dir in music_dir.iterdir():
+    for playlist_dir in train_dir.iterdir():
         if playlist_dir.is_dir():
             songs = list(playlist_dir.glob("*.mp3"))
             random.shuffle(songs)
@@ -50,3 +51,11 @@ with open(cache_dir / "labels.csv", "w", newline="") as f:
             #     for i in range(needed):
             #         song = songs[i % len(songs)]
             #         w.writerow([str(song.resolve()), lbl_dir.name])
+
+with open(cache_dir / "labels_test.csv", "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["filepath","label"])
+    for playlist_dir in test_dir.iterdir():
+        if playlist_dir.is_dir():
+            songs = list(playlist_dir.glob("*.mp3"))
+            w.writerow([str(songs[0].resolve()), label_to_num[playlist_dir.name]])

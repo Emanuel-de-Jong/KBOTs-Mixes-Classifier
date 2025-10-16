@@ -435,3 +435,46 @@ def train_ExtraTrees(X_train, y_train, models, CV, VERBOSE, print_search_results
 
     models[model_name] = search.best_estimator_
     return model_name
+
+def train_GradientBoosting(X_train, y_train, models, CV, VERBOSE, print_search_results):
+    model_name = 'GradientBoosting'
+    model = GradientBoostingClassifier(random_state=1)
+
+    # search_params = [
+    #     {
+    #         'loss': ['log_loss'],
+    #         'learning_rate': [0.05, 0.1, 0.15],
+    #         'subsample': [1.0, 0.8],
+    #         'criterion': ['friedman_mse', 'squared_error'],
+    #         'min_samples_split': [2, 4, 6],
+    #         'max_depth': [2, 3, 4],
+    #         'max_features': ['sqrt', 0.1, 0.5],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'loss': ['log_loss'],
+            'learning_rate': [0.1],
+            'subsample': [1.0],
+            'criterion': ['friedman_mse'],
+            'min_samples_split': [2],
+            'max_depth': [3],
+            'max_features': ['sqrt'],
+        },
+    ]
+
+    search = RandomizedSearchCV(
+        model,
+        search_params,
+        n_iter=25,
+        cv=CV,
+        n_jobs=-1)
+    search.fit(X_train, y_train)
+    
+    if VERBOSE:
+        search.verbose = 3
+
+    print_search_results(model_name, search)
+
+    models[model_name] = search.best_estimator_

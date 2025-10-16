@@ -13,8 +13,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from pathlib import Path
 
-train_dir = Path("train")
-train_dir.mkdir(exist_ok=True)
+models_dir = Path("models")
+models_dir.mkdir(exist_ok=True)
 cache_dir = Path("cache")
 X = np.load(cache_dir / "X_emb.npy")
 y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
@@ -26,7 +26,7 @@ test_size = 0.1
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=1)
 
 def write(msg):
-    with open(train_dir / "train.log", "a") as f:
+    with open(models_dir / "train.log", "a") as f:
         f.write(f"{msg}\n")
     print(msg)
 
@@ -52,6 +52,6 @@ disp = ConfusionMatrixDisplay(cm, display_labels = labels)
 disp.plot()
 
 plt.xticks(rotation=90)
-plt.savefig(train_dir / f'test.png')
+plt.savefig(models_dir / f'test.png')
 
 joblib.dump(model, cache_dir / "model.joblib")

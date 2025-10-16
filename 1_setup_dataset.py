@@ -37,12 +37,12 @@ PLAYLISTS_TO_MERGE = {
     "Synthwave": ["Synth Funk"],
 }
 
-music_dir = Path("music")
+train_dir = Path("train")
 test_dir = Path("test")
 
 # Clean folder names
-for folder in os.listdir(music_dir):
-    folder_path = music_dir / folder
+for folder in os.listdir(train_dir):
+    folder_path = train_dir / folder
     if folder_path.is_dir():
         new_name = folder
         if new_name.lower().startswith("kbot's "):
@@ -51,7 +51,7 @@ for folder in os.listdir(music_dir):
             new_name = new_name[:-4]
         
         new_name = new_name.strip()
-        new_path = music_dir / new_name
+        new_path = train_dir / new_name
 
         if os.path.basename(new_path) in PLAYLISTS_TO_REMOVE:
             shutil.rmtree(folder_path)
@@ -62,10 +62,10 @@ for folder in os.listdir(music_dir):
 
 # Merge playlists
 for target, sources in PLAYLISTS_TO_MERGE.items():
-    target_dir = music_dir / target
+    target_dir = train_dir / target
     target_dir.mkdir(exist_ok=True)
     for src in sources:
-        src_dir = music_dir / src
+        src_dir = train_dir / src
         if src_dir.exists() and src_dir.is_dir():
             for mp3_file in src_dir.glob("*.mp3"):
                 dest_file = target_dir / mp3_file.name
@@ -74,7 +74,7 @@ for target, sources in PLAYLISTS_TO_MERGE.items():
             shutil.rmtree(src_dir)
 
 # Clean mp3 names
-for p in music_dir.glob("*/*.mp3"):
+for p in train_dir.glob("*/*.mp3"):
     old_stem = p.stem
     new_stem = unidecode.unidecode(old_stem)
     new_stem = re.sub(r'[^a-zA-Z0-9\s\.\-\_\,]', '', new_stem)
@@ -89,7 +89,7 @@ for p in music_dir.glob("*/*.mp3"):
 
 # Fill test dir
 if not test_dir.exists():
-    for subdir in music_dir.iterdir():
+    for subdir in train_dir.iterdir():
         if subdir.is_dir():
             mp3_files = sorted(subdir.glob("*.mp3"))
             if mp3_files:

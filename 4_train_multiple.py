@@ -26,20 +26,21 @@ TRAIN_FUNCTIONS = [
     Classifier.train_DecisionTree,
     Classifier.train_RandomForest,
     Classifier.train_ExtraTrees,
+    Classifier.train_GradientBoosting,
 ]
 
 # patch_sklearn()
 # set_config(target_offload="gpu")
 
-train_dir = Path("train")
-train_dir.mkdir(exist_ok=True)
+models_dir = Path("models")
+models_dir.mkdir(exist_ok=True)
 cache_dir = Path("cache")
 X = np.load(cache_dir / "X_emb.npy")
 y = pd.read_csv(cache_dir / "y_labels.csv")["labels"].astype(int)
 labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
 
 def write(msg):
-    with open(train_dir / f"train_{SAMPLING}.log", "a") as f:
+    with open(models_dir / f"train_{SAMPLING}.log", "a") as f:
         f.write(f"{msg}\n")
     print(msg)
 
@@ -89,7 +90,7 @@ def test(model_name):
     disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
 
     plt.tight_layout(pad=3.0)
-    plt.savefig(train_dir / f'test_{model_name}_{SAMPLING}.png', bbox_inches='tight')
+    plt.savefig(models_dir / f'test_{model_name}_{SAMPLING}.png', bbox_inches='tight')
     plt.close()
 
 models = {}
@@ -100,4 +101,4 @@ for train_func in TRAIN_FUNCTIONS:
     write(f"{train_func.__name__} took {elapsed:.2f} seconds or {elapsed // 60} minutes.")
     
     test(model_name)
-    joblib.dump(models[model_name], train_dir / f'model_{model_name}_{SAMPLING}.joblib')
+    joblib.dump(models[model_name], models_dir / f'model_{model_name}_{SAMPLING}.joblib')

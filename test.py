@@ -5,7 +5,7 @@ from Classifier import Classifier
 LOW_SONG_COUNT_TRES = 15
 
 classifier = Classifier()
-music_dir = Path("music")
+train_dir = Path("train")
 test_dir = Path("test")
 
 results = []
@@ -20,8 +20,8 @@ for playlist_dir in test_dir.iterdir():
         if not songs:
             continue
 
-        music_dir_songs = list((music_dir / playlist_dir.name).glob("*.mp3"))
-        low_song_count = len(music_dir_songs) <= LOW_SONG_COUNT_TRES
+        train_dir_songs = list((train_dir / playlist_dir.name).glob("*.mp3"))
+        low_song_count = len(train_dir_songs) <= LOW_SONG_COUNT_TRES
 
         last_song = songs[-1]
         top = classifier.infer(last_song)
