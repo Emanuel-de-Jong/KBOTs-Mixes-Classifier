@@ -7,33 +7,35 @@ from tqdm import tqdm
 mert = Mert()
 
 cache_dir = Path("cache")
-df = pd.read_csv(cache_dir / "labels.csv")
-embeddings, labels = [], []
+songs_train = pd.read_csv(cache_dir / "labels_train.csv")
+songs_test = pd.read_csv(cache_dir / "labels_test.csv")
 
-song_batch_count = 0
-for _, row in tqdm(df.iterrows(), total=len(df)):
-    song_batch_count += 1
-    # if song_batch_count > 25:
-    #     break
-
-    chunk_data = mert.run(row.filepath)
-    if chunk_data is None:
-        continue
-    
-    for vec in chunk_data:
-        if not isinstance(vec, np.ndarray):
-            print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
+def extract(songs):
+    embeddings, labels = [], []
+    for _, row in tqdm(songs.iterrows(), total=len(songs)):
+        chunk_data = mert.run(row.filepath)
+        if chunk_data is None:
             continue
-        if vec.shape != (1024,):
-            print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
-            continue
+        
+        for vec in chunk_data:
+            if not isinstance(vec, np.ndarray):
+                print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
+                continue
+            if vec.shape != (1024,):
+                print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
+                continue
 
-        embeddings.append(vec)
-        labels.append(row.label)
+            embeddings.append(vec)
+            labels.append(row.label)
 
-X = np.stack(embeddings)
+    return np.stack(embeddings), pd.Series(labels)
 
-pd.Series(labels).to_csv(cache_dir / "y_labels.csv", index=False, header=["labels"])
-np.save(cache_dir / "X_emb.npy", X)
+X, labels = extract(songs_train)
+np.save(cache_dir / "X_emb_train.npy", X)
+labels.to_csv(cache_dir / "y_labels_train.csv", index=False, header=["labels"])
 
-print("Saved X_emb.npy and y_labels.csv")
+X, labels = extract(songs_test)
+np.save(cache_dir / "X_emb_test.npy", X)
+labels.to_csv(cache_dir / "y_labels_test.csv", index=False, header=["labels"])
+
+print("Done!")
