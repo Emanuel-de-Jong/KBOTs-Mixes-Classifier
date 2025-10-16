@@ -30,14 +30,17 @@ VERBOSE = False
 CV = 4
 CLASSIFIERS_TO_TRAIN = [
     ClassifierToTrain('KNeighbors', Classifier.train_KNeighbors, ScalingType.NORM),
-    ClassifierToTrain('SVC', Classifier.train_SVC, ScalingType.SCALE),
-    ClassifierToTrain('GaussianNB', Classifier.train_GaussianNB, ScalingType.SCALE),
-    # Takes too long
-    # ClassifierToTrain('LogisticRegression', Classifier.train_LogisticRegression, ScalingType.SCALE),
     ClassifierToTrain('MLP', Classifier.train_MLP, ScalingType.SCALE),
-    ClassifierToTrain('DecisionTree', Classifier.train_DecisionTree, ScalingType.RAW),
     ClassifierToTrain('RandomForest', Classifier.train_RandomForest, ScalingType.RAW),
     ClassifierToTrain('ExtraTrees', Classifier.train_ExtraTrees, ScalingType.RAW),
+    # Bad accuracy
+    # ClassifierToTrain('SVC', Classifier.train_SVC, ScalingType.SCALE),
+    # Bad accuracy
+    # ClassifierToTrain('GaussianNB', Classifier.train_GaussianNB, ScalingType.SCALE),
+    # Bad accuracy
+    # ClassifierToTrain('DecisionTree', Classifier.train_DecisionTree, ScalingType.RAW),
+    # Takes too long
+    # ClassifierToTrain('LogisticRegression', Classifier.train_LogisticRegression, ScalingType.SCALE),
     # Takes too long
     # ClassifierToTrain('GradientBoosting', Classifier.train_GradientBoosting, ScalingType.SCALE),
 ]

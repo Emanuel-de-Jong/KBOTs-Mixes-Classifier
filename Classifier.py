@@ -96,6 +96,148 @@ def train_KNeighbors(c, CV, VERBOSE, print_search_results):
 
     return search.best_estimator_
 
+def train_MLP(c, CV, VERBOSE, print_search_results):
+    model = MLPClassifier(random_state=1, early_stopping=True)
+
+    # search_params = [
+    #     {
+    #         'solver': ['adam'],
+    #         'max_iter': [500],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #         'epsilon': [8e-7, 1e-8, 2e-9],
+    #         'learning_rate_init': [0.0005, 0.001, 0.005],
+    #     },
+    #     {
+    #         'solver': ['lbfgs'],
+    #         'max_iter': [1000],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #     },
+    #     {
+    #         'solver': ['sgd'],
+    #         'max_iter': [500],
+    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
+    #         'activation': ['relu', 'logistic', 'tanh'],
+    #         'alpha': [5e-5, 1e-6, 5e-6],
+    #         'learning_rate': ['constant', 'adaptive'],
+    #         'learning_rate_init': [0.0005, 0.001, 0.005],
+    #         'momentum': [0.88, 0.9, 0.92],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'solver': ['adam'],
+            'max_iter': [500],
+            'hidden_layer_sizes': [(100,)],
+            'activation': ['tanh'],
+            'alpha': [5e-5],
+            'epsilon': [8e-7],
+            'learning_rate_init': [0.005],
+        },
+    ]
+
+    search = GridSearchCV(
+        model,
+        search_params,
+        cv=CV,
+        n_jobs=-1)
+    
+    if VERBOSE:
+        search.verbose = 3
+
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
+
+    return search.best_estimator_
+
+def train_RandomForest(c, CV, VERBOSE, print_search_results):
+    model = RandomForestClassifier(random_state=1, n_jobs=-1)
+
+    # search_params = [
+    #     {
+    #         'n_estimators': [50],
+    #         'criterion': ['gini', 'entropy'],
+    #         'max_depth': [5, 20, 200],
+    #         'min_samples_split': [2, 5, 10],
+    #         'min_samples_leaf': [1, 3, 5],
+    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'n_estimators': [50],
+            'criterion': ['entropy'],
+            'max_depth': [20],
+            'min_samples_split': [2],
+            'min_samples_leaf': [3],
+            'max_features': [0.1],
+            'class_weight': [None],
+        },
+    ]
+
+    search = RandomizedSearchCV(model,
+        search_params,
+        n_iter=50,
+        cv=CV,
+        random_state=1,
+        n_jobs=-1)
+    
+    if VERBOSE:
+        search.verbose = 3
+
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
+
+    return search.best_estimator_
+
+def train_ExtraTrees(c, CV, VERBOSE, print_search_results):
+    model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
+
+    # search_params = [
+    #     {
+    #         'n_estimators': [50],
+    #         'criterion': ['gini', 'entropy'],
+    #         'max_depth': [5, 20, 200],
+    #         'min_samples_split': [2, 5, 10],
+    #         'min_samples_leaf': [1, 3, 5],
+    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'n_estimators': [50],
+            'criterion': ['entropy'],
+            'max_depth': [20],
+            'min_samples_split': [5],
+            'min_samples_leaf': [3],
+            'max_features': [0.5],
+            'class_weight': [None],
+        },
+    ]
+
+    search = RandomizedSearchCV(model,
+        search_params,
+        n_iter=50,
+        cv=CV,
+        random_state=1,
+        n_jobs=-1)
+    
+    if VERBOSE:
+        search.verbose = 3
+
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
+
+    return search.best_estimator_
+
 def train_SVC(c, CV, VERBOSE, print_search_results):
     model = SVC(random_state=1)
 
@@ -191,6 +333,43 @@ def train_GaussianNB(c, CV, VERBOSE, print_search_results):
 
     return search.best_estimator_
 
+def train_DecisionTree(c, CV, VERBOSE, print_search_results):
+    model = DecisionTreeClassifier(random_state=1)
+
+    # search_params = [
+    #     {
+    #         'criterion': ['gini', 'entropy'],
+    #         'splitter': ['best', 'random'],
+    #         'max_depth': [None, 5, 20, 200],
+    #         'min_samples_split': [2, 5, 20],
+    #         'min_samples_leaf': [1, 2, 3],
+    #         'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
+    #         'class_weight': [None, 'balanced'],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'criterion': ['entropy'],
+            'splitter': ['best'],
+            'max_depth': [None],
+            'min_samples_split': [2],
+            'min_samples_leaf': [1],
+            'max_features': [None],
+            'class_weight': [None],
+        },
+    ]
+
+    search = GridSearchCV(model, search_params, cv=CV)
+    
+    if VERBOSE:
+        search.verbose = 3
+
+    search.fit(c.X_train, c.y_train)
+    print_search_results(c.name, search)
+
+    return search.best_estimator_
+
 def train_LogisticRegression(c, CV, VERBOSE, print_search_results):
     model = LogisticRegression(random_state=1, n_jobs=-1, max_iter=2000)
 
@@ -233,185 +412,6 @@ def train_LogisticRegression(c, CV, VERBOSE, print_search_results):
         model,
         search_params,
         cv=CV,
-        n_jobs=-1)
-    
-    if VERBOSE:
-        search.verbose = 3
-
-    search.fit(c.X_train, c.y_train)
-    print_search_results(c.name, search)
-
-    return search.best_estimator_
-
-def train_MLP(c, CV, VERBOSE, print_search_results):
-    model = MLPClassifier(random_state=1, early_stopping=True)
-
-    # search_params = [
-    #     {
-    #         'solver': ['adam'],
-    #         'max_iter': [500],
-    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-    #         'activation': ['relu', 'logistic', 'tanh'],
-    #         'alpha': [5e-5, 1e-6, 5e-6],
-    #         'epsilon': [8e-7, 1e-8, 2e-9],
-    #         'learning_rate_init': [0.0005, 0.001, 0.005],
-    #     },
-    #     {
-    #         'solver': ['lbfgs'],
-    #         'max_iter': [1000],
-    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-    #         'activation': ['relu', 'logistic', 'tanh'],
-    #         'alpha': [5e-5, 1e-6, 5e-6],
-    #     },
-    #     {
-    #         'solver': ['sgd'],
-    #         'max_iter': [500],
-    #         'hidden_layer_sizes': [(100,), (50, 50), (25,50,25)],
-    #         'activation': ['relu', 'logistic', 'tanh'],
-    #         'alpha': [5e-5, 1e-6, 5e-6],
-    #         'learning_rate': ['constant', 'adaptive'],
-    #         'learning_rate_init': [0.0005, 0.001, 0.005],
-    #         'momentum': [0.88, 0.9, 0.92],
-    #     },
-    # ]
-
-    search_params = [
-        {
-            'solver': ['adam'],
-            'max_iter': [500],
-            'hidden_layer_sizes': [(100,)],
-            'activation': ['tanh'],
-            'alpha': [5e-5],
-            'epsilon': [8e-7],
-            'learning_rate_init': [0.005],
-        },
-    ]
-
-    search = GridSearchCV(
-        model,
-        search_params,
-        cv=CV,
-        n_jobs=-1)
-    
-    if VERBOSE:
-        search.verbose = 3
-
-    search.fit(c.X_train, c.y_train)
-    print_search_results(c.name, search)
-
-    return search.best_estimator_
-
-def train_DecisionTree(c, CV, VERBOSE, print_search_results):
-    model = DecisionTreeClassifier(random_state=1)
-
-    # search_params = [
-    #     {
-    #         'criterion': ['gini', 'entropy'],
-    #         'splitter': ['best', 'random'],
-    #         'max_depth': [None, 5, 20, 200],
-    #         'min_samples_split': [2, 5, 20],
-    #         'min_samples_leaf': [1, 2, 3],
-    #         'max_features': [None, 'sqrt', 'log2', 0.01, 0.1, 0.5],
-    #         'class_weight': [None, 'balanced'],
-    #     },
-    # ]
-
-    search_params = [
-        {
-            'criterion': ['entropy'],
-            'splitter': ['best'],
-            'max_depth': [None],
-            'min_samples_split': [2],
-            'min_samples_leaf': [1],
-            'max_features': [None],
-            'class_weight': [None],
-        },
-    ]
-
-    search = GridSearchCV(model, search_params, cv=CV)
-    
-    if VERBOSE:
-        search.verbose = 3
-
-    search.fit(c.X_train, c.y_train)
-    print_search_results(c.name, search)
-
-    return search.best_estimator_
-
-def train_RandomForest(c, CV, VERBOSE, print_search_results):
-    model = RandomForestClassifier(random_state=1, n_jobs=-1)
-
-    # search_params = [
-    #     {
-    #         'n_estimators': [50],
-    #         'criterion': ['gini', 'entropy'],
-    #         'max_depth': [5, 20, 200],
-    #         'min_samples_split': [2, 5, 10],
-    #         'min_samples_leaf': [1, 3, 5],
-    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
-    #         'class_weight': [None, 'balanced'],
-    #     },
-    # ]
-
-    search_params = [
-        {
-            'n_estimators': [50],
-            'criterion': ['entropy'],
-            'max_depth': [20],
-            'min_samples_split': [2],
-            'min_samples_leaf': [3],
-            'max_features': [0.1],
-            'class_weight': [None],
-        },
-    ]
-
-    search = RandomizedSearchCV(model,
-        search_params,
-        n_iter=50,
-        cv=CV,
-        random_state=1,
-        n_jobs=-1)
-    
-    if VERBOSE:
-        search.verbose = 3
-
-    search.fit(c.X_train, c.y_train)
-    print_search_results(c.name, search)
-
-    return search.best_estimator_
-
-def train_ExtraTrees(c, CV, VERBOSE, print_search_results):
-    model = ExtraTreesClassifier(random_state=1, n_jobs=-1)
-
-    # search_params = [
-    #     {
-    #         'n_estimators': [50],
-    #         'criterion': ['gini', 'entropy'],
-    #         'max_depth': [5, 20, 200],
-    #         'min_samples_split': [2, 5, 10],
-    #         'min_samples_leaf': [1, 3, 5],
-    #         'max_features': ['sqrt', 0.01, 0.1, 0.5],
-    #         'class_weight': [None, 'balanced'],
-    #     },
-    # ]
-
-    search_params = [
-        {
-            'n_estimators': [50],
-            'criterion': ['entropy'],
-            'max_depth': [20],
-            'min_samples_split': [5],
-            'min_samples_leaf': [3],
-            'max_features': [0.5],
-            'class_weight': [None],
-        },
-    ]
-
-    search = RandomizedSearchCV(model,
-        search_params,
-        n_iter=50,
-        cv=CV,
-        random_state=1,
         n_jobs=-1)
     
     if VERBOSE:
