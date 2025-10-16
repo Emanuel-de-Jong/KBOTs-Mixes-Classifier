@@ -4,6 +4,7 @@ import tempfile
 import torch
 import os
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
+from sklearn.utils import resample
 
 class Mert():
     CHUNK_LENGTH_SECONDS = 15.0
@@ -50,7 +51,7 @@ class Mert():
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
     
-    def run(self, path):
+    def run(self, path, max_chunks):
         print(f"Processing: {os.path.basename(path)}")
         
         try:
@@ -70,15 +71,18 @@ class Mert():
             
             num_full_chunks = usable_samples // samples_per_chunk
             
-            chunk_data = []
+            chunks = []
             for i in range(num_full_chunks):
                 start_idx = start_skip_samples + (i * samples_per_chunk)
                 end_idx = start_idx + samples_per_chunk
                 chunk = audio_samples[start_idx:end_idx]
-                
-                input_audio_chunk = chunk.numpy()
+                chunks.append(chunk.numpy())
 
-                inputs = self.processor(input_audio_chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
+            chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
+            
+            chunk_data = []
+            for chunk in chunks:
+                inputs = self.processor(chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
 
                 with torch.no_grad():
                     outputs = self.model(**inputs)
