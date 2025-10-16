@@ -1,7 +1,7 @@
-import joblib
-from pathlib import Path
 from Classifier import Classifier
+from pathlib import Path
 from Utils import Logger
+from tqdm import tqdm
 
 class Result():
     def __init__(self, correct_label, top, song):
@@ -23,18 +23,22 @@ test_dir = Path("test")
 logger = Logger("test.log", should_append=False)
 
 results = []
-for playlist_dir in test_dir.iterdir():
-    if playlist_dir.is_dir():
-        songs = list(playlist_dir.glob("*.mp3"))
-        if not songs:
-            continue
+playlist_dirs = list(test_dir.iterdir())
+for playlist_dir in tqdm(playlist_dirs, total=len(playlist_dirs)):
+    if not playlist_dir.is_dir():
+        continue
 
-        test_song = songs[0]
-        top, _ = classifier.infer(test_song)
-        if top is None or len(top) == 0:
-            continue
+    songs = list(playlist_dir.glob("*.mp3"))
+    if not songs:
+        continue
 
-        result = Result(playlist_dir.name, top, test_song.name)
+    test_song = songs[0]
+    top, _ = classifier.infer(test_song)
+    if top is None or len(top) == 0:
+        continue
+
+    result = Result(playlist_dir.name, top, test_song.name)
+    results.append(result)
 
 results.sort(key=lambda r: (r.is_top_1, r.is_top_3))
 
@@ -51,4 +55,4 @@ top_3_fail_count = result_count - top_3_pass_count
 top_3_perc = top_3_pass_count/(top_3_pass_count+top_3_fail_count)*100
 
 logger.writeln(f"\n[Top 1] Pass: ({top_1_pass_count}/{result_count}) ({top_1_perc}%) | Fail: ({top_1_fail_count}/{result_count})")
-logger.writeln(f"\n[Top 3] Pass: ({top_3_pass_count}/{result_count}) ({top_3_perc}%) | Fail: ({top_3_fail_count}/{result_count})")
+logger.writeln(f"[Top 3] Pass: ({top_3_pass_count}/{result_count}) ({top_3_perc}%) | Fail: ({top_3_fail_count}/{result_count})")
