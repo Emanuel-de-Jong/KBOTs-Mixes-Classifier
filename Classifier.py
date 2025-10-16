@@ -13,11 +13,14 @@ from pathlib import Path
 from Mert import Mert
 
 class Classifier():
-    def __init__(self):
-        self.mert = Mert()
+    def __init__(self, model_name="global", mert=None):
+        self.model_name = model_name
+        if mert is None:
+            mert = Mert()
+        self.mert = mert
         self.cache_dir = Path("cache")
         self.labels = np.unique(pd.read_json(self.cache_dir / "num_to_label.json"))
-        self.model = joblib.load(self.cache_dir / "model.joblib")
+        self.model = joblib.load(self.cache_dir / f"model_{model_name}.joblib")
     
     def infer(self, path, chunk_data=None):
         if chunk_data is None:

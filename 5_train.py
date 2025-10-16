@@ -104,4 +104,5 @@ for c in CLASSIFIERS_TO_TRAIN:
     joblib.dump(c.model, models_dir / f'model_{c.name}.joblib')
 
 best_c = max(CLASSIFIERS_TO_TRAIN, key=lambda c: c.accuracy if c.accuracy != None else 0.0)
-joblib.dump(best_c.model, cache_dir / 'model.joblib')
+# model_global model_general_pop model_rock model_edm
+joblib.dump(best_c.model, cache_dir / 'model_global.joblib')

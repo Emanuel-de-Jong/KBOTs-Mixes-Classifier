@@ -16,4 +16,11 @@ Finds the right playlist for a new song.
 9. `python 5_train.py`.
 
 ## Usage
+For a single MP3 file anywhere:
 1. `poetry run python run.py PATH_TO_SONG.mp3`.
+
+For a directory full of MP3 files:
+1. Put the MP3 files in the `batch` directory.
+2. `poetry run python run_batch.py`.
+
+If you want to get the results of multiple models like the `global`, `general_pop`, `rock` and `edm` in `run_batch.py`, you'll have to run the full pipeline multiple times. Rename the `cache/model.joblib` file before running again!
