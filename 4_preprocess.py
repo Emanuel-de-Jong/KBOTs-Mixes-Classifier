@@ -11,11 +11,12 @@ from enum import Enum
 class SamplingType(Enum):
     RAW = 0
     UNDERSAMPLING = 1
-    PARTIAL_UNDERSAMPLING = 2
-    OVERSAMPLING = 3
+    OVERSAMPLING = 2
 
 SAMPLING = SamplingType.OVERSAMPLING
-PARTIAL_UNDERSAMPLING_TRES = 100
+# -1 means no treshold
+UNDERSAMPLING_TRES = 100
+# -1 means no treshold
 OVERSAMPLING_TRES = 130
 
 cache_dir = Path("cache")
@@ -50,19 +51,17 @@ def undersample(label_num, sample_target):
     y_train = y_train.iloc[final_idxs].reset_index(drop=True)
 
 if SAMPLING == SamplingType.UNDERSAMPLING:
-    min_sample_count = y_train.value_counts().min()
+    undersampling_tres = UNDERSAMPLING_TRES if UNDERSAMPLING_TRES != -1 else y_train.value_counts().min()
     for label_num in range(len(labels)):
-        undersample(label_num, min_sample_count)
-elif SAMPLING == SamplingType.PARTIAL_UNDERSAMPLING:
-    for label_num in range(len(labels)):
-        label_count = len(y_train[y_train == label_num])
-        if label_count > PARTIAL_UNDERSAMPLING_TRES:
-            undersample(label_num, PARTIAL_UNDERSAMPLING_TRES)
+        label_count = (y_train == label_num).sum()
+        if label_count > undersampling_tres:
+            undersample(label_num, undersampling_tres)
 elif SAMPLING == SamplingType.OVERSAMPLING:
-    for label_num in range(len(labels)):
-        label_count = len(y_train[y_train == label_num])
-        if label_count > OVERSAMPLING_TRES:
-            undersample(label_num, OVERSAMPLING_TRES)
+    if OVERSAMPLING_TRES != -1:
+        for label_num in range(len(labels)):
+            label_count = (y_train == label_num).sum()
+            if label_count > OVERSAMPLING_TRES:
+                undersample(label_num, OVERSAMPLING_TRES)
     
     smote = SMOTE(random_state=1)
     X_train, y_train = smote.fit_resample(X_train, y_train)
