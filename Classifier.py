@@ -28,33 +28,31 @@ class Classifier():
             if chunk_data is None or len(chunk_data) == 0:
                 return None
 
-        all_weighted_probs = np.zeros(len(self.labels))
+        all_probs = np.zeros(len(self.labels))
         for vec in chunk_data:
             vec = vec.reshape(1, -1)
             probs = self.model.predict_proba(vec)[0]
-            
-            top3_indices = probs.argsort()[::-1][:3]
-            weights = [0.5, 0.3, 0.2]
-            
-            for idx, weight in zip(top3_indices, weights):
-                all_weighted_probs[idx] += probs[idx] * weight
 
-        all_weighted_probs /= len(chunk_data)
+            all_probs += probs
 
-        top_indices = all_weighted_probs.argsort()[::-1][:5]
+        all_probs /= len(chunk_data)
+
+        top_indices = all_probs.argsort()[::-1][:5]
+
         results = []
         for idx in top_indices:
-            results.append((self.labels[idx], all_weighted_probs[idx]))
+            prob_to_percent = int(all_probs[idx] * 10000) / 100.0
+            results.append((self.labels[idx], prob_to_percent))
 
         return results, chunk_data
     
     def print_top(self, top):
         for i in range(len(top)):
-            if i >= 3:
-                break
+            # if i >= 3:
+            #     break
 
             label, val = top[i]
-            print(f"{i+1}. {label}: {val}")
+            print(f"{i+1}. {label}: {val:.2f}%")
 
 
 

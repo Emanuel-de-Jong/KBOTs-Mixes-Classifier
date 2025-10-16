@@ -38,7 +38,8 @@ CLASSIFIERS_TO_TRAIN = [
     ClassifierToTrain('DecisionTree', Classifier.train_DecisionTree, ScalingType.RAW),
     ClassifierToTrain('RandomForest', Classifier.train_RandomForest, ScalingType.RAW),
     ClassifierToTrain('ExtraTrees', Classifier.train_ExtraTrees, ScalingType.RAW),
-    ClassifierToTrain('GradientBoosting', Classifier.train_GradientBoosting, ScalingType.SCALE),
+    # Takes too long
+    # ClassifierToTrain('GradientBoosting', Classifier.train_GradientBoosting, ScalingType.SCALE),
 ]
 
 # patch_sklearn()
