@@ -20,7 +20,7 @@ class Result():
 classifier = Classifier("global")
 test_dir = Path("test")
 
-logger = Logger("test.log", should_append=False)
+logger = Logger("test.log")
 
 results = []
 playlist_dirs = list(test_dir.iterdir())
