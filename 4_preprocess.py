@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import torch
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, RobustScaler
 from imblearn.over_sampling import SMOTE
 from sklearn.utils import resample
 from pathlib import Path
@@ -50,9 +50,19 @@ X_test_norm = torch.nn.functional.normalize(torch.from_numpy(X_test), p=2, dim=1
 X_train_norm = X_train_norm.numpy()
 X_test_norm = X_test_norm.numpy()
 
-scaler = StandardScaler()
-X_train_scale = torch.tensor(scaler.fit_transform(X_train))
-X_test_scale = torch.tensor(scaler.transform(X_test))
+# scaler = StandardScaler()
+scaler = RobustScaler()
+X_train_scale = scaler.fit_transform(X_train)
+X_test_scale = scaler.transform(X_test)
+
+print(f"\nTrain stats - Mean: {np.mean(X_train_scale):.4f}, Std: {np.std(X_train_scale):.4f}")
+print(f"Test stats - Mean: {np.mean(X_test_scale):.4f}, Std: {np.std(X_test_scale):.4f}")
+print(f"NaN in train: {np.isnan(X_train_scale).sum()}, test: {np.isnan(X_test_scale).sum()}")
+print(f"Inf in train: {np.isinf(X_train_scale).sum()}, test: {np.isinf(X_test_scale).sum()}")
+
+print(f"Train lengths: {len(X_train)} | {len(X_train_norm)} | {len(X_train_scale)}")
+print(f"Test lengths: {len(X_test)} | {len(X_test_norm)} | {len(X_test_scale)}")
+print(f"Label lengths: {len(y_train)} | {len(y_test)}")
 
 joblib.dump(X_train, cache_dir / f'X_train.joblib')
 joblib.dump(X_test, cache_dir / f'X_test.joblib')

@@ -73,7 +73,7 @@ def train_KNeighbors(c, CV, VERBOSE, print_search_results):
 
     search_params = [
         {
-            'metric': ['minkowski'],
+            'metric': ['cosine'],
             'n_neighbors': [3],
             'weights': ['distance'],
             'p': [1.0],

@@ -4,6 +4,7 @@ import numpy as np
 import Classifier
 import joblib
 import time
+import sys
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from pathlib import Path
 from enum import Enum
@@ -63,6 +64,11 @@ for c in CLASSIFIERS_TO_TRAIN:
     c.X_test = X_test if c.scaling_type == ScalingType.RAW else X_test_norm if c.scaling_type == ScalingType.NORM else X_test_scale
     c.y_train = y_train
     c.y_test = y_test
+
+# for c in CLASSIFIERS_TO_TRAIN:
+#     print(f'{c.name}({type(c.X_train)}): {c.X_train}')
+
+# sys.exit(0)
 
 def print_search_results(model_name, search):
     write(f'\n=== {model_name} Best Params ===')
