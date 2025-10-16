@@ -2,7 +2,7 @@ import joblib
 from pathlib import Path
 from Classifier import Classifier
 
-LOW_SONG_COUNT_TRES = 15
+LOW_SONG_COUNT_TRES = 10
 
 classifier = Classifier()
 train_dir = Path("train")
@@ -24,7 +24,7 @@ for playlist_dir in test_dir.iterdir():
         low_song_count = len(train_dir_songs) <= LOW_SONG_COUNT_TRES
 
         last_song = songs[-1]
-        top = classifier.infer(last_song)
+        top, _ = classifier.infer(last_song)
         if top is None or len(top) == 0:
             continue
 

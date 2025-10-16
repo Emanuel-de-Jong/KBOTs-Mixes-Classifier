@@ -51,7 +51,7 @@ class Mert():
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
     
-    def run(self, path, max_chunks):
+    def run(self, path, max_chunks=-1):
         print(f"Processing: {os.path.basename(path)}")
         
         try:
@@ -78,7 +78,7 @@ class Mert():
                 chunk = audio_samples[start_idx:end_idx]
                 chunks.append(chunk.numpy())
 
-            if len(chunks) > max_chunks:
+            if max_chunks != -1 and len(chunks) > max_chunks:
                 chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
             
             chunk_data = []

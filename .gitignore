@@ -1,4 +1,6 @@
 
+batch/*
+!batch/.gitkeep
 cache/
 models/
 test/

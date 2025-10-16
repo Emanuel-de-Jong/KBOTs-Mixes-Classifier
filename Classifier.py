@@ -19,10 +19,11 @@ class Classifier():
         self.labels = np.unique(pd.read_json(self.cache_dir / "num_to_label.json"))
         self.model = joblib.load(self.cache_dir / "model.joblib")
     
-    def infer(self, path):
-        chunk_data = self.mert.run(path)
-        if chunk_data is None or len(chunk_data) == 0:
-            return None
+    def infer(self, path, chunk_data=None):
+        if chunk_data is None:
+            chunk_data = self.mert.run(path)
+            if chunk_data is None or len(chunk_data) == 0:
+                return None
 
         all_weighted_probs = np.zeros(len(self.labels))
         for vec in chunk_data:
@@ -42,7 +43,7 @@ class Classifier():
         for idx in top_indices:
             results.append((self.labels[idx], all_weighted_probs[idx]))
 
-        return results
+        return results, chunk_data
     
     def print_top(self, top):
         for i in range(len(top)):
