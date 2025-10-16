@@ -6,6 +6,6 @@ class Logger():
         self.should_append = should_append
     
     def writeln(self, msg):
-        with open(self.file_path, "a" if self.should_append else "w") as f:
+        with open(self.file_path, "a" if self.should_append else "w", encoding="utf-8") as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M')} {msg}\n")
         print(msg)

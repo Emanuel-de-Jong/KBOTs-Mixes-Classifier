@@ -81,7 +81,6 @@ elif SAMPLING == SamplingType.OVERSAMPLING:
     X_train, y_train = smote.fit_resample(X_train, y_train)
 
 # TEST START
-print(f"\nAfter sampling:")
 matches = []
 for i in range(len(X_train)):
     if np.allclose(X_train[i, :10], original_embedding, rtol=1e-5, atol=1e-8):
@@ -99,6 +98,7 @@ if len(matches) > 0:
             print("❌ X_train and y_train are OUT OF SYNC!")
 # TEST END
 
+print()
 train_distribution = y_train.value_counts()
 for label_num, count in train_distribution.items():
     print(f"{labels[label_num]}: {count}")

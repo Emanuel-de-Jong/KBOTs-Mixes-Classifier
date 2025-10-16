@@ -32,7 +32,8 @@ CLASSIFIERS_TO_TRAIN = [
     ClassifierToTrain('KNeighbors', Classifier.train_KNeighbors, ScalingType.NORM),
     ClassifierToTrain('SVC', Classifier.train_SVC, ScalingType.SCALE),
     ClassifierToTrain('GaussianNB', Classifier.train_GaussianNB, ScalingType.SCALE),
-    ClassifierToTrain('LogisticRegression', Classifier.train_LogisticRegression, ScalingType.SCALE),
+    # Takes too long
+    # ClassifierToTrain('LogisticRegression', Classifier.train_LogisticRegression, ScalingType.SCALE),
     ClassifierToTrain('MLP', Classifier.train_MLP, ScalingType.SCALE),
     ClassifierToTrain('DecisionTree', Classifier.train_DecisionTree, ScalingType.RAW),
     ClassifierToTrain('RandomForest', Classifier.train_RandomForest, ScalingType.RAW),
