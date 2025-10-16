@@ -50,6 +50,20 @@ def undersample(label_num, sample_target):
     X_train = X_train[final_idxs]
     y_train = y_train.iloc[final_idxs].reset_index(drop=True)
 
+# TEST START
+label_counts = y_train.value_counts()
+min_label = label_counts.idxmin()
+min_label_count = label_counts.min()
+min_label_indices = np.where(y_train == min_label)[0]
+test_idx = min_label_indices[len(min_label_indices) // 2]
+original_label = y_train.iloc[test_idx]
+original_embedding = X_train[test_idx, :10].copy()
+print(f"\nBefore sampling:")
+print(f"Test index: {test_idx}")
+print(f"Label: {original_label}")
+print(f"First 10 embedding values: {original_embedding}")
+# TEST END
+
 if SAMPLING == SamplingType.UNDERSAMPLING:
     undersampling_tres = UNDERSAMPLING_TRES if UNDERSAMPLING_TRES != -1 else y_train.value_counts().min()
     for label_num in range(len(labels)):
@@ -65,6 +79,25 @@ elif SAMPLING == SamplingType.OVERSAMPLING:
     
     smote = SMOTE(random_state=1)
     X_train, y_train = smote.fit_resample(X_train, y_train)
+
+# TEST START
+print(f"\nAfter sampling:")
+matches = []
+for i in range(len(X_train)):
+    if np.allclose(X_train[i, :10], original_embedding, rtol=1e-5, atol=1e-8):
+        matches.append(i)
+if len(matches) > 0:
+    for match_idx in matches:
+        found_label = y_train.iloc[match_idx] if isinstance(y_train, pd.Series) else y_train[match_idx]
+        embedding_match = X_train[match_idx, :10]
+        print(f"\nMatch at index: {match_idx}")
+        print(f"Label: {found_label}")
+        print(f"First 10 embedding values: {embedding_match}")
+        if found_label == original_label:
+            print("✅ X_train and y_train are SYNCHRONIZED")
+        else:
+            print("❌ X_train and y_train are OUT OF SYNC!")
+# TEST END
 
 train_distribution = y_train.value_counts()
 for label_num, count in train_distribution.items():
