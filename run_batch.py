@@ -24,8 +24,8 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
     chunk_data = cache[song_path] if song_path in cache else None
     top, chunk_data = classifier.infer(song_path, chunk_data)
     if top is None or len(top) == 0:
-        logger.writeln(f'[ERROR]: Inference failed on "{top}"!')
-        sys.exit(0)
+        logger.writeln(f'[ERROR]: Inference failed on "{song_path}"!')
+        sys.exit(1)
     
     cache[song_path] = chunk_data
     
