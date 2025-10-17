@@ -16,8 +16,6 @@ from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 from keras.optimizers import Adam
 
-CV = 10
-
 models_dir = Path("models")
 models_dir.mkdir(exist_ok=True)
 cache_dir = Path("cache")
@@ -52,7 +50,6 @@ def load_existing_model():
     
     return model, history
     
-
 def save_model(model, training_data):
     model.save(models_dir / f'model.keras')
 
@@ -67,9 +64,7 @@ def save_model(model, training_data):
     
     return history
 
-# model, history = load_existing_model()
-model, history = None, None
-if not model:
+def train():
     model = Sequential([
         layers.Input(shape=(90, 1024, 25)),
         layers.MaxPooling2D((2, 2)),
@@ -97,6 +92,16 @@ if not model:
         validation_data=validation_data)
 
     history = save_model(model, training_data)
+
+    return model, history
+
+# model, history = load_existing_model()
+model, history = None, None
+if not model:
+    start_time = time.time()
+    model, history = train()
+    elapsed_time = time.time() - start_time
+    logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
 
 def draw_acc_and_loss_graphs(history):
     plt.figure(figsize=(9, 2))
@@ -133,14 +138,3 @@ def test(model, history, testing_X=X_test, testing_y=y_test):
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
 test(model, history, X_test, y_test)
-
-
-
-
-
-start_time = time.time()
-# c.model = c.func(c, CV, VERBOSE, print_search_results)
-elapsed_time = time.time() - start_time
-# logger.writeln(f"{c.name} took {elapsed_time:.2f} seconds or {elapsed_time // 60} minutes.")
-
-# joblib.dump(best_c.model, cache_dir / 'model_global.joblib')
