@@ -103,31 +103,6 @@ def train_MLP(c, CV, VERBOSE, print_search_results):
         n_iter_no_change=15,
         validation_fraction=0.15)
 
-    search_params = [
-        {
-            'solver': ['adam'],
-            'max_iter': [1500],
-            'hidden_layer_sizes': [(256, 128), (512, 256)],
-            'activation': ['relu', 'tanh'],
-            'alpha': [1e-4, 5e-5, 1e-5],
-            'learning_rate_init': [0.001, 0.0005],
-            'beta_1': [0.9, 0.85],
-            'beta_2': [0.999, 0.995],
-            'batch_size': [128, 256],
-        },
-        {
-            'solver': ['adam'],
-            'max_iter': [2500],
-            'hidden_layer_sizes': [(256, 128, 64), (512, 256, 128)],
-            'activation': ['relu', 'tanh'],
-            'alpha': [1e-4, 5e-5, 1e-5],
-            'learning_rate_init': [0.001, 0.0005],
-            'beta_1': [0.9, 0.85],
-            'beta_2': [0.999, 0.995],
-            'batch_size': [128, 256],
-        },
-    ]
-
     # search_params = [
     #     {
     #         'solver': ['adam'],
@@ -160,12 +135,50 @@ def train_MLP(c, CV, VERBOSE, print_search_results):
     # search_params = [
     #     {
     #         'solver': ['adam'],
-    #         'max_iter': [500],
-    #         'hidden_layer_sizes': [(100,)],
+    #         'max_iter': [1500],
+    #         'hidden_layer_sizes': [(256, 128), (512, 256)],
+    #         'activation': ['relu', 'tanh'],
+    #         'alpha': [1e-4, 5e-5, 1e-5],
+    #         'learning_rate_init': [0.001, 0.0005],
+    #         'beta_1': [0.9, 0.85],
+    #         'beta_2': [0.999, 0.995],
+    #         'batch_size': [128, 256],
+    #     },
+    #     {
+    #         'solver': ['adam'],
+    #         'max_iter': [2500],
+    #         'hidden_layer_sizes': [(256, 128, 64), (512, 256, 128)],
+    #         'activation': ['relu', 'tanh'],
+    #         'alpha': [1e-4, 5e-5, 1e-5],
+    #         'learning_rate_init': [0.001, 0.0005],
+    #         'beta_1': [0.9, 0.85],
+    #         'beta_2': [0.999, 0.995],
+    #         'batch_size': [128, 256],
+    #     },
+    # ]
+
+    search_params = [
+        {
+            'solver': ['adam'],
+            'max_iter': [500],
+            'hidden_layer_sizes': [(100,)],
+            'activation': ['tanh'],
+            'alpha': [5e-5],
+            'epsilon': [8e-7],
+            'learning_rate_init': [0.005],
+        },
+    ]
+
+    # search_params = [
+    #     {
+    #         'solver': ['adam'],
+    #         'max_iter': [1000],
+    #         'hidden_layer_sizes': [(512, 256)],
     #         'activation': ['tanh'],
-    #         'alpha': [5e-5],
-    #         'epsilon': [8e-7],
-    #         'learning_rate_init': [0.005],
+    #         'alpha': [0.01],
+    #         'learning_rate_init': [0.0005],
+    #         'beta_1': [0.9],
+    #         'beta_2': [0.995],
     #     },
     # ]
 
@@ -173,8 +186,7 @@ def train_MLP(c, CV, VERBOSE, print_search_results):
         model,
         search_params,
         cv=CV,
-        n_jobs=-1,
-        scoring='f1_macro')
+        n_jobs=-1)
     
     if VERBOSE:
         search.verbose = 3
