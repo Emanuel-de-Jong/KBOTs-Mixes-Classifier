@@ -1,6 +1,11 @@
 # KBOT's Mixes Classifier
 Finds the right playlist for a new song.
 
+## TODO
+- Research Mert data format
+- Save training data per song
+- Keras CNN with time
+
 ## Requirements
 - ffmpeg
 
