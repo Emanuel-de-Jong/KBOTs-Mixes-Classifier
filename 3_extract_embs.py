@@ -25,7 +25,7 @@ def extract(songs, max_chunks):
             if not isinstance(vec, np.ndarray):
                 print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
                 continue
-            if vec.shape != (25, Mert.TIME_STEPS, 1024):
+            if vec.shape != (Mert.TIME_STEPS, 1024, 25):
                 print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
                 continue
 

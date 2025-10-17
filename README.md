@@ -18,7 +18,7 @@ Finds the right playlist for a new song.
 5. `python 1_setup_dataset.py`.
 6. `python 2_gen_labels.py`.
 7. `python 3_extract_embs.py`. This will take a while.
-8. `python 4_preprocess.py`
+8. `python 4_resample.py`
 9. `python 5_train.py`.
 
 ## Usage
