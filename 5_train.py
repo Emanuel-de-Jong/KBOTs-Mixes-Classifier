@@ -7,6 +7,7 @@ import time
 import os
 from pathlib import Path
 from Utils import Logger
+from Mert import Mert
 
 os.environ["KERAS_BACKEND"] = "torch"
 
@@ -66,7 +67,7 @@ def save_model(model, training_data):
 
 def train():
     model = Sequential([
-        layers.Input(shape=(90, 1024, 25)),
+        layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)),
         layers.MaxPooling2D((2, 2)),
         layers.Conv2D(64, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),

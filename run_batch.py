@@ -30,18 +30,18 @@ for name in models.keys():
 results = {}
 song_paths = list(batch_dir.glob("*.mp3"))
 for song_path in tqdm(song_paths, total=len(song_paths)):
-    chunk_data = cache[song_path] if song_path in cache else None
+    embs = cache[song_path] if song_path in cache else None
 
     tops = {}
     for model_name, model in models.items():
-        top, chunk_data = model.infer(song_path, chunk_data)
+        top, embs = model.infer(song_path, embs)
         if top is None or len(top) == 0:
             logger.writeln(f'[ERROR]: Inference failed on model: "{model_name}", song: "{song_path}"!')
             sys.exit(1)
         
         tops[model_name] = top
     
-    cache[song_path] = chunk_data
+    cache[song_path] = embs
     
     song_name, _ = os.path.splitext(os.path.basename(song_path))
     results[song_name] = tops

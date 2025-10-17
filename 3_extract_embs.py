@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import joblib
+import Utils
+import os
 from pathlib import Path
 from Mert import Mert
 from tqdm import tqdm
@@ -14,30 +16,43 @@ songs_test = pd.read_csv(cache_dir / "labels_test.csv")
 
 mert = Mert()
 
+embs_train, embs_test = None, None
+if os.path.exists(cache_dir / "embs_train_temp.joblib"):
+    embs_train = joblib.load(cache_dir / "embs_train_temp.joblib")
+    embs_test = joblib.load(cache_dir / "embs_train_temp.joblib")
+
 def extract(songs, max_chunks):
-    embeddings, labels = [], []
-    for _, row in tqdm(songs.iterrows(), total=len(songs)):
-        chunk_data = mert.run(row.filepath, max_chunks)
-        if chunk_data is None:
+    embs, labels = [], []
+    for _, song in tqdm(songs.iterrows(), total=len(songs)):
+        song_embs = mert.run(song.filepath, max_chunks)
+        if song_embs is None:
             continue
         
-        for vec in chunk_data:
-            if not isinstance(vec, np.ndarray):
-                print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
+        for emb in song_embs:
+            if not isinstance(emb, np.ndarray):
+                print(f"Skipping emb from {song.filepath}: returned {type(emb)} instead of ndarray.")
                 continue
-            if vec.shape != (Mert.TIME_STEPS, 1024, 25):
-                print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
+            if emb.shape != (25, Mert.TIME_STEPS, 1024):
+                print(f"Skipping emb from {song.filepath}: wrong shape {emb.shape}.")
                 continue
 
-            embeddings.append(vec)
-            labels.append(int(row.label))
+            embs.append(emb)
+            labels.append(int(song.label))
 
-    return np.stack(embeddings), pd.Series(labels)
+    return np.stack(embs), pd.Series(labels)
 
-embs, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-joblib.dump(embs, cache_dir / "embs_train.joblib")
-joblib.dump(labels, cache_dir / "labels_train.joblib")
+if embs_train is None:
+    embs_train, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
+    joblib.dump(labels, cache_dir / "labels_train.joblib")
+    joblib.dump(embs_train, cache_dir / "embs_train_temp.joblib")
 
-embs, labels = extract(songs_test, MAX_CHUNKS_TEST)
-joblib.dump(embs, cache_dir / "embs_test.joblib")
-joblib.dump(labels, cache_dir / "labels_test.joblib")
+embs_train = Utils.preprocess(embs_train)
+joblib.dump(embs_train, cache_dir / "embs_train.joblib")
+
+if embs_test is None:
+    embs_test, labels = extract(songs_test, MAX_CHUNKS_TEST)
+    joblib.dump(labels, cache_dir / "labels_test.joblib")
+    joblib.dump(embs_test, cache_dir / "embs_test_temp.joblib")
+
+embs_test = Utils.preprocess(embs_test)
+joblib.dump(embs_test, cache_dir / "embs_test.joblib")

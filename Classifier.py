@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import joblib
+import Utils
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
@@ -23,23 +24,25 @@ class Classifier():
         self.labels = np.unique(pd.read_json(self.cache_dir / "num_to_label.json"))
         self.model = load_model("model/model.keras")
     
-    def infer(self, path, chunk_data=None):
-        if chunk_data is None:
-            chunk_data = self.mert.run(path)
-            if chunk_data is None or len(chunk_data) == 0:
+    def infer(self, path, embs=None):
+        if embs is None:
+            embs = self.mert.run(path)
+            if embs is None or len(embs) == 0:
                 return None
             
-        all_probs = self.model.predict(chunk_data)
+            embs = Utils.preprocess(embs)
+            
+        all_probs = self.model.predict(embs)
         return None
 
         all_probs = np.zeros(len(self.labels))
-        for vec in chunk_data:
-            vec = vec.reshape(1, -1)
-            probs = self.model.predict_proba(vec)[0]
+        for emb in embs:
+            emb = emb.reshape(1, -1)
+            probs = self.model.predict_proba(emb)[0]
 
             all_probs += probs
 
-        all_probs /= len(chunk_data)
+        all_probs /= len(embs)
 
         top_indices = all_probs.argsort()[::-1][:5]
 
@@ -48,7 +51,7 @@ class Classifier():
             prob_to_percent = int(all_probs[idx] * 10000) / 100.0
             results.append((self.labels[idx], prob_to_percent))
 
-        return results, chunk_data
+        return results, embs
     
     def print_top(self, top):
         for i in range(len(top)):

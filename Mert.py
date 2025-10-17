@@ -83,40 +83,29 @@ class Mert():
             if max_chunks != -1 and len(chunks) > max_chunks:
                 chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
             
-            chunk_data = []
+            embs = []
             for chunk in chunks:
                 inputs = self.processor(chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
 
                 with torch.no_grad():
                     outputs = self.model(**inputs, output_hidden_states=True)
                 
-                chunk_vec = self.preprocess(outputs)
-                chunk_data.append(chunk_vec)
-            
-            # X_train_norm = torch.nn.functional.normalize(torch.from_numpy(X_train), p=2, dim=1)
-            # X_test_norm = torch.nn.functional.normalize(torch.from_numpy(X_test), p=2, dim=1)
-            # X_train_norm = X_train_norm.numpy()
-            # X_test_norm = X_test_norm.numpy()
+                emb = torch.stack(outputs.hidden_states).squeeze().cpu()
+                emb = torch.nn.functional.adaptive_avg_pool1d(
+                    emb.permute(0, 2, 1), output_size=Mert.TIME_STEPS
+                ).permute(0, 2, 1)
+                emb = emb.numpy()
+                
+                embs.append(emb)
 
-            chunk_data = np.array(chunk_data)
-            chunk_data = (chunk_data - chunk_data.mean(axis=0)) / chunk_data.std(axis=0)
-            chunk_data = chunk_data.transpose(0, 2, 3, 1)
+            embs = np.array(embs)
             
-            print(f"Success! Generated {len(chunk_data)} chunks")
-            return chunk_data
+            print(f"Success! Generated {len(embs)} embs")
+            return embs
         
         except Exception as e:
             self.error(f"{path} is corrupt! Error: {e}")
             return None
-    
-    def preprocess(self, outputs):
-        chunk_vec = torch.stack(outputs.hidden_states).squeeze().cpu()
-        chunk_vec = torch.nn.functional.adaptive_avg_pool1d(
-            chunk_vec.permute(0, 2, 1), output_size=self.TIME_STEPS
-        ).permute(0, 2, 1)
-        
-        chunk_vec = chunk_vec.numpy()
-        return chunk_vec
 
     def error(self, message):
         print(message)
