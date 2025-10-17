@@ -13,9 +13,9 @@ class SamplingType(Enum):
     UNDERSAMPLING = 1
     OVERSAMPLING = 2
 
-SAMPLING = SamplingType.OVERSAMPLING
+SAMPLING = SamplingType.UNDERSAMPLING
 # -1 means no treshold
-UNDERSAMPLING_TRES = 100
+UNDERSAMPLING_TRES = -1
 # -1 means no treshold
 OVERSAMPLING_TRES = 130
 
@@ -25,6 +25,9 @@ X_train = joblib.load(cache_dir / "embs_train.joblib")
 X_test = joblib.load(cache_dir / "embs_test.joblib")
 y_train = joblib.load(cache_dir / "labels_train.joblib")
 y_test = joblib.load(cache_dir / "labels_test.joblib")
+
+X_train = X_train.transpose(0, 2, 3, 1)
+X_test = X_test.transpose(0, 2, 3, 1)
 
 # print(f'X_train shape: {X_train.shape}')
 # print(f'X_train type: {type(X_train)}')
@@ -103,29 +106,22 @@ train_distribution = y_train.value_counts()
 for label_num, count in train_distribution.items():
     print(f"{labels[label_num]}: {count}")
 
-X_train_norm = torch.nn.functional.normalize(torch.from_numpy(X_train), p=2, dim=1)
-X_test_norm = torch.nn.functional.normalize(torch.from_numpy(X_test), p=2, dim=1)
-X_train_norm = X_train_norm.numpy()
-X_test_norm = X_test_norm.numpy()
+# X_train_norm = torch.nn.functional.normalize(torch.from_numpy(X_train), p=2, dim=1)
+# X_test_norm = torch.nn.functional.normalize(torch.from_numpy(X_test), p=2, dim=1)
+# X_train_norm = X_train_norm.numpy()
+# X_test_norm = X_test_norm.numpy()
 
-# scaler = StandardScaler()
-scaler = RobustScaler()
-X_train_scale = scaler.fit_transform(X_train)
-X_test_scale = scaler.transform(X_test)
+X_train_scale = (X_train - X_train.mean(axis=0)) / X_train.std(axis=0)
+X_test_scale = (X_test - X_test.mean(axis=0)) / X_test.std(axis=0)
 
-print(f"\nTrain stats - Mean: {np.mean(X_train_scale):.4f}, Std: {np.std(X_train_scale):.4f}")
-print(f"Test stats - Mean: {np.mean(X_test_scale):.4f}, Std: {np.std(X_test_scale):.4f}")
-print(f"NaN in train: {np.isnan(X_train_scale).sum()}, test: {np.isnan(X_test_scale).sum()}")
-print(f"Inf in train: {np.isinf(X_train_scale).sum()}, test: {np.isinf(X_test_scale).sum()}")
+# print(f"Train lengths: {len(X_train)} | {len(X_train_norm)} | {len(X_train_scale)}")
+# print(f"Test lengths: {len(X_test)} | {len(X_test_norm)} | {len(X_test_scale)}")
+# print(f"Label lengths: {len(y_train)} | {len(y_test)}")
 
-print(f"Train lengths: {len(X_train)} | {len(X_train_norm)} | {len(X_train_scale)}")
-print(f"Test lengths: {len(X_test)} | {len(X_test_norm)} | {len(X_test_scale)}")
-print(f"Label lengths: {len(y_train)} | {len(y_test)}")
-
-joblib.dump(X_train, cache_dir / f'X_train.joblib')
-joblib.dump(X_test, cache_dir / f'X_test.joblib')
-joblib.dump(X_train_norm, cache_dir / f'X_train_norm.joblib')
-joblib.dump(X_test_norm, cache_dir / f'X_test_norm.joblib')
+# joblib.dump(X_train, cache_dir / f'X_train.joblib')
+# joblib.dump(X_test, cache_dir / f'X_test.joblib')
+# joblib.dump(X_train_norm, cache_dir / f'X_train_norm.joblib')
+# joblib.dump(X_test_norm, cache_dir / f'X_test_norm.joblib')
 joblib.dump(X_train_scale, cache_dir / f'X_train_scale.joblib')
 joblib.dump(X_test_scale, cache_dir / f'X_test_scale.joblib')
 joblib.dump(y_train, cache_dir / f'y_train.joblib')

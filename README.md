@@ -5,6 +5,7 @@ Finds the right playlist for a new song.
 - Research Mert data format
 - Save training data per song
 - Keras CNN with time
+- run never scales the data!
 
 ## Requirements
 - ffmpeg

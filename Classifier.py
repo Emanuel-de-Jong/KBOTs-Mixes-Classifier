@@ -8,6 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
+from keras.models import load_model
 from sklearn.svm import SVC
 from pathlib import Path
 from Mert import Mert
@@ -20,13 +21,16 @@ class Classifier():
         self.mert = mert
         self.cache_dir = Path("cache")
         self.labels = np.unique(pd.read_json(self.cache_dir / "num_to_label.json"))
-        self.model = joblib.load(self.cache_dir / f"model_{model_name}.joblib")
+        self.model = load_model("model/model.keras")
     
     def infer(self, path, chunk_data=None):
         if chunk_data is None:
             chunk_data = self.mert.run(path)
             if chunk_data is None or len(chunk_data) == 0:
                 return None
+            
+        all_probs = self.model.predict(chunk_data)
+        return None
 
         all_probs = np.zeros(len(self.labels))
         for vec in chunk_data:

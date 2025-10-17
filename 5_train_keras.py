@@ -31,9 +31,6 @@ logger = Logger(models_dir / "train.log")
 
 label_count = len(labels)
 
-X = X.reshape(-1, 32, 32)
-X_test = X_test.reshape(-1, 32, 32)
-
 y = to_categorical(y_pre)
 y_test = to_categorical(y_test_pre)
 
@@ -74,7 +71,7 @@ def save_model(model, training_data):
 model, history = None, None
 if not model:
     model = Sequential([
-        layers.Input(shape=(32, 32, 1)),
+        layers.Input(shape=(90, 1024, 25)),
         layers.MaxPooling2D((2, 2)),
         layers.Conv2D(64, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),

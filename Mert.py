@@ -7,7 +7,9 @@ from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 15.0
+    CHUNK_LENGTH_SECONDS = 15
+    TIME_STEPS_PER_SECOND = 6
+    TIME_STEPS = TIME_STEPS_PER_SECOND * CHUNK_LENGTH_SECONDS
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
@@ -86,10 +88,14 @@ class Mert():
                 inputs = self.processor(chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
 
                 with torch.no_grad():
-                    outputs = self.model(**inputs)
+                    outputs = self.model(**inputs, output_hidden_states=True)
                 
-                chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().float().numpy().squeeze()
-                chunk_data.append(chunk_vec)
+                chunk_vec = torch.stack(outputs.hidden_states).squeeze().cpu()
+                chunk_vec = torch.nn.functional.adaptive_avg_pool1d(
+                    chunk_vec.permute(0, 2, 1), output_size=self.TIME_STEPS
+                ).permute(0, 2, 1)
+
+                chunk_data.append(chunk_vec.numpy())
             
             print(f"Success! Generated {len(chunk_data)} chunks")
             return chunk_data
