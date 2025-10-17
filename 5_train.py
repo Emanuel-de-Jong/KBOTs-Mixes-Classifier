@@ -27,7 +27,7 @@ class ClassifierToTrain():
         self.scaling_type = scaling_type
 
 VERBOSE = False
-CV = 4
+CV = 10
 CLASSIFIERS_TO_TRAIN = [
     ClassifierToTrain('KNeighbors', Classifier.train_KNeighbors, ScalingType.NORM),
     ClassifierToTrain('MLP', Classifier.train_MLP, ScalingType.SCALE),
