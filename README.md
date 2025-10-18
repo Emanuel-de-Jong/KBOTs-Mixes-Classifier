@@ -2,7 +2,6 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Confusion matrix
 - Better CNN structure
 - Full training data with smaller size
 - Experiment CNN structure details

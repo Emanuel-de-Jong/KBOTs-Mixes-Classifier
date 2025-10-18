@@ -7,6 +7,7 @@ import joblib
 import json
 import time
 import os
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from pathlib import Path
 from Utils import Logger
 from Mert import Mert
@@ -139,16 +140,31 @@ def draw_acc_and_loss_graphs(history):
     plt.grid()
     plt.legend()
 
-    plt.savefig(models_dir / f'test.png', bbox_inches='tight')
+    plt.savefig(models_dir / f'test_acc_loss.png', bbox_inches='tight')
     plt.close()
 
-def test(model, history, testing_X=X_test, testing_y=y_test):
+def test(model, history):
     draw_acc_and_loss_graphs(history)
 
     logger.writeln(f"Training Accuracy: {history['accuracy'][-1]:.4f} | Loss: {history['loss'][-1]:.4f}")
     logger.writeln(f"Validation Accuracy: {history['val_accuracy'][-1]:.4f} | Loss: {history['val_loss'][-1]:.4f}")
 
-    test_loss, test_accuracy = model.evaluate(testing_X, testing_y, verbose=0)
+    y_pred = model.predict(X_test)
+    y_pred_sk = np.argmax(y_pred, axis=-1)
+
+    report = classification_report(y_test_pre, y_pred_sk, target_names = labels)
+    logger.writeln(report)
+
+    cm = confusion_matrix(y_test_pre, y_pred_sk)
+    disp = ConfusionMatrixDisplay(cm, display_labels = labels)
+
+    _, ax = plt.subplots(figsize=(20, 22), dpi=200)
+    disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
+    plt.tight_layout(pad=3.0)
+    plt.savefig(models_dir / f'test_matrix.png', bbox_inches='tight')
+    plt.close()
+
+    test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
-test(model, history, X_test, y_test)
+test(model, history)
