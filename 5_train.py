@@ -40,7 +40,7 @@ metrics = ['accuracy']
 validation_data=(X_validate, y_validate)
 
 def load_existing_model():
-    model_path = models_dir / f'model.keras'
+    model_path = cache_dir / f'model_global.keras'
     history_path = models_dir / f'history.json'
     if not os.path.exists(model_path) or not os.path.exists(history_path):
         return None, None
@@ -52,7 +52,7 @@ def load_existing_model():
     return model, history
     
 def save_model(model, training_data):
-    model.save(models_dir / f'model.keras')
+    model.save(cache_dir / f'model_global.keras')
 
     history = {}
     history["accuracy"] = training_data.history["accuracy"]
