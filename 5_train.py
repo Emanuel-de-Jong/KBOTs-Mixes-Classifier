@@ -3,6 +3,7 @@ import os
 os.environ["KERAS_BACKEND"] = "torch"
 
 import matplotlib.pyplot as plt
+import cnn_structures as cnns
 import pandas as pd
 import numpy as np
 import random
@@ -43,15 +44,11 @@ def set_seed(seed=1):
 
 set_seed()
 
-label_count = len(labels)
-
 y = to_categorical(y_pre)
 y_test = to_categorical(y_test_pre)
 
 X_train, X_validate, y_train, y_validate = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 
-loss = 'categorical_crossentropy'
-metrics = ['accuracy']
 validation_data=(X_validate, y_validate)
 
 def load_existing_model():
@@ -81,49 +78,7 @@ def save_model(model, training_data):
     return history
 
 def train():
-    kernel_regularizer = regularizers.l2(0.001)
-    model = Sequential([
-        layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)),
-
-        layers.DepthwiseConv2D((1,5), padding='same', depth_multiplier=1),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((1,2)),
-
-        layers.SeparableConv2D(64, (1,3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.SpatialDropout2D(0.2),
-        layers.MaxPooling2D((1,2)),
-
-        layers.SeparableConv2D(128, (1,3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.SpatialDropout2D(0.2),
-        layers.MaxPooling2D((1,2)),
-
-        layers.GlobalAveragePooling2D(),
-
-        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
-
-        layers.Dense(64, activation='relu', kernel_regularizer=kernel_regularizer),
-
-        layers.Dense(label_count, activation='softmax'),
-    ])
-
-    model.compile(
-        optimizer=Adam(learning_rate=0.001),
-        loss=loss,
-        metrics=metrics)
-    
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.5)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
-
-    training_data = model.fit(
-        X_train,
-        y_train,
-        batch_size=32,
-        epochs=150,
-        validation_data=validation_data,
-        callbacks=[reduce_lr, early_stopping])
+    model, training_data = cnns.m25(X_train, X_test, validation_data)
 
     history = save_model(model, training_data)
 
