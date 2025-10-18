@@ -31,6 +31,8 @@ X_test = joblib.load(cache_dir / f'X_test.joblib')
 y_pre = joblib.load(cache_dir / f'y_train.joblib')
 y_test_pre = joblib.load(cache_dir / f'y_test.joblib')
 
+model, history = None, None
+
 logger = Logger(models_dir / "train.log")
 
 def set_seed(seed=1):
@@ -63,8 +65,9 @@ def load_existing_model():
     
     return model, history
     
-def save_model(model, training_data):
-    model.save(cache_dir / f'model_global.keras')
+def save_model(name, model, training_data):
+    # model.save(cache_dir / f'model_global.keras')
+    model.save(models_dir / f'model_{name}.keras')
 
     history = {}
     history["accuracy"] = training_data.history["accuracy"]
@@ -72,27 +75,12 @@ def save_model(model, training_data):
     history["loss"] = training_data.history["loss"]
     history["val_loss"] = training_data.history["val_loss"]
 
-    with open(models_dir / f'history.json', 'w') as f:
+    with open(models_dir / f'history_{name}.json', 'w') as f:
         json.dump(history, f)
     
     return history
 
-def train():
-    model, training_data = cnns.m25(X_train, X_test, validation_data)
-
-    history = save_model(model, training_data)
-
-    return model, history
-
-# model, history = load_existing_model()
-model, history = None, None
-if not model:
-    start_time = time.time()
-    model, history = train()
-    elapsed_time = time.time() - start_time
-    logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
-
-def draw_acc_and_loss_graphs(history):
+def draw_acc_and_loss_graphs(history, name):
     plt.figure(figsize=(9, 2))
 
     plt.subplot(1, 2, 1)
@@ -114,11 +102,11 @@ def draw_acc_and_loss_graphs(history):
     plt.grid()
     plt.legend()
 
-    plt.savefig(models_dir / f'test_acc_loss.png', bbox_inches='tight')
+    plt.savefig(models_dir / f'test_acc_loss_{name}.png', bbox_inches='tight')
     plt.close()
 
-def test(model, history):
-    draw_acc_and_loss_graphs(history)
+def test(model, history, name=""):
+    draw_acc_and_loss_graphs(history, name)
 
     logger.writeln(f"Training Accuracy: {history['accuracy'][-1]:.4f} | Loss: {history['loss'][-1]:.4f}")
     logger.writeln(f"Validation Accuracy: {history['val_accuracy'][-1]:.4f} | Loss: {history['val_loss'][-1]:.4f}")
@@ -135,10 +123,36 @@ def test(model, history):
     _, ax = plt.subplots(figsize=(20, 22), dpi=200)
     disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
     plt.tight_layout(pad=3.0)
-    plt.savefig(models_dir / f'test_matrix.png', bbox_inches='tight')
+    plt.savefig(models_dir / f'test_matrix_{name}.png', bbox_inches='tight')
     plt.close()
 
     test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
-test(model, history)
+def train(name, model_func):
+    print(name)
+
+    start_time = time.time()
+    model, training_data = model_func(name, X_train, y_train, validation_data)
+    elapsed_time = time.time() - start_time
+    logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
+
+    history = save_model(name, model, training_data)
+
+    test(model, history, name)
+
+    return model, history
+
+# model, history = load_existing_model()
+if model is None:
+    train("m1", cnns.m1)
+    train("m2", cnns.m2)
+    train("m3", cnns.m3)
+    train("m4", cnns.m4)
+    train("m5", cnns.m5)
+    train("m6", cnns.m6)
+    train("m7", cnns.m7)
+    train("m8", cnns.m8)
+
+else:
+    test(model, history)
