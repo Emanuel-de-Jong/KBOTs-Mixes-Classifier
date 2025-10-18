@@ -2,6 +2,7 @@
 Finds the right playlist for a new song.
 
 ## TODO
+- Fix oversampling
 - Full training data with smaller size
 - Experiment CNN structure details
 - Model for playlist subsets

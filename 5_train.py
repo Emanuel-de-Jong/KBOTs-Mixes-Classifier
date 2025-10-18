@@ -84,21 +84,23 @@ def train():
     kernel_regularizer = regularizers.l2(0.001)
     model = Sequential([
         layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)),
-        layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.SpatialDropout2D(0.2),
-        layers.MaxPooling2D((2, 2)),
+        layers.DepthwiseConv2D((1,5), padding='same', depth_multiplier=1),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
 
-        layers.Conv2D(128, (3, 3), activation='relu'),
+        layers.SeparableConv2D(64, (1,3), padding='same', activation='relu'),
+        layers.BatchNormalization(),
         layers.SpatialDropout2D(0.2),
-        layers.MaxPooling2D((2, 2)),
+        layers.MaxPooling2D((1,2)),
 
-        layers.Conv2D(256, (3, 3), activation='relu'),
+        layers.SeparableConv2D(128, (1,3), padding='same', activation='relu'),
+        layers.BatchNormalization(),
         layers.SpatialDropout2D(0.2),
+        layers.MaxPooling2D((1,2)),
+
         layers.GlobalAveragePooling2D(),
-
-        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
 
         layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
 
