@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import random
+import torch
 import joblib
 import json
 import time
@@ -27,6 +29,17 @@ y_pre = joblib.load(cache_dir / f'y_train.joblib')
 y_test_pre = joblib.load(cache_dir / f'y_test.joblib')
 
 logger = Logger(models_dir / "train.log")
+
+def set_seed(seed=1):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
+set_seed()
 
 label_count = len(labels)
 
@@ -89,7 +102,7 @@ def train():
         X_train,
         y_train,
         batch_size=32,
-        epochs=5,
+        epochs=10,
         validation_data=validation_data)
 
     history = save_model(model, training_data)

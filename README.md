@@ -2,10 +2,11 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Research Mert data format
-- Save training data per song
-- Keras CNN with time
-- run never scales the data!
+- Confusion matrix
+- Better CNN structure
+- Full training data with smaller size
+- Experiment CNN structure details
+- Model for playlist subsets
 
 ## Requirements
 - ffmpeg
