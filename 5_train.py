@@ -1,3 +1,7 @@
+import os
+
+os.environ["KERAS_BACKEND"] = "torch"
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -6,19 +10,16 @@ import torch
 import joblib
 import json
 import time
-import os
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential, load_model
+from keras import layers, regularizers
+from keras.utils import to_categorical
+from keras.optimizers import Adam
 from pathlib import Path
 from Utils import Logger
 from Mert import Mert
-
-os.environ["KERAS_BACKEND"] = "torch"
-
-from keras import layers
-from keras.models import Sequential, load_model
-from keras.utils import to_categorical
-from sklearn.model_selection import train_test_split
-from keras.optimizers import Adam
 
 models_dir = Path("models")
 models_dir.mkdir(exist_ok=True)
@@ -80,17 +81,29 @@ def save_model(model, training_data):
     return history
 
 def train():
+    kernel_regularizer = regularizers.l2(0.001)
     model = Sequential([
         layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)),
         layers.MaxPooling2D((2, 2)),
+
         layers.Conv2D(64, (3, 3), activation='relu'),
+        layers.SpatialDropout2D(0.2),
         layers.MaxPooling2D((2, 2)),
+
         layers.Conv2D(128, (3, 3), activation='relu'),
+        layers.SpatialDropout2D(0.2),
         layers.MaxPooling2D((2, 2)),
-        layers.Flatten(),
-        layers.Dense(128, activation='relu'),
-        layers.Dropout(0.2),
-        layers.Dense(64, activation='relu'),
+
+        layers.Conv2D(256, (3, 3), activation='relu'),
+        layers.SpatialDropout2D(0.2),
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(64, activation='relu', kernel_regularizer=kernel_regularizer),
+
         layers.Dense(label_count, activation='softmax'),
     ])
 
@@ -98,13 +111,17 @@ def train():
         optimizer=Adam(learning_rate=0.001),
         loss=loss,
         metrics=metrics)
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
 
     training_data = model.fit(
         X_train,
         y_train,
         batch_size=32,
-        epochs=10,
-        validation_data=validation_data)
+        epochs=150,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping])
 
     history = save_model(model, training_data)
 
