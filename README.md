@@ -2,9 +2,9 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Fix oversampling
 - Full training data with smaller size
-- Experiment CNN structure details
+- Implement KerasTuner
+- Fix oversampling?
 - Model for playlist subsets
 
 ## Requirements

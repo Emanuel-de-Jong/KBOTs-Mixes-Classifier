@@ -130,7 +130,7 @@ def test(model, history, name=""):
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
 def train(name, model_func):
-    print(name)
+    logger.writeln(name)
 
     start_time = time.time()
     model, training_data = model_func(name, X_train, y_train, validation_data)
