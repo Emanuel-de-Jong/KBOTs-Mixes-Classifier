@@ -4,7 +4,6 @@ Finds the right playlist for a new song.
 ## TODO
 - Use unique songs for validation split if enough data
 - Full training data with smaller size
-- Implement KerasTuner
 - Model for playlist subsets
 
 ## Requirements
