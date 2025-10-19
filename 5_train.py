@@ -162,15 +162,16 @@ def build_model(hp):
         if hp.Boolean(f'spatial_dropout_{i}'):
             model.add(layers.SpatialDropout2D(hp.Choice(f'drop_rate_{i}', [0.1, 0.2, 0.3])))
             model.add(layers.MaxPooling2D((2,2)))
-            model.add(layers.GlobalAveragePooling2D())
-        
-        for j in range(hp.Int('dense_layers', 1, 3)):
-            units = hp.Choice(f'units_{j}', [64, 128, 256])
+    
+    model.add(layers.GlobalAveragePooling2D())
+    
+    for j in range(hp.Int('dense_layers', 1, 3)):
+        units = hp.Choice(f'units_{j}', [64, 128, 256])
 
-            model.add(layers.Dense(units, activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+        model.add(layers.Dense(units, activation='relu', kernel_regularizer=regularizers.l2(0.001)))
 
-            if hp.Boolean(f'dense_dropout_{j}'):
-                model.add(layers.Dropout(hp.Choice(f'drop_dense_{j}', [0.3, 0.5])))
+        if hp.Boolean(f'dense_dropout_{j}'):
+            model.add(layers.Dropout(hp.Choice(f'drop_dense_{j}', [0.3, 0.5])))
     
     model.add(layers.Dense(label_count, activation='softmax'))
 
@@ -179,13 +180,15 @@ def build_model(hp):
     return model
 
 def train_with_tuner():
-    tuner = kt.Hyperband(build_model, objective='val_accuracy', max_epochs=30, factor=3, directory=str(models_dir), project_name='hyper_search')
+    tuner = kt.Hyperband(build_model, objective='val_accuracy', max_epochs=200, factor=3, directory=str(models_dir), project_name='hyper_search', overwrite=True)
 
     stop_early = EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
-    tuner.search(X_train, y_train, validation_data=validation_data, epochs=30, batch_size=32)
+    tuner.search(X_train, y_train, validation_data=validation_data, epochs=200, batch_size=32, callbacks=[stop_early])
 
-    best_model = tuner.get_best_models(num_models=1)[0]
-    training_data = best_model.fit(X_train, y_train, validation_data=validation_data, epochs=50, callbacks=[stop_early])
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    best_model = tuner.hypermodel.build(best_hps)
+    
+    training_data = best_model.fit(X_train, y_train, validation_data=validation_data, epochs=200, callbacks=[stop_early])
     
     history = save_model("best", best_model, training_data)
     test(best_model, history, "best")
