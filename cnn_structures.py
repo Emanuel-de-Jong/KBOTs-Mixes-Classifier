@@ -34,6 +34,53 @@ def create_model(layer_array):
     layer_array.append(layers.Dense(label_count, activation='softmax'))
     return Sequential(layer_array)
 
+# 64 labels | 5 time steps | 25 songs | 175 undersample
+# 2025-10-19 11:20 Training took 110.54 seconds or 1.84 minutes.
+# 2025-10-19 11:20 Training Accuracy: 0.9044 | Loss: 0.2991
+# 2025-10-19 11:20 Validation Accuracy: 0.5401 | Loss: 2.4056
+# 2025-10-19 11:20 Test Accuracy: 0.2477 | Loss: 4.8794
+#                   accuracy                           0.25      1098
+#                  macro avg       0.25      0.25      0.23      1098
+#               weighted avg       0.25      0.25      0.24      1098
+def m9(name, X_train, y_train, validation_data):
+    model = create_model([
+        layers.MaxPooling2D((1, 2)),
+
+        layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1, 2)),
+
+        layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1, 2)),
+
+        layers.Flatten(),
+
+        layers.Dense(128, activation='relu'),
+        layers.Dropout(0.2),
+
+        layers.Dense(64, activation='relu'),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=15,
+        validation_data=validation_data,
+    )
+
+    return model, training_data
+
+
+
+
+
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 22:59 Training took 31.22 seconds or 0.52 minutes.
 # 2025-10-18 22:59 Training Accuracy: 0.9973 | Loss: 0.0155
 # 2025-10-18 22:59 Validation Accuracy: 0.9140 | Loss: 0.2196
@@ -76,6 +123,7 @@ def m1(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:09 Training took 436.65 seconds or 7.28 minutes.
 # 2025-10-18 23:09 Training Accuracy: 0.6640 | Loss: 0.9834
 # 2025-10-18 23:09 Validation Accuracy: 0.6559 | Loss: 1.0881
@@ -129,6 +177,7 @@ def m3(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:23 Training took 497.57 seconds or 8.29 minutes.
 # 2025-10-18 23:23 Training Accuracy: 0.7696 | Loss: 0.7818
 # 2025-10-18 23:23 Validation Accuracy: 0.8602 | Loss: 0.6210
@@ -186,6 +235,7 @@ def m5(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:33 Training took 307.64 seconds or 5.13 minutes.
 # 2025-10-18 23:33 Training Accuracy: 0.7913 | Loss: 0.7716
 # 2025-10-18 23:33 Validation Accuracy: 0.7312 | Loss: 0.9193
@@ -242,6 +292,7 @@ def m7(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:28 Training took 305.02 seconds or 5.08 minutes.
 # 2025-10-18 23:28 Training Accuracy: 0.8862 | Loss: 0.4473
 # 2025-10-18 23:28 Validation Accuracy: 0.8817 | Loss: 0.5150
@@ -295,6 +346,7 @@ def m6(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:02 Training took 172.65 seconds or 2.88 minutes.
 # 2025-10-18 23:02 Training Accuracy: 0.5827 | Loss: 1.0414
 # 2025-10-18 23:02 Validation Accuracy: 0.4946 | Loss: 1.2664
@@ -347,6 +399,7 @@ def m2(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:14 Training took 302.44 seconds or 5.04 minutes.
 # 2025-10-18 23:14 Training Accuracy: 0.4824 | Loss: 1.7260
 # 2025-10-18 23:14 Validation Accuracy: 0.4516 | Loss: 1.7018
@@ -412,6 +465,7 @@ def m4(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 6 labels | 90 time steps | 10 songs | -1 undersample
 # 2025-10-18 23:41 Training took 462.21 seconds or 7.70 minutes.
 # 2025-10-18 23:41 Training Accuracy: 0.1680 | Loss: 1.7923
 # 2025-10-18 23:41 Validation Accuracy: 0.1613 | Loss: 1.7927

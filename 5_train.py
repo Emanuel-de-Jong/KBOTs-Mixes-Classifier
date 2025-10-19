@@ -147,7 +147,7 @@ def train(name, model_func):
 
 # model, history = load_existing_model()
 if model is None:
-    train("m1", cnns.m1)
+    # train("m1", cnns.m1)
     # train("m2", cnns.m2)
     # train("m3", cnns.m3)
     # train("m4", cnns.m4)
@@ -155,6 +155,7 @@ if model is None:
     # train("m6", cnns.m6)
     # train("m7", cnns.m7)
     # train("m8", cnns.m8)
+    train("m9", cnns.m9)
 
 else:
     test(model, history)
