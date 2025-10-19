@@ -15,7 +15,7 @@ class SamplingType(Enum):
 
 SAMPLING = SamplingType.UNDERSAMPLING
 # -1 means no treshold
-UNDERSAMPLING_TRES = -1
+UNDERSAMPLING_TRES = 175
 # -1 means no treshold
 OVERSAMPLING_TRES = 130
 

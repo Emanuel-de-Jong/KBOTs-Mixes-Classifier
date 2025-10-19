@@ -4,6 +4,7 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import matplotlib.pyplot as plt
 import cnn_structures as cnns
+import keras_tuner as kt
 import pandas as pd
 import numpy as np
 import random
@@ -45,6 +46,8 @@ def set_seed(seed=1):
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 set_seed()
+
+label_count = len(labels)
 
 y = to_categorical(y_pre)
 y_test = to_categorical(y_test_pre)
@@ -142,6 +145,52 @@ def train(name, model_func):
     test(model, history, name)
 
     return model, history
+
+def build_model(hp):
+    model = Sequential()
+    model.add(layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)))
+
+    for i in range(hp.Int('conv_blocks', 2, 4)):
+        filters = hp.Choice(f'filters_{i}', [32, 64, 128, 256])
+        kernel_size = hp.Choice(f'kernel_size_{i}', [(3,3), (5,5)])
+
+        model.add(layers.Conv2D(filters, kernel_size, activation='relu', padding='same'))
+
+        if hp.Boolean(f'batchnorm_{i}'):
+            model.add(layers.BatchNormalization())
+        
+        if hp.Boolean(f'spatial_dropout_{i}'):
+            model.add(layers.SpatialDropout2D(hp.Choice(f'drop_rate_{i}', [0.1, 0.2, 0.3])))
+            model.add(layers.MaxPooling2D((2,2)))
+            model.add(layers.GlobalAveragePooling2D())
+        
+        for j in range(hp.Int('dense_layers', 1, 3)):
+            units = hp.Choice(f'units_{j}', [64, 128, 256])
+
+            model.add(layers.Dense(units, activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+
+            if hp.Boolean(f'dense_dropout_{j}'):
+                model.add(layers.Dropout(hp.Choice(f'drop_dense_{j}', [0.3, 0.5])))
+    
+    model.add(layers.Dense(label_count, activation='softmax'))
+
+    lr = hp.Choice('learning_rate', [1e-4, 5e-4, 1e-3])
+    model.compile(optimizer=Adam(learning_rate=lr), loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+def train_with_tuner():
+    tuner = kt.Hyperband(build_model, objective='val_accuracy', max_epochs=30, factor=3, directory=str(models_dir), project_name='hyper_search')
+
+    stop_early = EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
+    tuner.search(X_train, y_train, validation_data=validation_data, epochs=30, batch_size=32)
+
+    best_model = tuner.get_best_models(num_models=1)[0]
+    training_data = best_model.fit(X_train, y_train, validation_data=validation_data, epochs=50, callbacks=[stop_early])
+    
+    history = save_model("best", best_model, training_data)
+    test(best_model, history, "best")
+
+    return best_model, history
 
 # model, history = load_existing_model()
 if model is None:
