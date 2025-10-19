@@ -49,7 +49,7 @@ set_seed()
 y = to_categorical(y_pre)
 y_test = to_categorical(y_test_pre)
 
-X_train, X_validate, y_train, y_validate = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
+X_train, X_validate, y_train, y_validate = train_test_split(X, y, test_size=0.15, stratify=y, random_state=1)
 
 validation_data=(X_validate, y_validate)
 
@@ -146,13 +146,13 @@ def train(name, model_func):
 # model, history = load_existing_model()
 if model is None:
     train("m1", cnns.m1)
-    train("m2", cnns.m2)
-    train("m3", cnns.m3)
-    train("m4", cnns.m4)
-    train("m5", cnns.m5)
-    train("m6", cnns.m6)
-    train("m7", cnns.m7)
-    train("m8", cnns.m8)
+    # train("m2", cnns.m2)
+    # train("m3", cnns.m3)
+    # train("m4", cnns.m4)
+    # train("m5", cnns.m5)
+    # train("m6", cnns.m6)
+    # train("m7", cnns.m7)
+    # train("m8", cnns.m8)
 
 else:
     test(model, history)

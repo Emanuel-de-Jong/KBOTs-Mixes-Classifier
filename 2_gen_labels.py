@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 
 MIN_PLAYLIST_SONGS = 10
-MAX_PLAYLIST_SONGS = 14
+MAX_PLAYLIST_SONGS = 25
 # Only for testing! -1 to disable.
 TEST_LABEL_COUNT = -1
 

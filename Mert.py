@@ -7,9 +7,11 @@ from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 15
-    TIME_STEPS_PER_SECOND = 6
-    TIME_STEPS = TIME_STEPS_PER_SECOND * CHUNK_LENGTH_SECONDS
+    CHUNK_LENGTH_SECONDS = 10
+    TIME_STEPS_PER_SECOND = 0.5
+    TIME_STEPS = int(TIME_STEPS_PER_SECOND * CHUNK_LENGTH_SECONDS)
+    START_SKIP_SECONDS = 0
+    END_SKIP_SECONDS = 0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
@@ -61,8 +63,8 @@ class Mert():
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
             
-            start_skip_samples = int(20.0 * resample_rate)
-            end_skip_samples = int(20.0 * resample_rate)
+            start_skip_samples = int(self.START_SKIP_SECONDS * resample_rate)
+            end_skip_samples = int(self.END_SKIP_SECONDS * resample_rate)
             
             total_samples = len(audio_samples)
             usable_samples = total_samples - start_skip_samples - end_skip_samples
