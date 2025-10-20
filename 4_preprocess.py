@@ -20,6 +20,27 @@ OVERSAMPLE_TRES = 130
 
 g.load_data(3)
 
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+label_counts = train_data['label'].value_counts()
+
+validate_target = label_counts.max() * VALIDATE_PERC
+for label in range(g.label_count):
+    label_train_data = train_data[train_data["label"] == label]
+    organic_validate_target = int(VALIDATE_PERC * len(label_train_data))
+    label_validate_idxs = label_train_data.index
+    # TODO: Shuffle label_validate_idxs
+
+    for i in range(organic_validate_target):
+        g.data[label_validate_idxs[i]]["data_set"] = g.DataSetType.validate
+    
+    remaining_validate_target = validate_target - organic_validate_target
+    validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
+    label_validate_data = validate_data[validate_data["label"] == label]
+    # TODO: Go over and duplicate validate data untill remaining_validate_target is reached
+
+    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+
+label_counts = train_data['label'].value_counts()
 def undersample(data, label, sample_target):
     label_idxs = data[data['label'] == label].index.to_numpy()
 
@@ -31,8 +52,6 @@ def undersample(data, label, sample_target):
 
     g.data = g.data.iloc[final_idxs].reset_index(drop=True)
 
-train_data = g.data[g.data["data_set"] == g.DataSetType.train]
-label_counts = train_data['label'].value_counts()
 if SAMPLING == SamplingType.undersample:
     undersampling_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
     for label, count in label_counts.items():
@@ -52,10 +71,5 @@ elif SAMPLING == SamplingType.oversample:
 label_counts = train_data.value_counts()
 for label, count in label_counts.items():
     print(f"{g.labels[label]}: {count}")
-
-label_validate_target = label_counts.max() * VALIDATE_PERC
-for label in range(g.label_count):
-    label_train_data = train_data[train_data["label"] == label]
-    validate_target = VALIDATE_PERC * len(label_train_data)
 
 g.save_data(4)
