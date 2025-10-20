@@ -58,33 +58,34 @@ for label, count in validate_data["label"].value_counts().items():
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
-def undersample(data, label, sample_target):
-    label_idxs = data[data['label'] == label].index.to_numpy()
-
+def undersample(label, sample_target):
+    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+    
+    label_idxs = train_data[train_data['label'] == label].index.to_numpy()
     sampled_label_idxs = resample(label_idxs, replace=False, n_samples=sample_target, random_state=1)
-    other_idxs = data[data['label'] != label].index.to_numpy()
-
-    final_idxs = np.concatenate([other_idxs, sampled_label_idxs]).astype(int)
-    final_idxs.sort()
-
-    g.data = g.data.iloc[final_idxs].reset_index(drop=True)
+    other_train_idxs = train_data[train_data['label'] != label].index.to_numpy()
+    
+    new_train_idxs = np.concatenate([other_train_idxs, sampled_label_idxs]).astype(int)
+    non_train_data = g.data[g.data["data_set"] != g.DataSetType.train]
+    new_train_data = g.data.loc[new_train_idxs].copy()
+    
+    g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
 if SAMPLING == SamplingType.undersample:
     undersampling_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
     for label, count in label_counts.items():
         if count > undersampling_tres:
-            undersample(train_data, label, undersampling_tres)
-            train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+            undersample(label, undersampling_tres)
 elif SAMPLING == SamplingType.oversample:
     if OVERSAMPLE_TRES != -1:
         for label, count in label_counts.items():
             if count > OVERSAMPLE_TRES:
-                undersample(train_data, label, OVERSAMPLE_TRES)
-                train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+                undersample(label, OVERSAMPLE_TRES)
     
     smote = SMOTE(random_state=1)
     # X_train, y_train = smote.fit_resample(X_train, y_train)
 
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data["label"].value_counts()
 print("\n== Train label counts after resample ==")
 for label, count in label_counts.items():
