@@ -27,30 +27,21 @@ def calc_class_weight(y_train):
         y=y)
     return dict(enumerate(cw))
 
-# 64 labels | 6 time steps | 25 songs | 250 undersample | song split
-def m12(name, X_train, y_train, validation_data):
-    kernel_regularizer = regularizers.l2(0.005)
+# 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
+def m13(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
-        layers.Conv2D(32, (5,5), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((1,2)),
-        layers.SpatialDropout2D(0.1),
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
 
-        layers.Conv2D(64, (3,3), padding='same'),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((2,2)),
-        layers.SpatialDropout2D(0.2),
-
-        layers.Conv2D(128, (3,3), padding='same'),
-        layers.Activation('relu'),
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
         layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
 
-        layers.Conv2D(256, (3,3), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
         layers.MaxPooling2D((1,2)),
-        layers.SpatialDropout2D(0.1),
+        layers.SpatialDropout2D(0.3),
 
         layers.Flatten(),
 
@@ -65,14 +56,64 @@ def m12(name, X_train, y_train, validation_data):
         metrics=METRICS,
     )
     
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.1)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.2)
     early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
+
+    model.summary()
 
     training_data = model.fit(
         X_train,
         y_train,
         batch_size=32,
         epochs=1000,
+        validation_data=validation_data,
+        # class_weight=calc_class_weight(y_train),
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+# 64 labels | 6 time steps | 25 songs | 250 undersample | song split
+# 2025-10-20 21:55 Training took 329.21 seconds or 5.49 minutes.
+# 2025-10-20 21:55 Training Accuracy: 0.9180 | Loss: 0.5810
+# 2025-10-20 21:55 Validation Accuracy: 0.3424 | Loss: 4.0613
+# 2025-10-20 21:55 Test Accuracy: 0.2823 | Loss: 2.9738
+#                   accuracy                           0.28      1098
+#                  macro avg       0.25      0.28      0.25      1098
+#               weighted avg       0.25      0.28      0.25      1098
+# BatchNormalization was what broke everything...
+def m12(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.01)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((2,2)),
+        layers.SpatialDropout2D(0.1),
+
+        layers.Conv2D(128, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Flatten(),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=500,
         validation_data=validation_data,
         class_weight=calc_class_weight(y_train),
         callbacks=[reduce_lr, early_stopping],
@@ -81,6 +122,14 @@ def m12(name, X_train, y_train, validation_data):
     return model, training_data
 
 # 64 labels | 6 time steps | 25 songs | 250 undersample | song split
+# 2025-10-20 21:01 Training took 905.90 seconds or 15.10 minutes.
+# 2025-10-20 21:01 Training Accuracy: 0.0124 | Loss: 4.1589
+# 2025-10-20 21:01 Validation Accuracy: 0.0156 | Loss: 4.1589
+# 2025-10-20 21:01 Test Accuracy: 0.0164 | Loss: 4.1588
+#                   accuracy                           0.02      1098
+#                  macro avg       0.00      0.02      0.00      1098
+#               weighted avg       0.00      0.02      0.00      1098
+# Extreme overfitting
 
 # 64 labels | 5 time steps | 25 songs | raw
 # 2025-10-20 13:34 Training took 1775.68 seconds or 29.59 minutes.
@@ -145,8 +194,8 @@ def m11(name, X_train, y_train, validation_data):
 # 64 labels | 5 time steps | 25 songs | -1 undersample
 # 2025-10-20 12:44 Training took 513.40 seconds or 8.56 minutes.
 # 2025-10-20 12:44 Training Accuracy: 0.7873 | Loss: 1.0380
-# 2025-10-20 12:44 Test Accuracy: 0.2268 | Loss: 3.6503
 # 2025-10-20 12:44 Validation Accuracy: 0.5073 | Loss: 2.3055
+# 2025-10-20 12:44 Test Accuracy: 0.2268 | Loss: 3.6503
 #                   accuracy                           0.23      1098
 #                  macro avg       0.24      0.23      0.23      1098
 #               weighted avg       0.24      0.23      0.23      1098

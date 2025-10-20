@@ -153,8 +153,9 @@ if model is None:
     # train(cnns.m8)
     # train(cnns.m9)
     # train(cnns.m10)
-    train(cnns.m11)
+    # train(cnns.m11)
     # train(cnns.m12)
+    train(cnns.m13)
 
 else:
     test(model, history)

@@ -10,11 +10,11 @@ class SamplingType(Enum):
     undersample = 1
     oversample = 2
 
-VALIDATE_PERC = 0.15
+VALIDATE_PERC = 0.2
 
 SAMPLING = SamplingType.undersample
 # -1 means no treshold
-UNDERSAMPLE_TRES = 250
+UNDERSAMPLE_TRES = 200
 # -1 means no treshold
 OVERSAMPLE_TRES = 130
 
@@ -32,7 +32,7 @@ for label in range(g.label_count):
 
     total_rows = 0
     validate_songs = []
-    organic_validate_target = int(VALIDATE_PERC * len(label_train_data))
+    organic_validate_target = int(round(VALIDATE_PERC * len(label_train_data)))
     for song in songs:
         song_rows = len(label_train_data[label_train_data['song'] == song])
         if total_rows + song_rows <= organic_validate_target:
