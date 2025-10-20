@@ -2,9 +2,9 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Use unique songs for validation split (if enough data?)
 - More songs but less chunks if enough data
 - Duplicates to balance songs?
+- Don't use unique songs if not enough data?
 - Balanced batching
 - Experiment with CNN structures
 - Models for playlist subsets

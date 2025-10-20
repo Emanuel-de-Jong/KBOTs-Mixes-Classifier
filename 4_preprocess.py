@@ -27,25 +27,45 @@ all_new_rows = []
 validate_target = label_counts.max() * VALIDATE_PERC
 for label in range(g.label_count):
     label_train_data = train_data[train_data["label"] == label]
+    songs = label_train_data['song'].unique()
+    np.random.shuffle(songs)
 
+    total_rows = 0
+    validate_songs = []
     organic_validate_target = int(VALIDATE_PERC * len(label_train_data))
-    label_validate_idxs = label_train_data.index.values
-    np.random.shuffle(label_validate_idxs)
-    
-    g.data.loc[label_validate_idxs[:organic_validate_target], "data_set"] = g.DataSetType.validate
-    
-    remaining_validate_target = int(validate_target - organic_validate_target)
+    for song in songs:
+        song_rows = len(label_train_data[label_train_data['song'] == song])
+        if total_rows + song_rows <= organic_validate_target:
+            validate_songs.append(song)
+            total_rows += song_rows
+
+            if total_rows == organic_validate_target:
+                break
+
+    label_validate_idxs = label_train_data[label_train_data['song'].isin(validate_songs)].index
+    g.data.loc[label_validate_idxs, "data_set"] = g.DataSetType.validate
+
+    remaining_validate_target = int(validate_target - total_rows)
     if remaining_validate_target > 0:
-        validate_sample_idxs = g.data[(g.data["data_set"] == g.DataSetType.validate) & 
-            (g.data["label"] == label)].index.values
+        label_validate_data = g.data[(g.data["data_set"] == g.DataSetType.validate) & (g.data["label"] == label)]
+
+        song_sizes = label_validate_data.groupby('song').size().sort_values()
+        repeated_songs = np.tile(song_sizes.index.values, (remaining_validate_target // len(song_sizes)) + 1)
+
+        new_rows = []
+        total_dup_rows = 0
+        for song in repeated_songs:
+            song_rows = g.data[(g.data["song"] == song) & (g.data["label"] == label) & (g.data["data_set"] == g.DataSetType.validate)]
+
+            if total_dup_rows + len(song_rows) >= remaining_validate_target:
+                new_rows.append(song_rows[:remaining_validate_target - total_dup_rows])
+                break
+
+            new_rows.append(song_rows)
+            total_dup_rows += len(song_rows)
         
-        if len(validate_sample_idxs) > 0:
-            num_repeats = (remaining_validate_target + len(validate_sample_idxs) - 1) // len(validate_sample_idxs)
-            repeated_idxs = np.tile(validate_sample_idxs, num_repeats)
-            selected_idxs = repeated_idxs[:remaining_validate_target]
-            
-            new_rows = g.data.loc[selected_idxs].copy()
-            new_rows["data_set"] = g.DataSetType.validate
+        if new_rows:
+            new_rows = pd.concat(new_rows).copy()
             all_new_rows.append(new_rows)
 
 if all_new_rows:
