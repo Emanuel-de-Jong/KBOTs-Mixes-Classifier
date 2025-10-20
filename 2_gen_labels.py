@@ -30,12 +30,12 @@ joblib.dump(labels, g.CACHE_DIR / "labels.joblib")
 
 label_to_num = {label: i for i, label in enumerate(labels)}
 
-def get_song_labels(is_train):
-    with open(g.CACHE_DIR / f"labels_{'train' if is_train else 'test'}.csv", "w", newline="") as f:
+def get_song_labels(data_set_type):
+    with open(g.CACHE_DIR / f"labels_{data_set_type.name}.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["filepath","label"])
+        w.writerow(["song","label"])
 
-        dir = g.TRAIN_DIR if is_train else g.TEST_DIR
+        dir = g.TRAIN_DIR if data_set_type == g.DataSetType.train else g.TEST_DIR
         playlist_count = 0
         for playlist_dir in dir.iterdir():
             if playlist_dir.is_dir():
@@ -53,12 +53,6 @@ def get_song_labels(is_train):
                     added_songs += 1
                     if added_songs >= MAX_PLAYLIST_SONGS:
                         break
-                
-                # if len(songs) < MIN_PLAYLIST_SONGS:
-                #     needed = MIN_PLAYLIST_SONGS - len(songs)
-                #     for i in range(needed):
-                #         song = songs[i % len(songs)]
-                #         w.writerow([str(song.resolve()), lbl_dir.name])
 
-get_song_labels(True)
-get_song_labels(False)
+get_song_labels(g.DataSetType.train)
+get_song_labels(g.DataSetType.test)

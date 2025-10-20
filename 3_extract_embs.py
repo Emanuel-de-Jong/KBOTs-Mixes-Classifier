@@ -15,10 +15,14 @@ songs_test = pd.read_csv(g.CACHE_DIR / "labels_test.csv")
 
 mert = Mert()
 
-def extract(songs, max_chunks):
-    embs, labels = [], []
+def extract(data, data_set_type):
+    songs = songs_train if data_set_type == g.DataSetType.train else songs_test
+    max_chunks = MAX_CHUNKS_TRAIN if data_set_type == g.DataSetType.train else MAX_CHUNKS_TEST
+
     for _, song in tqdm(songs.iterrows(), total=len(songs)):
-        song_embs = mert.run(song.filepath, max_chunks)
+        song_label = int(song.label)
+        song_name = g.get_song_name(song.song)
+        song_embs = mert.run(song.song, max_chunks)
         if song_embs is None:
             continue
 
@@ -36,15 +40,16 @@ def extract(songs, max_chunks):
                 print(f"Skipping emb from {song.filepath}: wrong shape {emb.shape}.")
                 continue
 
-            embs.append(emb)
-            labels.append(int(song.label))
+            data.append({
+                'data_set': data_set_type,
+                'label': song_label,
+                'song': song_name,
+                'data': emb})
 
-    return np.stack(embs), pd.Series(labels)
+data = []
 
-embs_train, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-joblib.dump(labels, g.CACHE_DIR / "labels_train.joblib")
-joblib.dump(embs_train, g.CACHE_DIR / "embs_train.joblib")
+extract(data, g.DataSetType.train)
+extract(data, g.DataSetType.test)
 
-embs_test, labels = extract(songs_test, MAX_CHUNKS_TEST)
-joblib.dump(labels, g.CACHE_DIR / "labels_test.joblib")
-joblib.dump(embs_test, g.CACHE_DIR / "embs_test.joblib")
+g.data = pd.DataFrame(data)
+g.save_data(3)

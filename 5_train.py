@@ -19,6 +19,8 @@ from keras.utils import to_categorical
 from pathlib import Path
 from Utils import Logger
 
+g.load_data(4)
+
 X = joblib.load(g.CACHE_DIR / f'X_train.joblib')
 X_test = joblib.load(g.CACHE_DIR / f'X_test.joblib')
 y_pre = joblib.load(g.CACHE_DIR / f'y_train.joblib')

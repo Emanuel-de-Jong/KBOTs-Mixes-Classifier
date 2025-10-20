@@ -9,8 +9,7 @@ from sklearn.utils import resample
 
 class Mert():
     CHUNK_LENGTH_SECONDS = 10
-    TIME_STEPS_PER_SECOND = 0.5
-    TIME_STEPS = int(TIME_STEPS_PER_SECOND * CHUNK_LENGTH_SECONDS)
+    TIME_STEPS = 6
     START_SKIP_SECONDS = 0
     END_SKIP_SECONDS = 0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
