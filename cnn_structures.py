@@ -14,6 +14,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confu
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential, load_model
+from sklearn.utils import class_weight
 from keras import layers, regularizers
 from keras.utils import to_categorical
 from keras.optimizers import Adam
@@ -33,6 +34,133 @@ def create_model(layer_array):
     layer_array.insert(0, layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)))
     layer_array.append(layers.Dense(label_count, activation='softmax'))
     return Sequential(layer_array)
+
+def calc_class_weight(y_train):
+    y = np.argmax(y_train, axis=1)
+    cw = class_weight.compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(y),
+        y=y)
+    return dict(enumerate(cw))
+
+# 64 labels | 5 time steps | 25 songs | raw
+# 2025-10-20 13:34 Training took 1775.68 seconds or 29.59 minutes.
+# 2025-10-20 13:34 Training Accuracy: 0.7784 | Loss: 0.8532
+# 2025-10-20 13:34 Validation Accuracy: 0.5502 | Loss: 2.0031
+# 2025-10-20 13:34 Test Accuracy: 0.2659 | Loss: 4.1750
+#                   accuracy                           0.27      1098
+#                  macro avg       0.27      0.26      0.25      1098
+#               weighted avg       0.27      0.27      0.25      1098
+def m11(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.01)
+    model = create_model([
+        layers.Conv2D(32, (3,3), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(64, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(128, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+
+        layers.Conv2D(256, (3,3), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Flatten(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.2)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=500,
+        validation_data=validation_data,
+        class_weight=calc_class_weight(y_train),
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+# 64 labels | 5 time steps | 25 songs | -1 undersample
+# 2025-10-20 12:44 Training took 513.40 seconds or 8.56 minutes.
+# 2025-10-20 12:44 Training Accuracy: 0.7873 | Loss: 1.0380
+# 2025-10-20 12:44 Test Accuracy: 0.2268 | Loss: 3.6503
+# 2025-10-20 12:44 Validation Accuracy: 0.5073 | Loss: 2.3055
+#                   accuracy                           0.23      1098
+#                  macro avg       0.24      0.23      0.23      1098
+#               weighted avg       0.24      0.23      0.23      1098
+def m10(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.01)
+    model = create_model([
+        layers.Conv2D(32, (3,3), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(64, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(128, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+
+        layers.Conv2D(256, (3,3), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Flatten(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.2)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=500,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
 
 # 64 labels | 5 time steps | 25 songs | 175 undersample
 # 2025-10-19 11:20 Training took 110.54 seconds or 1.84 minutes.

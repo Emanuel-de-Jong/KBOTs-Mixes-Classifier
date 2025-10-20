@@ -155,7 +155,9 @@ if model is None:
     # train("m6", cnns.m6)
     # train("m7", cnns.m7)
     # train("m8", cnns.m8)
-    train("m9", cnns.m9)
+    # train("m9", cnns.m9)
+    # train("m10", cnns.m10)
+    train("m11", cnns.m11)
 
 else:
     test(model, history)

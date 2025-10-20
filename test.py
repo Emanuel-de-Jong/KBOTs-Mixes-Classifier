@@ -22,22 +22,25 @@ test_dir = Path("test")
 
 logger = Logger("test.log")
 
+def test_playlist(playlist_dir):
+    test_song = list(playlist_dir.glob("*.mp3"))[0]
+    
+    top, _ = classifier.infer(test_song)
+    if top is None or len(top) == 0:
+        return None
+
+    return Result(playlist_dir.name, top, test_song.name)
+
 results = []
 playlist_dirs = list(test_dir.iterdir())
 for playlist_dir in tqdm(playlist_dirs, total=len(playlist_dirs)):
     if not playlist_dir.is_dir():
         continue
 
-    songs = list(playlist_dir.glob("*.mp3"))
-    if not songs:
+    result = test_playlist(playlist_dir)
+    if result is None:
         continue
 
-    test_song = songs[0]
-    top, _ = classifier.infer(test_song)
-    if top is None or len(top) == 0:
-        continue
-
-    result = Result(playlist_dir.name, top, test_song.name)
     results.append(result)
 
 results.sort(key=lambda r: (r.is_top_1, r.is_top_3))
