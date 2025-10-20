@@ -23,6 +23,7 @@ g.load_data(3)
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
 
+all_new_rows = []
 validate_target = label_counts.max() * VALIDATE_PERC
 for label in range(g.label_count):
     label_train_data = train_data[train_data["label"] == label]
@@ -33,18 +34,22 @@ for label in range(g.label_count):
     
     g.data.loc[label_validate_idxs[:organic_validate_target], "data_set"] = g.DataSetType.validate
     
-    remaining_validate_target = validate_target - organic_validate_target
+    remaining_validate_target = int(validate_target - organic_validate_target)
     if remaining_validate_target > 0:
         validate_sample_idxs = g.data[(g.data["data_set"] == g.DataSetType.validate) & 
             (g.data["label"] == label)].index.values
         
-        for i in range(remaining_validate_target):
-            source_idx = validate_sample_idxs[i % len(validate_sample_idxs)]
-            new_row = g.data.loc[source_idx].copy()
-            new_row["data_set"] = g.DataSetType.validate
-            g.data = g.data.append(new_row)
-    
-    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+        if len(validate_sample_idxs) > 0:
+            num_repeats = (remaining_validate_target + len(validate_sample_idxs) - 1) // len(validate_sample_idxs)
+            repeated_idxs = np.tile(validate_sample_idxs, num_repeats)
+            selected_idxs = repeated_idxs[:remaining_validate_target]
+            
+            new_rows = g.data.loc[selected_idxs].copy()
+            new_rows["data_set"] = g.DataSetType.validate
+            all_new_rows.append(new_rows)
+
+if all_new_rows:
+    g.data = pd.concat([g.data] + all_new_rows, ignore_index=False)
 
 label_counts = train_data['label'].value_counts()
 def undersample(data, label, sample_target):
