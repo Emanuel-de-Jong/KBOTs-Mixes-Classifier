@@ -30,7 +30,7 @@ def set_seed(seed=1):
     torch.backends.cudnn.benchmark = False
     os.environ['PYTHONHASHSEED'] = str(seed)
 
-set_seed()
+# set_seed()
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
@@ -155,7 +155,24 @@ if model is None:
     # train(cnns.m10)
     # train(cnns.m11)
     # train(cnns.m12)
-    train(cnns.m13)
+    # train(cnns.m13)
+    train(cnns.m14)
+    # train(cnns.m15)
+    # train(cnns.m16)
+    # train(cnns.m17)
+    # train(cnns.m18)
+    # train(cnns.m19)
+    # train(cnns.m20)
+    # train(cnns.m21)
+    # train(cnns.m22)
+    # train(cnns.m23)
+    # train(cnns.m24)
+    # train(cnns.m25)
+    # train(cnns.m26)
+    # train(cnns.m27)
+    # train(cnns.m28)
+    # train(cnns.m29)
+    # train(cnns.m30)
 
 else:
     test(model, history)

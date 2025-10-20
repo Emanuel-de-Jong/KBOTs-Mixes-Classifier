@@ -25,7 +25,342 @@ def calc_class_weight(y_train):
         class_weight='balanced',
         classes=np.unique(y),
         y=y)
-    return dict(enumerate(cw))
+    weights = dict(enumerate(cw))
+    return smooth_weights(weights)
+
+def smooth_weights(weights, max_ratio=1.2):
+    weights_array = np.array(list(weights.values()))
+    smoothed = np.clip(weights_array, 1/max_ratio, max_ratio)
+    return dict(zip(weights.keys(), smoothed))
+
+def m20(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.4),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.5),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+def m19(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.1),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+def m18(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+def m17(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+
+# 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+def m16(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+# 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
+# 2025-10-20 23:56 Training took 907.91 seconds or 15.13 minutes.
+# 2025-10-20 23:56 Training Accuracy: 0.5458 | Loss: 1.4426
+# 2025-10-20 23:56 Validation Accuracy: 0.2877 | Loss: 2.6962
+# 2025-10-20 23:56 Test Accuracy: 0.2659 | Loss: 2.4946
+#                   accuracy                           0.27      1098
+#                  macro avg       0.23      0.28      0.23      1098
+#               weighted avg       0.23      0.27      0.22      1098
+# class_weight is big no
+def m15(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        class_weight=calc_class_weight(y_train),
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+# 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
+# 2025-10-20 23:34 Training took 676.99 seconds or 11.28 minutes.
+# 2025-10-20 23:34 Training Accuracy: 0.6000 | Loss: 1.3140
+# 2025-10-20 23:34 Validation Accuracy: 0.3380 | Loss: 2.5731
+# 2025-10-20 23:34 Test Accuracy: 0.3242 | Loss: 2.3743
+#                   accuracy                           0.32      1098
+#                  macro avg       0.32      0.33      0.30      1098
+#               weighted avg       0.32      0.32      0.30      1098
+# Results exactly the same as m13
+def m14(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
 
 # 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
 # 2025-10-20 23:04 Training took 576.59 seconds or 9.61 minutes.
@@ -63,11 +398,11 @@ def m13(name, X_train, y_train, validation_data):
         loss=LOSS,
         metrics=METRICS,
     )
+
+    model.summary()
     
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=10, factor=0.1)
     early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
-
-    model.summary()
 
     training_data = model.fit(
         X_train,
@@ -75,7 +410,6 @@ def m13(name, X_train, y_train, validation_data):
         batch_size=32,
         epochs=1000,
         validation_data=validation_data,
-        # class_weight=calc_class_weight(y_train),
         callbacks=[reduce_lr, early_stopping],
     )
 

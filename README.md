@@ -2,6 +2,7 @@
 Finds the right playlist for a new song.
 
 ## TODO
+- Since class_weight doesn't work, duplicate samples
 - Duplicates to balance songs?
     - up to max songs per label
     - make sure no songs removed during downsample
