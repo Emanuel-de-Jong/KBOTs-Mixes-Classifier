@@ -2,9 +2,13 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- More songs but less chunks if enough data
 - Duplicates to balance songs?
+    - up to max songs per label
+    - make sure no songs removed during downsample
+    - remove dupes before others?
 - Don't use unique songs if not enough data?
+- Reevaluate removing/merging playlists
+- More songs but less chunks if enough data
 - Balanced batching
 - Experiment with CNN structures
 - Models for playlist subsets

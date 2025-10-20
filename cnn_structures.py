@@ -27,6 +27,61 @@ def calc_class_weight(y_train):
         y=y)
     return dict(enumerate(cw))
 
+# 64 labels | 6 time steps | 25 songs | 250 undersample | song split
+def m12(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.005)
+    model = create_model([
+        layers.Conv2D(32, (5,5), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.1),
+
+        layers.Conv2D(64, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((2,2)),
+        layers.SpatialDropout2D(0.2),
+
+        layers.Conv2D(128, (3,3), padding='same'),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+
+        layers.Conv2D(256, (3,3), padding='same'),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.1),
+
+        layers.Flatten(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=1000,
+        validation_data=validation_data,
+        class_weight=calc_class_weight(y_train),
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
+
+# 64 labels | 6 time steps | 25 songs | 250 undersample | song split
+
 # 64 labels | 5 time steps | 25 songs | raw
 # 2025-10-20 13:34 Training took 1775.68 seconds or 29.59 minutes.
 # 2025-10-20 13:34 Training Accuracy: 0.7784 | Loss: 0.8532

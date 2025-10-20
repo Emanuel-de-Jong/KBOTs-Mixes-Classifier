@@ -14,7 +14,7 @@ VALIDATE_PERC = 0.15
 
 SAMPLING = SamplingType.undersample
 # -1 means no treshold
-UNDERSAMPLE_TRES = 150
+UNDERSAMPLE_TRES = 250
 # -1 means no treshold
 OVERSAMPLE_TRES = 130
 

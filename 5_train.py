@@ -126,7 +126,8 @@ def test(model, history, name=""):
     test_loss, test_accuracy = model.evaluate(X_test, y_test_hot, verbose=0)
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
-def train(name, model_func):
+def train(model_func):
+    name = model_func.__name__
     logger.writeln(name)
 
     start_time = time.time()
@@ -142,17 +143,18 @@ def train(name, model_func):
 
 # model, history = load_existing_model()
 if model is None:
-    # train("m1", cnns.m1)
-    # train("m2", cnns.m2)
-    # train("m3", cnns.m3)
-    # train("m4", cnns.m4)
-    # train("m5", cnns.m5)
-    # train("m6", cnns.m6)
-    # train("m7", cnns.m7)
-    # train("m8", cnns.m8)
-    train("m9", cnns.m9)
-    # train("m10", cnns.m10)
-    # train("m11", cnns.m11)
+    # train(cnns.m1)
+    # train(cnns.m2)
+    # train(cnns.m3)
+    # train(cnns.m4)
+    # train(cnns.m5)
+    # train(cnns.m6)
+    # train(cnns.m7)
+    # train(cnns.m8)
+    # train(cnns.m9)
+    # train(cnns.m10)
+    train(cnns.m11)
+    # train(cnns.m12)
 
 else:
     test(model, history)
