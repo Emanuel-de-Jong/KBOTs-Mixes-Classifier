@@ -5,6 +5,7 @@ os.environ["KERAS_BACKEND"] = "torch"
 import numpy as np
 import pandas as pd
 import joblib
+import global_params as g
 from keras.models import load_model
 from pathlib import Path
 from Mert import Mert
@@ -15,9 +16,7 @@ class Classifier():
         if mert is None:
             mert = Mert()
         self.mert = mert
-        self.cache_dir = Path("cache")
-        self.labels = np.unique(pd.read_json(self.cache_dir / "num_to_label.json"))
-        self.model = load_model(self.cache_dir / "model_global.keras")
+        self.model = load_model(g.CACHE_DIR / "model_global.keras")
     
     def infer(self, path, embs=None):
         if embs is None:
@@ -33,7 +32,7 @@ class Classifier():
         results = []
         for idx in top_indices:
             prob_to_percent = int(probs_avg[idx] * 10000) / 100.0
-            results.append((self.labels[idx], prob_to_percent))
+            results.append((g.labels[idx], prob_to_percent))
 
         return results, embs
     

@@ -2,6 +2,7 @@ import unidecode
 import shutil
 import re
 import os
+import global_params as g
 from pathlib import Path
 
 PLAYLISTS_TO_REMOVE = [
@@ -37,12 +38,9 @@ PLAYLISTS_TO_MERGE = {
     "Synthwave": ["Synth Funk"],
 }
 
-train_dir = Path("train")
-test_dir = Path("test")
-
 # Clean folder names
-for folder in os.listdir(train_dir):
-    folder_path = train_dir / folder
+for folder in os.listdir(g.TRAIN_DIR):
+    folder_path = g.TRAIN_DIR / folder
     if folder_path.is_dir():
         new_name = folder
         if new_name.lower().startswith("kbot's "):
@@ -51,7 +49,7 @@ for folder in os.listdir(train_dir):
             new_name = new_name[:-4]
         
         new_name = new_name.strip()
-        new_path = train_dir / new_name
+        new_path = g.TRAIN_DIR / new_name
 
         if os.path.basename(new_path) in PLAYLISTS_TO_REMOVE:
             shutil.rmtree(folder_path)
@@ -62,10 +60,10 @@ for folder in os.listdir(train_dir):
 
 # Merge playlists
 for target, sources in PLAYLISTS_TO_MERGE.items():
-    target_dir = train_dir / target
+    target_dir = g.TRAIN_DIR / target
     target_dir.mkdir(exist_ok=True)
     for src in sources:
-        src_dir = train_dir / src
+        src_dir = g.TRAIN_DIR / src
         if src_dir.exists() and src_dir.is_dir():
             for mp3_file in src_dir.glob("*.mp3"):
                 dest_file = target_dir / mp3_file.name
@@ -74,7 +72,7 @@ for target, sources in PLAYLISTS_TO_MERGE.items():
             shutil.rmtree(src_dir)
 
 # Clean mp3 names
-for p in train_dir.glob("*/*.mp3"):
+for p in g.TRAIN_DIR.glob("*/*.mp3"):
     old_stem = p.stem
     new_stem = unidecode.unidecode(old_stem)
     new_stem = re.sub(r'[^a-zA-Z0-9\s\.\-\_\,]', '', new_stem)
@@ -88,12 +86,12 @@ for p in train_dir.glob("*/*.mp3"):
             p.rename(new_path)
 
 # Fill test dir
-if not test_dir.exists():
-    for subdir in train_dir.iterdir():
+if not g.TEST_DIR.exists():
+    for subdir in g.TRAIN_DIR.iterdir():
         if subdir.is_dir():
             mp3_files = sorted(subdir.glob("*.mp3"))
             if mp3_files:
-                test_subdir = test_dir / subdir.name
+                test_subdir = g.TEST_DIR / subdir.name
                 test_subdir.mkdir(parents=True, exist_ok=True)
 
                 src_file = mp3_files[0]

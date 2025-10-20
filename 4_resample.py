@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
+import global_params as g
 from imblearn.over_sampling import SMOTE
 from sklearn.utils import resample
 from pathlib import Path
@@ -17,12 +18,10 @@ UNDERSAMPLING_TRES = 175
 # -1 means no treshold
 OVERSAMPLING_TRES = 130
 
-cache_dir = Path("cache")
-labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
-X_train = joblib.load(cache_dir / "embs_train.joblib")
-X_test = joblib.load(cache_dir / "embs_test.joblib")
-y_train = joblib.load(cache_dir / "labels_train.joblib")
-y_test = joblib.load(cache_dir / "labels_test.joblib")
+X_train = joblib.load(g.CACHE_DIR / "embs_train.joblib")
+X_test = joblib.load(g.CACHE_DIR / "embs_test.joblib")
+y_train = joblib.load(g.CACHE_DIR / "labels_train.joblib")
+y_test = joblib.load(g.CACHE_DIR / "labels_test.joblib")
 
 # print(f'X_train shape: {X_train.shape}')
 # print(f'X_train type: {type(X_train)}')
@@ -63,13 +62,13 @@ print(f"Label: {original_label}")
 
 if SAMPLING == SamplingType.UNDERSAMPLING:
     undersampling_tres = UNDERSAMPLING_TRES if UNDERSAMPLING_TRES != -1 else y_train.value_counts().min()
-    for label_num in range(len(labels)):
+    for label_num in range(g.label_count):
         label_count = (y_train == label_num).sum()
         if label_count > undersampling_tres:
             undersample(label_num, undersampling_tres)
 elif SAMPLING == SamplingType.OVERSAMPLING:
     if OVERSAMPLING_TRES != -1:
-        for label_num in range(len(labels)):
+        for label_num in range(g.label_count):
             label_count = (y_train == label_num).sum()
             if label_count > OVERSAMPLING_TRES:
                 undersample(label_num, OVERSAMPLING_TRES)
@@ -97,13 +96,13 @@ if len(matches) > 0:
 print()
 train_distribution = y_train.value_counts()
 for label_num, count in train_distribution.items():
-    print(f"{labels[label_num]}: {count}")
+    print(f"{g.labels[label_num]}: {count}")
 
 # print(f"Train lengths: {len(X_train)} | {len(X_train_norm)} | {len(X_train_scale)}")
 # print(f"Test lengths: {len(X_test)} | {len(X_test_norm)} | {len(X_test_scale)}")
 # print(f"Label lengths: {len(y_train)} | {len(y_test)}")
 
-joblib.dump(X_train, cache_dir / f'X_train.joblib')
-joblib.dump(X_test, cache_dir / f'X_test.joblib')
-joblib.dump(y_train, cache_dir / f'y_train.joblib')
-joblib.dump(y_test, cache_dir / f'y_test.joblib')
+joblib.dump(X_train, g.CACHE_DIR / f'X_train.joblib')
+joblib.dump(X_test, g.CACHE_DIR / f'X_test.joblib')
+joblib.dump(y_train, g.CACHE_DIR / f'y_train.joblib')
+joblib.dump(y_test, g.CACHE_DIR / f'y_test.joblib')

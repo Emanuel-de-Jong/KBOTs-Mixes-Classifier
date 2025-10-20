@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import torch
 import os
+import global_params as g
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 

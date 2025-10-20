@@ -4,6 +4,8 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import pandas as pd
 import numpy as np
+import joblib
+import global_params as g
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from keras.models import Sequential
 from sklearn.utils import class_weight
@@ -12,17 +14,12 @@ from keras.optimizers import Adam
 from pathlib import Path
 from Mert import Mert
 
-cache_dir = Path("cache")
-labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
-
-label_count = len(labels)
-
 LOSS = 'categorical_crossentropy'
 METRICS = ['accuracy']
 
 def create_model(layer_array):
     layer_array.insert(0, layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)))
-    layer_array.append(layers.Dense(label_count, activation='softmax'))
+    layer_array.append(layers.Dense(g.label_count, activation='softmax'))
     return Sequential(layer_array)
 
 def calc_class_weight(y_train):
