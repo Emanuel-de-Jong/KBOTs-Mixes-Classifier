@@ -2,9 +2,11 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Use unique songs for validation split if enough data
-- Full training data with smaller size
-- Model for playlist subsets
+- Use unique songs for validation split (if enough data?)
+- More songs but less chunks if enough data
+- duplicates to balance songs?
+- Experiment with CNN structures
+- Models for playlist subsets
 
 ## Requirements
 - ffmpeg
@@ -17,7 +19,7 @@ Finds the right playlist for a new song.
 5. `python 1_setup_dataset.py`.
 6. `python 2_gen_labels.py`.
 7. `python 3_extract_embs.py`. This will take a while.
-8. `python 4_resample.py`
+8. `python 4_preprocess.py`
 9. `python 5_train.py`.
 
 ## Usage

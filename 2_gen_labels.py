@@ -1,9 +1,7 @@
 import joblib
 import random
-import json
 import csv
 import global_params as g
-from pathlib import Path
 
 MIN_PLAYLIST_SONGS = 10
 MAX_PLAYLIST_SONGS = 25

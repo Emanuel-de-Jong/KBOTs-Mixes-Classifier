@@ -4,11 +4,9 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import matplotlib.pyplot as plt
 import cnn_structures as cnns
-import pandas as pd
 import numpy as np
 import random
 import torch
-import joblib
 import json
 import time
 import global_params as g
@@ -16,15 +14,9 @@ from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confu
 from sklearn.model_selection import train_test_split
 from keras.models import load_model
 from keras.utils import to_categorical
-from pathlib import Path
 from Utils import Logger
 
 g.load_data(4)
-
-X = joblib.load(g.CACHE_DIR / f'X_train.joblib')
-X_test = joblib.load(g.CACHE_DIR / f'X_test.joblib')
-y_pre = joblib.load(g.CACHE_DIR / f'y_train.joblib')
-y_test_pre = joblib.load(g.CACHE_DIR / f'y_test.joblib')
 
 model, history = None, None
 
@@ -40,6 +32,14 @@ def set_seed(seed=1):
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 set_seed()
+
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+test_data = g.data[g.data["data_set"] == g.DataSetType.test]
+
+X = np.stack(train_data["data"].to_numpy())
+y_pre = train_data["label"].to_numpy()
+X_test = np.stack(test_data["data"].to_numpy())
+y_test_pre = test_data["label"].to_numpy()
 
 y = to_categorical(y_pre)
 y_test = to_categorical(y_test_pre)

@@ -3,7 +3,6 @@ import shutil
 import re
 import os
 import global_params as g
-from pathlib import Path
 
 PLAYLISTS_TO_REMOVE = [
     "Chill EDM",

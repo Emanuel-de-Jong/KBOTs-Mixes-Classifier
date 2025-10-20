@@ -4,7 +4,6 @@ import sys
 import os
 import global_params as g
 from Classifier import Classifier
-from pathlib import Path
 from Utils import Logger
 from tqdm import tqdm
 from Mert import Mert

@@ -1,4 +1,3 @@
-import global_params as g
 from datetime import datetime
 
 class Logger():
