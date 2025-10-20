@@ -11,7 +11,6 @@ import json
 import time
 import global_params as g
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from keras.models import load_model
 from keras.utils import to_categorical
 from Utils import Logger
@@ -34,19 +33,22 @@ def set_seed(seed=1):
 set_seed()
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
 test_data = g.data[g.data["data_set"] == g.DataSetType.test]
 
-X = np.stack(train_data["data"].to_numpy())
-y_pre = train_data["label"].to_numpy()
+X_train = np.stack(train_data["data"].to_numpy())
+X_validate = np.stack(validate_data["data"].to_numpy())
 X_test = np.stack(test_data["data"].to_numpy())
-y_test_pre = test_data["label"].to_numpy()
 
-y = to_categorical(y_pre)
-y_test = to_categorical(y_test_pre)
+y_train = train_data["label"].to_numpy()
+y_validate = validate_data["label"].to_numpy()
+y_test = test_data["label"].to_numpy()
 
-X_train, X_validate, y_train, y_validate = train_test_split(X, y, test_size=0.15, stratify=y, random_state=1)
+y_train_hot = to_categorical(y_train)
+y_validate_hot = to_categorical(y_validate)
+y_test_hot = to_categorical(y_test)
 
-validation_data=(X_validate, y_validate)
+validation_data=(X_validate, y_validate_hot)
 
 def load_existing_model():
     model_path = g.CACHE_DIR / f'model_global.keras'
@@ -109,10 +111,10 @@ def test(model, history, name=""):
     y_pred = model.predict(X_test)
     y_pred_sk = np.argmax(y_pred, axis=-1)
 
-    report = classification_report(y_test_pre, y_pred_sk, target_names = g.labels)
+    report = classification_report(y_test, y_pred_sk, target_names = g.labels)
     logger.writeln(report)
 
-    cm = confusion_matrix(y_test_pre, y_pred_sk)
+    cm = confusion_matrix(y_test, y_pred_sk)
     disp = ConfusionMatrixDisplay(cm, display_labels = g.labels)
 
     _, ax = plt.subplots(figsize=(20, 22), dpi=200)
@@ -121,14 +123,14 @@ def test(model, history, name=""):
     plt.savefig(g.MODELS_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
     plt.close()
 
-    test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
+    test_loss, test_accuracy = model.evaluate(X_test, y_test_hot, verbose=0)
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
 def train(name, model_func):
     logger.writeln(name)
 
     start_time = time.time()
-    model, training_data = model_func(name, X_train, y_train, validation_data)
+    model, training_data = model_func(name, X_train, y_train_hot, validation_data)
     elapsed_time = time.time() - start_time
     logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
 

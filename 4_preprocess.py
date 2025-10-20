@@ -14,7 +14,7 @@ VALIDATE_PERC = 0.15
 
 SAMPLING = SamplingType.undersample
 # -1 means no treshold
-UNDERSAMPLE_TRES = 175
+UNDERSAMPLE_TRES = 150
 # -1 means no treshold
 OVERSAMPLE_TRES = 130
 
@@ -51,6 +51,12 @@ for label in range(g.label_count):
 if all_new_rows:
     g.data = pd.concat([g.data] + all_new_rows, ignore_index=False)
 
+validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
+print("== Validate label counts ==")
+for label, count in validate_data["label"].value_counts().items():
+    print(f"{g.labels[label]}: {count}")
+
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
 def undersample(data, label, sample_target):
     label_idxs = data[data['label'] == label].index.to_numpy()
@@ -79,7 +85,8 @@ elif SAMPLING == SamplingType.oversample:
     smote = SMOTE(random_state=1)
     # X_train, y_train = smote.fit_resample(X_train, y_train)
 
-label_counts = train_data.value_counts()
+label_counts = train_data["label"].value_counts()
+print("\n== Train label counts after resample ==")
 for label, count in label_counts.items():
     print(f"{g.labels[label]}: {count}")
 
