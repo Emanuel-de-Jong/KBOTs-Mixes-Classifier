@@ -28,6 +28,14 @@ def calc_class_weight(y_train):
     return dict(enumerate(cw))
 
 # 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
+# 2025-10-20 23:04 Training took 576.59 seconds or 9.61 minutes.
+# 2025-10-20 23:04 Training Accuracy: 0.5746 | Loss: 1.4013
+# 2025-10-20 23:04 Validation Accuracy: 0.3399 | Loss: 2.5301
+# 2025-10-20 23:04 Test Accuracy: 0.3242 | Loss: 2.3743
+#                   accuracy                           0.32      1098
+#                  macro avg       0.32      0.33      0.30      1098
+#               weighted avg       0.32      0.32      0.30      1098
+# Deep models NEED GlobalAveragePooling2D instead of Flatten
 def m13(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
@@ -43,7 +51,7 @@ def m13(name, X_train, y_train, validation_data):
         layers.MaxPooling2D((1,2)),
         layers.SpatialDropout2D(0.3),
 
-        layers.Flatten(),
+        layers.GlobalAveragePooling2D(),
 
         layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
 
@@ -56,7 +64,7 @@ def m13(name, X_train, y_train, validation_data):
         metrics=METRICS,
     )
     
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.2)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=10, factor=0.1)
     early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
 
     model.summary()
