@@ -2,24 +2,14 @@ import os
 
 os.environ["KERAS_BACKEND"] = "torch"
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import random
-import torch
-import joblib
-import json
-import time
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping
-from sklearn.model_selection import train_test_split
-from keras.models import Sequential, load_model
+from keras.models import Sequential
 from sklearn.utils import class_weight
 from keras import layers, regularizers
-from keras.utils import to_categorical
 from keras.optimizers import Adam
 from pathlib import Path
-from Utils import Logger
 from Mert import Mert
 
 cache_dir = Path("cache")

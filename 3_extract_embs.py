@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import joblib
-import Utils
-import os
 from sklearn.utils import resample
 from pathlib import Path
 from Mert import Mert
@@ -16,11 +14,6 @@ songs_train = pd.read_csv(cache_dir / "labels_train.csv")
 songs_test = pd.read_csv(cache_dir / "labels_test.csv")
 
 mert = Mert()
-
-embs_train, embs_test = None, None
-if os.path.exists(cache_dir / "embs_train_temp.joblib"):
-    embs_train = joblib.load(cache_dir / "embs_train_temp.joblib")
-    embs_test = joblib.load(cache_dir / "embs_train_temp.joblib")
 
 def extract(songs, max_chunks):
     embs, labels = [], []
@@ -48,18 +41,10 @@ def extract(songs, max_chunks):
 
     return np.stack(embs), pd.Series(labels)
 
-if embs_train is None:
-    embs_train, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-    joblib.dump(labels, cache_dir / "labels_train.joblib")
-    # joblib.dump(embs_train, cache_dir / "embs_train_temp.joblib")
-
-embs_train = Utils.preprocess(embs_train)
+embs_train, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
+joblib.dump(labels, cache_dir / "labels_train.joblib")
 joblib.dump(embs_train, cache_dir / "embs_train.joblib")
 
-if embs_test is None:
-    embs_test, labels = extract(songs_test, MAX_CHUNKS_TEST)
-    joblib.dump(labels, cache_dir / "labels_test.joblib")
-    # joblib.dump(embs_test, cache_dir / "embs_test_temp.joblib")
-
-embs_test = Utils.preprocess(embs_test)
+embs_test, labels = extract(songs_test, MAX_CHUNKS_TEST)
+joblib.dump(labels, cache_dir / "labels_test.joblib")
 joblib.dump(embs_test, cache_dir / "embs_test.joblib")

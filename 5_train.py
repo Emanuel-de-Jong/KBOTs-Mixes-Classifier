@@ -12,15 +12,11 @@ import joblib
 import json
 import time
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
-from keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential, load_model
-from keras import layers, regularizers
+from keras.models import load_model
 from keras.utils import to_categorical
-from keras.optimizers import Adam
 from pathlib import Path
 from Utils import Logger
-from Mert import Mert
 
 models_dir = Path("models")
 models_dir.mkdir(exist_ok=True)

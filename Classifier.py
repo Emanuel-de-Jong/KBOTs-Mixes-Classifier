@@ -5,16 +5,7 @@ os.environ["KERAS_BACKEND"] = "torch"
 import numpy as np
 import pandas as pd
 import joblib
-import Utils
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.naive_bayes import GaussianNB
 from keras.models import load_model
-from sklearn.svm import SVC
 from pathlib import Path
 from Mert import Mert
 
@@ -33,8 +24,6 @@ class Classifier():
             embs = self.mert.run(path)
             if embs is None or len(embs) == 0:
                 return None
-            
-            embs = Utils.preprocess(embs)
         
         embs_probs = self.model.predict(embs)
         

@@ -96,7 +96,10 @@ class Mert():
                 emb = torch.nn.functional.adaptive_avg_pool1d(
                     emb.permute(0, 2, 1), output_size=Mert.TIME_STEPS
                 ).permute(0, 2, 1)
+                
                 emb = emb.numpy()
+                emb = (emb - emb.mean(axis=0)) / emb.std(axis=0)
+                emb = emb.transpose(1, 2, 0)
                 
                 embs.append(emb)
 

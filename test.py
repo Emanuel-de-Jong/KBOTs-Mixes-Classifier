@@ -32,6 +32,7 @@ def test_playlist(playlist_dir):
     return Result(playlist_dir.name, top, test_song.name)
 
 results = []
+# results.append(test_playlist(Path("test/Bossa Nova")))
 playlist_dirs = list(test_dir.iterdir())
 for playlist_dir in tqdm(playlist_dirs, total=len(playlist_dirs)):
     if not playlist_dir.is_dir():
