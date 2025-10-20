@@ -26,18 +26,24 @@ label_counts = train_data['label'].value_counts()
 validate_target = label_counts.max() * VALIDATE_PERC
 for label in range(g.label_count):
     label_train_data = train_data[train_data["label"] == label]
-    organic_validate_target = int(VALIDATE_PERC * len(label_train_data))
-    label_validate_idxs = label_train_data.index
-    # TODO: Shuffle label_validate_idxs
 
-    for i in range(organic_validate_target):
-        g.data[label_validate_idxs[i]]["data_set"] = g.DataSetType.validate
+    organic_validate_target = int(VALIDATE_PERC * len(label_train_data))
+    label_validate_idxs = label_train_data.index.values
+    np.random.shuffle(label_validate_idxs)
+    
+    g.data.loc[label_validate_idxs[:organic_validate_target], "data_set"] = g.DataSetType.validate
     
     remaining_validate_target = validate_target - organic_validate_target
-    validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
-    label_validate_data = validate_data[validate_data["label"] == label]
-    # TODO: Go over and duplicate validate data untill remaining_validate_target is reached
-
+    if remaining_validate_target > 0:
+        validate_sample_idxs = g.data[(g.data["data_set"] == g.DataSetType.validate) & 
+            (g.data["label"] == label)].index.values
+        
+        for i in range(remaining_validate_target):
+            source_idx = validate_sample_idxs[i % len(validate_sample_idxs)]
+            new_row = g.data.loc[source_idx].copy()
+            new_row["data_set"] = g.DataSetType.validate
+            g.data = g.data.append(new_row)
+    
     train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 
 label_counts = train_data['label'].value_counts()
