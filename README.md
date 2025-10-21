@@ -2,7 +2,8 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Since class_weight doesn't work, duplicate samples
+- Undersample remove songs with most rows first
+- Test acc on non scaled data
 - Duplicates to balance songs?
     - up to max songs per label
     - make sure no songs removed during downsample
@@ -13,6 +14,7 @@ Finds the right playlist for a new song.
 - Balanced batching
 - Experiment with CNN structures
 - Models for playlist subsets
+- Remove unneeded packages
 
 ## Requirements
 - ffmpeg

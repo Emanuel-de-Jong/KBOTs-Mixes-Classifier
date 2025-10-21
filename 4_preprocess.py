@@ -12,11 +12,12 @@ class SamplingType(Enum):
 
 VALIDATE_PERC = 0.2
 
-SAMPLING = SamplingType.undersample
+SAMPLING = SamplingType.oversample
 # -1 means no treshold
 UNDERSAMPLE_TRES = 150
 # -1 means no treshold
-OVERSAMPLE_TRES = 130
+OVERSAMPLE_TRES = 250
+OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.1)
 
 g.load_data(3)
 
@@ -91,19 +92,46 @@ def undersample(label, sample_target):
     
     g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
-if SAMPLING == SamplingType.undersample:
-    undersampling_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
-    for label, count in label_counts.items():
-        if count > undersampling_tres:
-            undersample(label, undersampling_tres)
-elif SAMPLING == SamplingType.oversample:
-    if OVERSAMPLE_TRES != -1:
-        for label, count in label_counts.items():
-            if count > OVERSAMPLE_TRES:
-                undersample(label, OVERSAMPLE_TRES)
+def oversample(label, sample_target):
+    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+    label_data = train_data[train_data['label'] == label]
     
-    smote = SMOTE(random_state=1)
-    # X_train, y_train = smote.fit_resample(X_train, y_train)
+    x = sample_target - len(label_data)
+
+    song_counts = label_data['song'].value_counts().to_dict()
+    last_used = {s: label_data[label_data['song'] == s].index[0] for s in song_counts}
+    
+    new_rows = []
+    for _ in range(x):
+        min_count = min(song_counts.values())
+        candidates = [s for s, c in song_counts.items() if c == min_count]
+        song = candidates[0]
+
+        song_rows = label_data[label_data['song'] == song]
+        idxs = song_rows.index.tolist()
+        last_idx = last_used[song]
+        next_idx = idxs[(idxs.index(last_idx) + 1) % len(idxs)]
+        
+        new_rows.append(g.data.loc[next_idx].copy())
+        last_used[song] = next_idx
+        song_counts[song] += 1
+
+    non_train_data = g.data[g.data["data_set"] != g.DataSetType.train]
+    new_train_data = pd.concat([train_data, pd.DataFrame(new_rows)], ignore_index=False)
+    g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
+
+if SAMPLING == SamplingType.undersample:
+    undersample_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
+    for label, count in label_counts.items():
+        if count > undersample_tres:
+            undersample(label, undersample_tres)
+elif SAMPLING == SamplingType.oversample:
+    oversample_tres = OVERSAMPLE_TRES if OVERSAMPLE_TRES != -1 else label_counts.max()
+    for label, count in label_counts.items():
+        if count > oversample_tres:
+            undersample(label, oversample_tres)
+        elif count < oversample_tres - OVERSAMPLE_COMPENSATION:
+            oversample(label, oversample_tres - OVERSAMPLE_COMPENSATION)
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data["label"].value_counts()

@@ -33,6 +33,14 @@ def smooth_weights(weights, max_ratio=1.2):
     smoothed = np.clip(weights_array, 1/max_ratio, max_ratio)
     return dict(zip(weights.keys(), smoothed))
 
+# 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+# 2025-10-21 01:42 Training took 838.46 seconds or 13.97 minutes.
+# 2025-10-21 01:42 Training Accuracy: 0.5059 | Loss: 1.6198
+# 2025-10-21 01:42 Validation Accuracy: 0.3099 | Loss: 2.7277
+# 2025-10-21 01:42 Test Accuracy: 0.3106 | Loss: 2.4118
+#                   accuracy                           0.31      1098
+#                  macro avg       0.29      0.31      0.28      1098
+#               weighted avg       0.29      0.31      0.28      1098
 def m20(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
@@ -77,6 +85,14 @@ def m20(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+# 2025-10-21 01:28 Training took 478.87 seconds or 7.98 minutes.
+# 2025-10-21 01:28 Training Accuracy: 0.6311 | Loss: 1.2012
+# 2025-10-21 01:28 Validation Accuracy: 0.2948 | Loss: 3.1869
+# 2025-10-21 01:28 Test Accuracy: 0.2404 | Loss: 2.6858
+#                   accuracy                           0.24      1098
+#                  macro avg       0.21      0.24      0.20      1098
+#               weighted avg       0.22      0.24      0.21      1098
 def m19(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
@@ -121,6 +137,14 @@ def m19(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+# 2025-10-21 01:20 Training took 879.66 seconds or 14.66 minutes.
+# 2025-10-21 01:20 Training Accuracy: 0.5087 | Loss: 1.6354
+# 2025-10-21 01:20 Validation Accuracy: 0.2939 | Loss: 2.8393
+# 2025-10-21 01:20 Test Accuracy: 0.2914 | Loss: 2.5775
+#                   accuracy                           0.29      1098
+#                  macro avg       0.28      0.29      0.26      1098
+#               weighted avg       0.28      0.29      0.26      1098
 def m18(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.001)
     model = create_model([
@@ -165,6 +189,14 @@ def m18(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+# 2025-10-21 01:05 Training took 897.48 seconds or 14.96 minutes.
+# 2025-10-21 01:05 Training Accuracy: 0.4078 | Loss: 1.9733
+# 2025-10-21 01:05 Validation Accuracy: 0.2167 | Loss: 2.9638
+# 2025-10-21 01:05 Test Accuracy: 0.2541 | Loss: 2.7601
+#                   accuracy                           0.25      1098
+#                  macro avg       0.22      0.26      0.21      1098
+#               weighted avg       0.23      0.25      0.21      1098
 def m17(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
@@ -209,8 +241,14 @@ def m17(name, X_train, y_train, validation_data):
 
     return model, training_data
 
-
 # 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
+# 2025-10-21 00:50 Training took 944.85 seconds or 15.75 minutes.
+# 2025-10-21 00:50 Training Accuracy: 0.5968 | Loss: 1.3201
+# 2025-10-21 00:50 Validation Accuracy: 0.3174 | Loss: 2.7109
+# 2025-10-21 00:50 Test Accuracy: 0.3488 | Loss: 2.4375
+#                   accuracy                           0.35      1098
+#                  macro avg       0.35      0.35      0.32      1098
+#               weighted avg       0.35      0.35      0.32      1098
 def m16(name, X_train, y_train, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
