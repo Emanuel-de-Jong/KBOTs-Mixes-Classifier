@@ -98,7 +98,7 @@ class Mert():
                 ).permute(0, 2, 1)
                 
                 emb = emb.numpy()
-                emb = (emb - emb.mean(axis=0)) / emb.std(axis=0)
+                # emb = (emb - emb.mean(axis=0)) / emb.std(axis=0)
                 emb = emb.transpose(1, 2, 0)
                 
                 embs.append(emb)

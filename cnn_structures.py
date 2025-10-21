@@ -241,6 +241,15 @@ def m17(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 64 labels | 6 time steps | 25 songs | raw | 250 oversample 0 compensate
+# 2025-10-21 12:46 Training took 883.69 seconds or 14.73 minutes.
+# 2025-10-21 12:46 Training Accuracy: 0.5816 | Loss: 1.4465
+# 2025-10-21 12:46 Validation Accuracy: 0.2882 | Loss: 2.8663
+# 2025-10-21 12:46 Test Accuracy: 0.2787 | Loss: 2.5558
+#                   accuracy                           0.28      1098
+#                  macro avg       0.26      0.27      0.24      1098
+#               weighted avg       0.25      0.28      0.24      1098
+
 # 64 labels | 6 time steps | 25 songs | 250 oversample 0 compensate
 # 2025-10-21 11:55 Training took 1282.27 seconds or 21.37 minutes.
 # 2025-10-21 11:55 Training Accuracy: 0.6341 | Loss: 1.2145

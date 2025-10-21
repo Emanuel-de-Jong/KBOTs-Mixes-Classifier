@@ -34,7 +34,6 @@ For a directory full of MP3 files:
 If you want to get the results of multiple models like the `global`, `general_pop`, `rock` and `edm` in `run_batch.py`, you'll have to run the full pipeline multiple times. Rename the `cache/model.joblib` file before running again!
 
 ## Roadmap
-- Test acc on non scaled data
 - Reevaluate removing/merging playlists
 - Remove unneeded packages
 - Models for playlist subsets

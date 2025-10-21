@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
+import joblib
+import gc
 import global_params as g
-from imblearn.over_sampling import SMOTE
-from sklearn.utils import resample
+from sklearn.preprocessing import StandardScaler
 from enum import Enum
 
 class SamplingType(Enum):
@@ -20,6 +21,26 @@ OVERSAMPLE_TRES = 250
 OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
 
 g.load_data(3)
+
+datas = np.stack(g.data["data"].to_numpy())
+g.data["data"] = None
+gc.collect()
+
+og_shape = datas.shape
+datas_2d = datas.reshape(len(datas), -1)
+del datas
+gc.collect()
+
+z_score_scaler = StandardScaler().fit(datas_2d)
+datas_scaled = z_score_scaler.transform(datas_2d).reshape(og_shape)
+del datas_2d
+gc.collect()
+
+g.data["data"] = list(datas_scaled)
+del datas_scaled
+gc.collect()
+
+joblib.dump(z_score_scaler, g.CACHE_DIR / "scaler.joblib")
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
