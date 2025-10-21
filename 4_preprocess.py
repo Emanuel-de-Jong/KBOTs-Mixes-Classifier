@@ -6,7 +6,7 @@ from sklearn.utils import resample
 from enum import Enum
 
 class SamplingType(Enum):
-    raw = 0
+    none = 0
     undersample = 1
     oversample = 2
 
@@ -17,7 +17,7 @@ SAMPLING = SamplingType.oversample
 UNDERSAMPLE_TRES = 150
 # -1 means no treshold
 OVERSAMPLE_TRES = 250
-OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.1)
+OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
 
 g.load_data(3)
 

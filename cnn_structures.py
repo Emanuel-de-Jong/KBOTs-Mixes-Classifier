@@ -241,11 +241,32 @@ def m17(name, X_train, y_train, validation_data):
 
     return model, training_data
 
+# 64 labels | 6 time steps | 25 songs | 250 oversample 0 compensate
+# 2025-10-21 11:55 Training took 1282.27 seconds or 21.37 minutes.
+# 2025-10-21 11:55 Training Accuracy: 0.6341 | Loss: 1.2145
+# 2025-10-21 11:55 Validation Accuracy: 0.3208 | Loss: 2.8925
+# 2025-10-21 11:55 Test Accuracy: 0.3597 | Loss: 2.4498
+#                   accuracy                           0.36      1098
+#                  macro avg       0.33      0.37      0.33      1098
+#               weighted avg       0.33      0.36      0.33      1098
+
 # 64 labels | 6 time steps | 25 songs | 250 oversample 0.1 compensate
 # 2025-10-21 11:08 Training took 1170.87 seconds or 19.51 minutes.
 # 2025-10-21 11:08 Training Accuracy: 0.5746 | Loss: 1.4196
 # 2025-10-21 11:08 Validation Accuracy: 0.3193 | Loss: 2.6825
 # 2025-10-21 11:08 Test Accuracy: 0.3069 | Loss: 2.4371
+#                   accuracy                           0.31      1098
+#                  macro avg       0.34      0.31      0.28      1098
+#               weighted avg       0.34      0.31      0.28      1098
+
+# 64 labels | 6 time steps | 25 songs | 150 undersample
+# 2025-10-21 11:32 Training took 827.69 seconds or 13.79 minutes.
+# 2025-10-21 11:32 Training Accuracy: 0.5649 | Loss: 1.4311
+# 2025-10-21 11:32 Validation Accuracy: 0.2962 | Loss: 2.8039
+# 2025-10-21 11:32 Test Accuracy: 0.2923 | Loss: 2.5097
+#                   accuracy                           0.29      1098
+#                  macro avg       0.29      0.29      0.26      1098
+#               weighted avg       0.29      0.29      0.26      1098
 
 # 64 labels | 6 time steps | 25 songs | 150 undersample
 # 2025-10-21 00:50 Training took 944.85 seconds or 15.75 minutes.
@@ -517,7 +538,7 @@ def m12(name, X_train, y_train, validation_data):
 #               weighted avg       0.00      0.02      0.00      1098
 # Extreme overfitting
 
-# 64 labels | 5 time steps | 25 songs | raw
+# 64 labels | 5 time steps | 25 songs | none
 # 2025-10-20 13:34 Training took 1775.68 seconds or 29.59 minutes.
 # 2025-10-20 13:34 Training Accuracy: 0.7784 | Loss: 0.8532
 # 2025-10-20 13:34 Validation Accuracy: 0.5502 | Loss: 2.0031
