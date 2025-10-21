@@ -1,7 +1,15 @@
 # KBOT's Mixes Classifier
 Finds the right playlist for a new song.
 
+**Active Development:** 2025-10-13 - 2025-10-21<br>
+**Last Change:** 2025-10-21<br>
+
+| | |
+| :---: | :---: |
+| ![](/Screenshots/1-Stats-Matrix.png) | ![](/Screenshots/2-Stats-Graph.png) |
+
 ## Requirements
+- python (tested on 3.11)
 - ffmpeg
 
 ## Setup
