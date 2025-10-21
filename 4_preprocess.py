@@ -79,17 +79,37 @@ for label, count in validate_data["label"].value_counts().items():
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
+
 def undersample(label, sample_target):
     train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+    label_data = train_data[train_data['label'] == label]
     
-    label_idxs = train_data[train_data['label'] == label].index.to_numpy()
-    sampled_label_idxs = resample(label_idxs, replace=False, n_samples=sample_target, random_state=1)
-    other_train_idxs = train_data[train_data['label'] != label].index.to_numpy()
+    x = len(label_data) - sample_target
+
+    song_counts = label_data['song'].value_counts().to_dict()
+    last_removed = {s: label_data[label_data['song'] == s].index[-1] for s in song_counts}
     
-    new_train_idxs = np.concatenate([other_train_idxs, sampled_label_idxs]).astype(int)
+    remove_idxs = []
+    for _ in range(x):
+        max_count = max(song_counts.values())
+        candidates = [s for s, c in song_counts.items() if c == max_count]
+        song = candidates[0]
+
+        song_rows = label_data[label_data['song'] == song]
+        idxs = song_rows.index.tolist()
+        last_idx = last_removed[song]
+        next_idx = idxs[(idxs.index(last_idx) - 1) % len(idxs)]
+        
+        remove_idxs.append(next_idx)
+        last_removed[song] = next_idx
+        song_counts[song] -= 1
+
+    keep_idxs = label_data.index.difference(remove_idxs)
+    new_train_data = pd.concat([
+        train_data.loc[train_data['label'] != label],
+        train_data.loc[keep_idxs]
+    ])
     non_train_data = g.data[g.data["data_set"] != g.DataSetType.train]
-    new_train_data = g.data.loc[new_train_idxs].copy()
-    
     g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
 def oversample(label, sample_target):

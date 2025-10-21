@@ -2,7 +2,6 @@
 Finds the right playlist for a new song.
 
 ## TODO
-- Undersample remove songs with most rows first
 - Test acc on non scaled data
 - Duplicates to balance songs?
     - up to max songs per label
