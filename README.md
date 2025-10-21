@@ -1,11 +1,6 @@
 # KBOT's Mixes Classifier
 Finds the right playlist for a new song.
 
-## TODO
-- Research Mert data format
-- Save training data per song
-- Keras CNN with time
-
 ## Requirements
 - ffmpeg
 
@@ -29,3 +24,16 @@ For a directory full of MP3 files:
 2. `poetry run python run_batch.py`.
 
 If you want to get the results of multiple models like the `global`, `general_pop`, `rock` and `edm` in `run_batch.py`, you'll have to run the full pipeline multiple times. Rename the `cache/model.joblib` file before running again!
+
+## Roadmap
+- Test acc on non scaled data
+- Reevaluate removing/merging playlists
+- Remove unneeded packages
+- Models for playlist subsets
+
+- Balanced batching
+- Duplicates to balance songs?
+    - up to max songs per label
+    - make sure no songs removed during downsample
+    - remove dupes before others?
+- Don't use unique songs in validate if not enough data?

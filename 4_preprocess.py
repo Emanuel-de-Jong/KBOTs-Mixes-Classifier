@@ -1,132 +1,162 @@
 import pandas as pd
 import numpy as np
-import joblib
-import torch
-from sklearn.preprocessing import StandardScaler, RobustScaler
+import global_params as g
 from imblearn.over_sampling import SMOTE
 from sklearn.utils import resample
-from pathlib import Path
 from enum import Enum
 
 class SamplingType(Enum):
-    RAW = 0
-    UNDERSAMPLING = 1
-    OVERSAMPLING = 2
+    raw = 0
+    undersample = 1
+    oversample = 2
 
-SAMPLING = SamplingType.OVERSAMPLING
+VALIDATE_PERC = 0.2
+
+SAMPLING = SamplingType.oversample
 # -1 means no treshold
-UNDERSAMPLING_TRES = 100
+UNDERSAMPLE_TRES = 150
 # -1 means no treshold
-OVERSAMPLING_TRES = 130
+OVERSAMPLE_TRES = 250
+OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.1)
 
-cache_dir = Path("cache")
-labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
-X_train = joblib.load(cache_dir / "embs_train.joblib")
-X_test = joblib.load(cache_dir / "embs_test.joblib")
-y_train = joblib.load(cache_dir / "labels_train.joblib")
-y_test = joblib.load(cache_dir / "labels_test.joblib")
+g.load_data(3)
 
-# print(f'X_train shape: {X_train.shape}')
-# print(f'X_train type: {type(X_train)}')
-# print(f'X_train[0][0] value type: {type(X_train[0][0])}')
-# print(f'y_train shape: {y_train.shape}')
-# print(f'y_train type: {type(y_train)}')
-# print(f'y_train[0] value type: {type(y_train[0])}')
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+label_counts = train_data['label'].value_counts()
 
-def undersample(label_num, sample_target):
-    global X_train, y_train
+all_new_rows = []
+validate_target = label_counts.max() * VALIDATE_PERC
+for label in range(g.label_count):
+    label_train_data = train_data[train_data["label"] == label]
+    songs = label_train_data['song'].unique()
+    np.random.shuffle(songs)
 
-    label_idxs = y_train[y_train == label_num].index.to_numpy()
-    if len(label_idxs) <= sample_target:
-        return
+    total_rows = 0
+    validate_songs = []
+    organic_validate_target = int(round(VALIDATE_PERC * len(label_train_data)))
+    for song in songs:
+        song_rows = len(label_train_data[label_train_data['song'] == song])
+        if total_rows + song_rows <= organic_validate_target:
+            validate_songs.append(song)
+            total_rows += song_rows
 
-    sampled_label_idxs = resample(label_idxs, replace=False, n_samples=sample_target, random_state=1)
+            if total_rows == organic_validate_target:
+                break
 
-    other_idxs = y_train[y_train != label_num].index.to_numpy()
+    label_validate_idxs = label_train_data[label_train_data['song'].isin(validate_songs)].index
+    g.data.loc[label_validate_idxs, "data_set"] = g.DataSetType.validate
 
-    final_idxs = np.concatenate([other_idxs, sampled_label_idxs]).astype(int)
-    final_idxs.sort()
+    remaining_validate_target = int(validate_target - total_rows)
+    if remaining_validate_target > 0:
+        label_validate_data = g.data[(g.data["data_set"] == g.DataSetType.validate) & (g.data["label"] == label)]
 
-    X_train = X_train[final_idxs]
-    y_train = y_train.iloc[final_idxs].reset_index(drop=True)
+        song_sizes = label_validate_data.groupby('song').size().sort_values()
+        repeated_songs = np.tile(song_sizes.index.values, (remaining_validate_target // len(song_sizes)) + 1)
 
-# TEST START
-label_counts = y_train.value_counts()
-min_label = label_counts.idxmin()
-min_label_count = label_counts.min()
-min_label_indices = np.where(y_train == min_label)[0]
-test_idx = min_label_indices[len(min_label_indices) // 2]
-original_label = y_train.iloc[test_idx]
-original_embedding = X_train[test_idx, :10].copy()
-print(f"\nBefore sampling:")
-print(f"Test index: {test_idx}")
-print(f"Label: {original_label}")
-print(f"First 10 embedding values: {original_embedding}")
-# TEST END
+        new_rows = []
+        total_dup_rows = 0
+        for song in repeated_songs:
+            song_rows = g.data[(g.data["song"] == song) & (g.data["label"] == label) & (g.data["data_set"] == g.DataSetType.validate)]
 
-if SAMPLING == SamplingType.UNDERSAMPLING:
-    undersampling_tres = UNDERSAMPLING_TRES if UNDERSAMPLING_TRES != -1 else y_train.value_counts().min()
-    for label_num in range(len(labels)):
-        label_count = (y_train == label_num).sum()
-        if label_count > undersampling_tres:
-            undersample(label_num, undersampling_tres)
-elif SAMPLING == SamplingType.OVERSAMPLING:
-    if OVERSAMPLING_TRES != -1:
-        for label_num in range(len(labels)):
-            label_count = (y_train == label_num).sum()
-            if label_count > OVERSAMPLING_TRES:
-                undersample(label_num, OVERSAMPLING_TRES)
+            if total_dup_rows + len(song_rows) >= remaining_validate_target:
+                new_rows.append(song_rows[:remaining_validate_target - total_dup_rows])
+                break
+
+            new_rows.append(song_rows)
+            total_dup_rows += len(song_rows)
+        
+        if new_rows:
+            new_rows = pd.concat(new_rows).copy()
+            all_new_rows.append(new_rows)
+
+if all_new_rows:
+    g.data = pd.concat([g.data] + all_new_rows, ignore_index=False)
+
+validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
+print("== Validate label counts ==")
+for label, count in validate_data["label"].value_counts().items():
+    print(f"{g.labels[label]}: {count}")
+
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+label_counts = train_data['label'].value_counts()
+
+def undersample(label, sample_target):
+    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+    label_data = train_data[train_data['label'] == label]
     
-    smote = SMOTE(random_state=1)
-    X_train, y_train = smote.fit_resample(X_train, y_train)
+    x = len(label_data) - sample_target
 
-# TEST START
-matches = []
-for i in range(len(X_train)):
-    if np.allclose(X_train[i, :10], original_embedding, rtol=1e-5, atol=1e-8):
-        matches.append(i)
-if len(matches) > 0:
-    for match_idx in matches:
-        found_label = y_train.iloc[match_idx] if isinstance(y_train, pd.Series) else y_train[match_idx]
-        embedding_match = X_train[match_idx, :10]
-        print(f"\nMatch at index: {match_idx}")
-        print(f"Label: {found_label}")
-        print(f"First 10 embedding values: {embedding_match}")
-        if found_label == original_label:
-            print("✅ X_train and y_train are SYNCHRONIZED")
-        else:
-            print("❌ X_train and y_train are OUT OF SYNC!")
-# TEST END
+    song_counts = label_data['song'].value_counts().to_dict()
+    last_removed = {s: label_data[label_data['song'] == s].index[-1] for s in song_counts}
+    
+    remove_idxs = []
+    for _ in range(x):
+        max_count = max(song_counts.values())
+        candidates = [s for s, c in song_counts.items() if c == max_count]
+        song = candidates[0]
 
-print()
-train_distribution = y_train.value_counts()
-for label_num, count in train_distribution.items():
-    print(f"{labels[label_num]}: {count}")
+        song_rows = label_data[label_data['song'] == song]
+        idxs = song_rows.index.tolist()
+        last_idx = last_removed[song]
+        next_idx = idxs[(idxs.index(last_idx) - 1) % len(idxs)]
+        
+        remove_idxs.append(next_idx)
+        last_removed[song] = next_idx
+        song_counts[song] -= 1
 
-X_train_norm = torch.nn.functional.normalize(torch.from_numpy(X_train), p=2, dim=1)
-X_test_norm = torch.nn.functional.normalize(torch.from_numpy(X_test), p=2, dim=1)
-X_train_norm = X_train_norm.numpy()
-X_test_norm = X_test_norm.numpy()
+    keep_idxs = label_data.index.difference(remove_idxs)
+    new_train_data = pd.concat([
+        train_data.loc[train_data['label'] != label],
+        train_data.loc[keep_idxs]
+    ])
+    non_train_data = g.data[g.data["data_set"] != g.DataSetType.train]
+    g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
-# scaler = StandardScaler()
-scaler = RobustScaler()
-X_train_scale = scaler.fit_transform(X_train)
-X_test_scale = scaler.transform(X_test)
+def oversample(label, sample_target):
+    train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+    label_data = train_data[train_data['label'] == label]
+    
+    x = sample_target - len(label_data)
 
-print(f"\nTrain stats - Mean: {np.mean(X_train_scale):.4f}, Std: {np.std(X_train_scale):.4f}")
-print(f"Test stats - Mean: {np.mean(X_test_scale):.4f}, Std: {np.std(X_test_scale):.4f}")
-print(f"NaN in train: {np.isnan(X_train_scale).sum()}, test: {np.isnan(X_test_scale).sum()}")
-print(f"Inf in train: {np.isinf(X_train_scale).sum()}, test: {np.isinf(X_test_scale).sum()}")
+    song_counts = label_data['song'].value_counts().to_dict()
+    last_used = {s: label_data[label_data['song'] == s].index[0] for s in song_counts}
+    
+    new_rows = []
+    for _ in range(x):
+        min_count = min(song_counts.values())
+        candidates = [s for s, c in song_counts.items() if c == min_count]
+        song = candidates[0]
 
-print(f"Train lengths: {len(X_train)} | {len(X_train_norm)} | {len(X_train_scale)}")
-print(f"Test lengths: {len(X_test)} | {len(X_test_norm)} | {len(X_test_scale)}")
-print(f"Label lengths: {len(y_train)} | {len(y_test)}")
+        song_rows = label_data[label_data['song'] == song]
+        idxs = song_rows.index.tolist()
+        last_idx = last_used[song]
+        next_idx = idxs[(idxs.index(last_idx) + 1) % len(idxs)]
+        
+        new_rows.append(g.data.loc[next_idx].copy())
+        last_used[song] = next_idx
+        song_counts[song] += 1
 
-joblib.dump(X_train, cache_dir / f'X_train.joblib')
-joblib.dump(X_test, cache_dir / f'X_test.joblib')
-joblib.dump(X_train_norm, cache_dir / f'X_train_norm.joblib')
-joblib.dump(X_test_norm, cache_dir / f'X_test_norm.joblib')
-joblib.dump(X_train_scale, cache_dir / f'X_train_scale.joblib')
-joblib.dump(X_test_scale, cache_dir / f'X_test_scale.joblib')
-joblib.dump(y_train, cache_dir / f'y_train.joblib')
-joblib.dump(y_test, cache_dir / f'y_test.joblib')
+    non_train_data = g.data[g.data["data_set"] != g.DataSetType.train]
+    new_train_data = pd.concat([train_data, pd.DataFrame(new_rows)], ignore_index=False)
+    g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
+
+if SAMPLING == SamplingType.undersample:
+    undersample_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
+    for label, count in label_counts.items():
+        if count > undersample_tres:
+            undersample(label, undersample_tres)
+elif SAMPLING == SamplingType.oversample:
+    oversample_tres = OVERSAMPLE_TRES if OVERSAMPLE_TRES != -1 else label_counts.max()
+    for label, count in label_counts.items():
+        if count > oversample_tres:
+            undersample(label, oversample_tres)
+        elif count < oversample_tres - OVERSAMPLE_COMPENSATION:
+            oversample(label, oversample_tres - OVERSAMPLE_COMPENSATION)
+
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+label_counts = train_data["label"].value_counts()
+print("\n== Train label counts after resample ==")
+for label, count in label_counts.items():
+    print(f"{g.labels[label]}: {count}")
+
+g.save_data(4)

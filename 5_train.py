@@ -1,112 +1,179 @@
+import os
+
+os.environ["KERAS_BACKEND"] = "torch"
+
 import matplotlib.pyplot as plt
-import pandas as pd
+import cnn_structures as cnns
 import numpy as np
-import Classifier
-import joblib
+import random
+import torch
+import json
 import time
-import sys
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix, accuracy_score
-from pathlib import Path
+import global_params as g
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
+from keras.models import load_model
+from keras.utils import to_categorical
 from Utils import Logger
-from enum import Enum
 
-class ScalingType(Enum):
-    RAW = 0
-    SCALE = 1
-    NORM = 2
+g.load_data(4)
 
-class ClassifierToTrain():
-    X_train = None
-    X_test = None
-    model = None
-    accuracy = None
+model, history = None, None
 
-    def __init__(self, name, func, scaling_type):
-        self.name = name
-        self.func = func
-        self.scaling_type = scaling_type
+logger = Logger(g.MODELS_DIR / "train.log")
 
-VERBOSE = False
-CV = 10
-CLASSIFIERS_TO_TRAIN = [
-    ClassifierToTrain('KNeighbors', Classifier.train_KNeighbors, ScalingType.NORM),
-    ClassifierToTrain('MLP', Classifier.train_MLP, ScalingType.SCALE),
-    ClassifierToTrain('RandomForest', Classifier.train_RandomForest, ScalingType.RAW),
-    ClassifierToTrain('ExtraTrees', Classifier.train_ExtraTrees, ScalingType.RAW),
-    # Bad accuracy
-    # ClassifierToTrain('SVC', Classifier.train_SVC, ScalingType.SCALE),
-    # Bad accuracy
-    # ClassifierToTrain('GaussianNB', Classifier.train_GaussianNB, ScalingType.SCALE),
-    # Bad accuracy
-    # ClassifierToTrain('DecisionTree', Classifier.train_DecisionTree, ScalingType.RAW),
-    # Takes too long
-    # ClassifierToTrain('LogisticRegression', Classifier.train_LogisticRegression, ScalingType.SCALE),
-    # Takes too long
-    # ClassifierToTrain('GradientBoosting', Classifier.train_GradientBoosting, ScalingType.SCALE),
-]
+def set_seed(seed=1):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
-# patch_sklearn()
-# set_config(target_offload="gpu")
+# set_seed()
 
-models_dir = Path("models")
-models_dir.mkdir(exist_ok=True)
-cache_dir = Path("cache")
-labels = np.unique(pd.read_json(cache_dir / "num_to_label.json"))
-X_train = joblib.load(cache_dir / f'X_train.joblib')
-X_test = joblib.load(cache_dir / f'X_test.joblib')
-X_train_norm = joblib.load(cache_dir / f'X_train_norm.joblib')
-X_test_norm = joblib.load(cache_dir / f'X_test_norm.joblib')
-X_train_scale = joblib.load(cache_dir / f'X_train_scale.joblib')
-X_test_scale = joblib.load(cache_dir / f'X_test_scale.joblib')
-y_train = joblib.load(cache_dir / f'y_train.joblib')
-y_test = joblib.load(cache_dir / f'y_test.joblib')
+train_data = g.data[g.data["data_set"] == g.DataSetType.train]
+validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
+test_data = g.data[g.data["data_set"] == g.DataSetType.test]
 
-logger = Logger(models_dir / "train.log")
+X_train = np.stack(train_data["data"].to_numpy())
+X_validate = np.stack(validate_data["data"].to_numpy())
+X_test = np.stack(test_data["data"].to_numpy())
 
-for c in CLASSIFIERS_TO_TRAIN:
-    c.X_train = X_train if c.scaling_type == ScalingType.RAW else X_train_norm if c.scaling_type == ScalingType.NORM else X_train_scale
-    c.X_test = X_test if c.scaling_type == ScalingType.RAW else X_test_norm if c.scaling_type == ScalingType.NORM else X_test_scale
-    c.y_train = y_train
-    c.y_test = y_test
+y_train = train_data["label"].to_numpy()
+y_validate = validate_data["label"].to_numpy()
+y_test = test_data["label"].to_numpy()
 
-# for c in CLASSIFIERS_TO_TRAIN:
-#     print(f'{c.name}({type(c.X_train)}): {c.X_train}')
+y_train_hot = to_categorical(y_train)
+y_validate_hot = to_categorical(y_validate)
+y_test_hot = to_categorical(y_test)
 
-# sys.exit(0)
+validation_data=(X_validate, y_validate_hot)
 
-def print_search_results(model_name, search):
-    logger.writeln(f'\n=== {model_name} Best Params ===')
-    for key, val in search.best_params_.items():
-        logger.writeln(f'{key}: {val}')
+def load_existing_model():
+    model_path = g.CACHE_DIR / f'model_global.keras'
+    history_path = g.MODELS_DIR / f'history.json'
+    if not os.path.exists(model_path) or not os.path.exists(history_path):
+        return None, None
+    
+    model = load_model(model_path)
+    with open(history_path, 'r') as f:
+        history = json.load(f)
+    
+    return model, history
+    
+def save_model(name, model, training_data):
+    # model.save(g.CACHE_DIR / f'model_global.keras')
+    model.save(g.MODELS_DIR / f'model_{name}.keras')
 
-def test(c):
-    logger.writeln(f'\n=== {c.name} Test ===')
-    y_pred = c.model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    report = classification_report(y_test, y_pred, target_names = labels)
+    history = {}
+    history["accuracy"] = training_data.history["accuracy"]
+    history["val_accuracy"] = training_data.history["val_accuracy"]
+    history["loss"] = training_data.history["loss"]
+    history["val_loss"] = training_data.history["val_loss"]
+
+    with open(g.MODELS_DIR / f'history_{name}.json', 'w') as f:
+        json.dump(history, f)
+    
+    return history
+
+def draw_acc_and_loss_graphs(history, name):
+    plt.figure(figsize=(9, 2))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(history['accuracy'], label='Training Accuracy')
+    plt.plot(history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.yticks(np.arange(0.0, 1.1, 0.1))
+    plt.grid()
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history['loss'], label='Training Loss')
+    plt.plot(history['val_loss'], label='Validation Loss')
+    plt.title('Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.grid()
+    plt.legend()
+
+    plt.savefig(g.MODELS_DIR / f'test_acc_loss_{name}.png', bbox_inches='tight')
+    plt.close()
+
+def test(model, history, name=""):
+    draw_acc_and_loss_graphs(history, name)
+
+    logger.writeln(f"Training Accuracy: {history['accuracy'][-1]:.4f} | Loss: {history['loss'][-1]:.4f}")
+    logger.writeln(f"Validation Accuracy: {history['val_accuracy'][-1]:.4f} | Loss: {history['val_loss'][-1]:.4f}")
+
+    y_pred = model.predict(X_test)
+    y_pred_sk = np.argmax(y_pred, axis=-1)
+
+    report = classification_report(y_test, y_pred_sk, target_names = g.labels)
     logger.writeln(report)
 
-    cm = confusion_matrix(y_test, y_pred)
-    disp = ConfusionMatrixDisplay(cm, display_labels = labels)
+    cm = confusion_matrix(y_test, y_pred_sk)
+    disp = ConfusionMatrixDisplay(cm, display_labels = g.labels)
 
     _, ax = plt.subplots(figsize=(20, 22), dpi=200)
     disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
-
     plt.tight_layout(pad=3.0)
-    plt.savefig(models_dir / f'test_{c.name}.png', bbox_inches='tight')
+    plt.savefig(g.MODELS_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
     plt.close()
 
-    return accuracy
+    test_loss, test_accuracy = model.evaluate(X_test, y_test_hot, verbose=0)
+    logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
-for c in CLASSIFIERS_TO_TRAIN:
+def train(model_func):
+    name = model_func.__name__
+    logger.writeln(name)
+
     start_time = time.time()
-    c.model = c.func(c, CV, VERBOSE, print_search_results)
+    model, training_data = model_func(name, X_train, y_train_hot, validation_data)
     elapsed_time = time.time() - start_time
-    logger.writeln(f"{c.name} took {elapsed_time:.2f} seconds or {elapsed_time // 60} minutes.")
-    
-    c.accuracy = test(c)
-    joblib.dump(c.model, models_dir / f'model_{c.name}.joblib')
+    logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
 
-best_c = max(CLASSIFIERS_TO_TRAIN, key=lambda c: c.accuracy if c.accuracy != None else 0.0)
-# model_global model_general_pop model_rock model_edm
-joblib.dump(best_c.model, cache_dir / 'model_global.joblib')
+    history = save_model(name, model, training_data)
+
+    test(model, history, name)
+
+    return model, history
+
+# model, history = load_existing_model()
+if model is None:
+    # train(cnns.m1)
+    # train(cnns.m2)
+    # train(cnns.m3)
+    # train(cnns.m4)
+    # train(cnns.m5)
+    # train(cnns.m6)
+    # train(cnns.m7)
+    # train(cnns.m8)
+    # train(cnns.m9)
+    # train(cnns.m10)
+    # train(cnns.m11)
+    # train(cnns.m12)
+    # train(cnns.m13)
+    # train(cnns.m14)
+    # train(cnns.m15)
+    train(cnns.m16)
+    # train(cnns.m17)
+    # train(cnns.m18)
+    # train(cnns.m19)
+    # train(cnns.m20)
+
+    # train(cnns.m21)
+    # train(cnns.m22)
+    # train(cnns.m23)
+    # train(cnns.m24)
+    # train(cnns.m25)
+    # train(cnns.m26)
+    # train(cnns.m27)
+    # train(cnns.m28)
+    # train(cnns.m29)
+    # train(cnns.m30)
+
+else:
+    test(model, history)

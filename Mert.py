@@ -3,11 +3,15 @@ import subprocess
 import tempfile
 import torch
 import os
+import global_params as g
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 15.0
+    CHUNK_LENGTH_SECONDS = 10
+    TIME_STEPS = 6
+    START_SKIP_SECONDS = 0
+    END_SKIP_SECONDS = 0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
@@ -59,8 +63,8 @@ class Mert():
             
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
             
-            start_skip_samples = int(20.0 * resample_rate)
-            end_skip_samples = int(20.0 * resample_rate)
+            start_skip_samples = int(self.START_SKIP_SECONDS * resample_rate)
+            end_skip_samples = int(self.END_SKIP_SECONDS * resample_rate)
             
             total_samples = len(audio_samples)
             usable_samples = total_samples - start_skip_samples - end_skip_samples
@@ -81,18 +85,28 @@ class Mert():
             if max_chunks != -1 and len(chunks) > max_chunks:
                 chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
             
-            chunk_data = []
+            embs = []
             for chunk in chunks:
                 inputs = self.processor(chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
 
                 with torch.no_grad():
-                    outputs = self.model(**inputs)
+                    outputs = self.model(**inputs, output_hidden_states=True)
                 
-                chunk_vec = outputs.last_hidden_state.mean(dim=1).cpu().float().numpy().squeeze()
-                chunk_data.append(chunk_vec)
+                emb = torch.stack(outputs.hidden_states).squeeze().cpu()
+                emb = torch.nn.functional.adaptive_avg_pool1d(
+                    emb.permute(0, 2, 1), output_size=Mert.TIME_STEPS
+                ).permute(0, 2, 1)
+                
+                emb = emb.numpy()
+                emb = (emb - emb.mean(axis=0)) / emb.std(axis=0)
+                emb = emb.transpose(1, 2, 0)
+                
+                embs.append(emb)
+
+            embs = np.array(embs)
             
-            print(f"Success! Generated {len(chunk_data)} chunks")
-            return chunk_data
+            print(f"Success! Generated {len(embs)} embs")
+            return embs
         
         except Exception as e:
             self.error(f"{path} is corrupt! Error: {e}")

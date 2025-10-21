@@ -1,4 +1,5 @@
 import sys
+import global_params as g
 from Classifier import Classifier
 
 path = "test/Bassline/Club Angel - Control Dem.mp3"

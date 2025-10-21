@@ -1,5 +1,5 @@
+import global_params as g
 from Classifier import Classifier
-from pathlib import Path
 from Utils import Logger
 from tqdm import tqdm
 
@@ -18,26 +18,29 @@ class Result():
         return f'[{self.correct_label}] top: {self.is_top_1} {"" if self.is_top_1 else f"({self.top[0][0]}) "}| top 3: {self.is_top_3}'
 
 classifier = Classifier("global")
-test_dir = Path("test")
 
 logger = Logger("test.log")
 
+def test_playlist(playlist_dir):
+    test_song = list(playlist_dir.glob("*.mp3"))[0]
+    
+    top, _ = classifier.infer(test_song)
+    if top is None or len(top) == 0:
+        return None
+
+    return Result(playlist_dir.name, top, test_song.name)
+
 results = []
-playlist_dirs = list(test_dir.iterdir())
+# results.append(test_playlist(Path("test/Bossa Nova")))
+playlist_dirs = list(g.TEST_DIR.iterdir())
 for playlist_dir in tqdm(playlist_dirs, total=len(playlist_dirs)):
     if not playlist_dir.is_dir():
         continue
 
-    songs = list(playlist_dir.glob("*.mp3"))
-    if not songs:
+    result = test_playlist(playlist_dir)
+    if result is None:
         continue
 
-    test_song = songs[0]
-    top, _ = classifier.infer(test_song)
-    if top is None or len(top) == 0:
-        continue
-
-    result = Result(playlist_dir.name, top, test_song.name)
     results.append(result)
 
 results.sort(key=lambda r: (r.is_top_1, r.is_top_3))

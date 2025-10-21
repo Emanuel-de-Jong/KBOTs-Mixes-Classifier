@@ -1,43 +1,53 @@
 import pandas as pd
 import numpy as np
-import joblib
-from pathlib import Path
+import global_params as g
+from sklearn.utils import resample
 from Mert import Mert
 from tqdm import tqdm
 
-MAX_CHUNKS_TRAIN = 12
-MAX_CHUNKS_TEST = 5
+MAX_CHUNKS_TRAIN = 18
+MAX_CHUNKS_TEST = MAX_CHUNKS_TRAIN
 
-cache_dir = Path("cache")
-songs_train = pd.read_csv(cache_dir / "labels_train.csv")
-songs_test = pd.read_csv(cache_dir / "labels_test.csv")
+songs_train = pd.read_csv(g.CACHE_DIR / "labels_train.csv")
+songs_test = pd.read_csv(g.CACHE_DIR / "labels_test.csv")
 
 mert = Mert()
 
-def extract(songs, max_chunks):
-    embeddings, labels = [], []
-    for _, row in tqdm(songs.iterrows(), total=len(songs)):
-        chunk_data = mert.run(row.filepath, max_chunks)
-        if chunk_data is None:
+def extract(data, data_set_type):
+    songs = songs_train if data_set_type == g.DataSetType.train else songs_test
+    max_chunks = MAX_CHUNKS_TRAIN if data_set_type == g.DataSetType.train else MAX_CHUNKS_TEST
+
+    for _, song in tqdm(songs.iterrows(), total=len(songs)):
+        song_label = int(song.label)
+        song_name = g.get_song_name(song.song)
+        song_embs = mert.run(song.song, max_chunks)
+        if song_embs is None:
             continue
+
+        # Fill with dupes so each song has the same amount of training data.
+        # If used, remove dupes first when undersampling and make sure no dupes are in the validation split!
+        # if len(song_embs) < max_chunks:
+        #     fill_embs = resample(song_embs, replace=False, n_samples=max_chunks - len(song_embs), random_state=1)
+        #     song_embs = np.concatenate((song_embs, fill_embs))
         
-        for vec in chunk_data:
-            if not isinstance(vec, np.ndarray):
-                print(f"Skipping chunk from {row.filepath}: returned {type(vec)} instead of ndarray.")
+        for emb in song_embs:
+            if not isinstance(emb, np.ndarray):
+                print(f"Skipping emb from {song.filepath}: returned {type(emb)} instead of ndarray.")
                 continue
-            if vec.shape != (1024,):
-                print(f"Skipping chunk from {row.filepath}: wrong shape {vec.shape}.")
+            if emb.shape != (Mert.TIME_STEPS, 1024, 25):
+                print(f"Skipping emb from {song.filepath}: wrong shape {emb.shape}.")
                 continue
 
-            embeddings.append(vec)
-            labels.append(int(row.label))
+            data.append({
+                'data_set': data_set_type,
+                'label': song_label,
+                'song': song_name,
+                'data': emb})
 
-    return np.stack(embeddings), pd.Series(labels)
+data = []
 
-embs, labels = extract(songs_train, MAX_CHUNKS_TRAIN)
-joblib.dump(embs, cache_dir / "embs_train.joblib")
-joblib.dump(labels, cache_dir / "labels_train.joblib")
+extract(data, g.DataSetType.train)
+extract(data, g.DataSetType.test)
 
-embs, labels = extract(songs_test, MAX_CHUNKS_TEST)
-joblib.dump(embs, cache_dir / "embs_test.joblib")
-joblib.dump(labels, cache_dir / "labels_test.joblib")
+g.data = pd.DataFrame(data)
+g.save_data(3)

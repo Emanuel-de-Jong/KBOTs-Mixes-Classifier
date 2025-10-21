@@ -1,20 +1,15 @@
+import joblib
 import random
-import json
 import csv
-from pathlib import Path
+import global_params as g
 
 MIN_PLAYLIST_SONGS = 10
-MAX_PLAYLIST_SONGS = 14
+MAX_PLAYLIST_SONGS = 25
 # Only for testing! -1 to disable.
 TEST_LABEL_COUNT = -1
 
-train_dir = Path("train")
-test_dir = Path("test")
-cache_dir = Path("cache")
-cache_dir.mkdir(exist_ok=True)
-
 playlist_counts = []
-for folder in train_dir.iterdir():
+for folder in g.TRAIN_DIR.iterdir():
     if folder.is_dir():
         mp3_count = len(list(folder.glob("*.mp3")))
         if mp3_count < MIN_PLAYLIST_SONGS:
@@ -25,21 +20,20 @@ if len(playlist_counts) > 0 and playlist_counts[0][1] < MIN_PLAYLIST_SONGS:
     for name, count in playlist_counts:
         print(f"{name}: {count}")
 
-num_to_label = sorted([folder.name for folder in train_dir.iterdir() if folder.is_dir()])
+labels = sorted([folder.name for folder in g.TRAIN_DIR.iterdir() if folder.is_dir()])
 if TEST_LABEL_COUNT != -1:
-    num_to_label = num_to_label[:TEST_LABEL_COUNT]
-label_to_num = {label: i for i, label in enumerate(num_to_label)}
-with open(cache_dir / "num_to_label.json", "w") as f:
-    json.dump(num_to_label, f, indent=4)
-with open(cache_dir / "label_to_num.json", "w") as f:
-    json.dump(label_to_num, f, indent=4)
+    labels = labels[:TEST_LABEL_COUNT]
 
-def get_song_labels(is_train):
-    with open(cache_dir / f"labels_{'train' if is_train else 'test'}.csv", "w", newline="") as f:
+joblib.dump(labels, g.CACHE_DIR / "labels.joblib")
+
+label_to_num = {label: i for i, label in enumerate(labels)}
+
+def get_song_labels(data_set_type):
+    with open(g.CACHE_DIR / f"labels_{data_set_type.name}.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["filepath","label"])
+        w.writerow(["song","label"])
 
-        dir = train_dir if is_train else test_dir
+        dir = g.TRAIN_DIR if data_set_type == g.DataSetType.train else g.TEST_DIR
         playlist_count = 0
         for playlist_dir in dir.iterdir():
             if playlist_dir.is_dir():
@@ -57,12 +51,6 @@ def get_song_labels(is_train):
                     added_songs += 1
                     if added_songs >= MAX_PLAYLIST_SONGS:
                         break
-                
-                # if len(songs) < MIN_PLAYLIST_SONGS:
-                #     needed = MIN_PLAYLIST_SONGS - len(songs)
-                #     for i in range(needed):
-                #         song = songs[i % len(songs)]
-                #         w.writerow([str(song.resolve()), lbl_dir.name])
 
-get_song_labels(True)
-get_song_labels(False)
+get_song_labels(g.DataSetType.train)
+get_song_labels(g.DataSetType.test)
