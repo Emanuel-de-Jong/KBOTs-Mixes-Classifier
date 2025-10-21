@@ -38,6 +38,13 @@ def smooth_weights(weights, max_ratio=1.2):
     return dict(zip(weights.keys(), smoothed))
 
 # 64 labels | 6 time steps | 25 songs | minmax scaler | 250 oversample 0 compensate
+# 2025-10-21 16:05 Training took 1246.37 seconds or 20.77 minutes.
+# 2025-10-21 16:05 Training Accuracy: 0.5481 | Loss: 1.5300
+# 2025-10-21 16:05 Validation Accuracy: 0.3073 | Loss: 2.7007
+# 2025-10-21 16:05 Test Accuracy: 0.3251 | Loss: 2.5426
+#                   accuracy                           0.33      1098
+#                  macro avg       0.30      0.33      0.29      1098
+#               weighted avg       0.30      0.33      0.29      1098
 
 # 64 labels | 6 time steps | 25 songs | standard scaler | 250 oversample 0 compensate
 # 2025-10-21 14:11 Training took 1687.92 seconds or 28.13 minutes.

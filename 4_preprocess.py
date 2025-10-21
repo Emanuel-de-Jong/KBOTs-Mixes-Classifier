@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import gc
+import os
 import global_params as g
 from sklearn.preprocessing import MinMaxScaler
 from enum import Enum
@@ -11,6 +12,7 @@ class SamplingType(Enum):
     undersample = 1
     oversample = 2
 
+SCALE_TOOLS_PATH = g.CACHE_DIR / "scale_tools.joblib"
 SCALE_BATCH_SIZE = 1000
 
 VALIDATE_PERC = 0.2
@@ -24,36 +26,45 @@ OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
 
 g.load_data(3)
 
-all_values = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]], axis=0)
-clip_min = np.percentile(all_values, 1, axis=0)
-clip_max = np.percentile(all_values, 99, axis=0)
+scale_tools = {}
+is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
+if is_scale_tools_loaded:
+    scale_tools = joblib.load(SCALE_TOOLS_PATH)
+else:
+    all_values = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]], axis=0)
+    scale_tools = {
+        "scaler": MinMaxScaler(feature_range=(-1, 1)),
+        "clip_min": np.percentile(all_values, 1, axis=0),
+        "clip_max": np.percentile(all_values, 99, axis=0),
+    }
 
-print("Clipping ranges per feature:")
-print(pd.DataFrame({"clip_min": clip_min, "clip_max": clip_max}))
-
-del all_values
-gc.collect()
-
-scaler = MinMaxScaler()
-data_count = len(g.data)
-for start in range(0, data_count, SCALE_BATCH_SIZE):
-    end = min(start + SCALE_BATCH_SIZE, data_count)
-    batch = [g.data.at[i, "data"] for i in range(start, end)]
-
-    batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
-    batch_2d = np.clip(batch_2d, clip_min, clip_max)
-    scaler.partial_fit(batch_2d)
-
-    del batch_2d, batch
+    del all_values
     gc.collect()
 
+    print("Clipping ranges per feature:")
+    print(pd.DataFrame({"clip_min": scale_tools["clip_min"], "clip_max": scale_tools["clip_max"]}))
+
+data_count = len(g.data)
+
+if not is_scale_tools_loaded:
+    for start in range(0, data_count, SCALE_BATCH_SIZE):
+        end = min(start + SCALE_BATCH_SIZE, data_count)
+        batch = [g.data.at[i, "data"] for i in range(start, end)]
+
+        batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
+        batch_2d = np.clip(batch_2d, scale_tools["clip_min"], scale_tools["clip_max"])
+        scale_tools["scaler"].partial_fit(batch_2d)
+
+        del batch_2d, batch
+        gc.collect()
+
 for start in range(0, data_count, SCALE_BATCH_SIZE):
     end = min(start + SCALE_BATCH_SIZE, data_count)
     batch = [g.data.at[i, "data"] for i in range(start, end)]
 
     batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
-    batch_2d = np.clip(batch_2d, clip_min, clip_max)
-    batch_scaled_2d = scaler.transform(batch_2d)
+    batch_2d = np.clip(batch_2d, scale_tools["clip_min"], scale_tools["clip_max"])
+    batch_scaled_2d = scale_tools["scaler"].transform(batch_2d)
 
     offset = 0
     for i, arr in enumerate(batch):
@@ -65,12 +76,8 @@ for start in range(0, data_count, SCALE_BATCH_SIZE):
     del batch, batch_2d, batch_scaled_2d
     gc.collect()
 
-scale_tools = {
-    "scaler": scaler,
-    "clip_min": clip_min,
-    "clip_max": clip_max,
-}
-joblib.dump(scale_tools, g.CACHE_DIR / "scale_tools.joblib")
+if not is_scale_tools_loaded:
+    joblib.dump(scale_tools, g.CACHE_DIR / "scale_tools.joblib")
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
