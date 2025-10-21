@@ -15,7 +15,7 @@ class Classifier():
             mert = Mert()
         self.mert = mert
         self.model = load_model(g.CACHE_DIR / "model_global.keras")
-        self.scaler = joblib.load(g.CACHE_DIR / "scaler.joblib")
+        self.scale_tools = joblib.load(g.CACHE_DIR / "scale_tools.joblib")
     
     def infer(self, path, embs=None):
         if embs is None:
@@ -23,9 +23,7 @@ class Classifier():
             if embs is None or len(embs) == 0:
                 return None, None
             
-            og_shape = embs.shape
-            embs_2d = embs.reshape(-1, embs.shape[-1])
-            embs = self.scaler.transform(embs_2d).reshape(og_shape)
+            embs = self.scale_embs(embs)
         
         embs_probs = self.model.predict(embs)
         
@@ -38,6 +36,12 @@ class Classifier():
             results.append((g.labels[idx], prob_to_percent))
 
         return results, embs
+    
+    def scale_embs(self, embs):
+        og_shape = embs.shape
+        embs_2d = embs.reshape(-1, embs.shape[-1])
+        embs_2d = np.clip(embs_2d, self.scale_tools["clip_min"], self.scale_tools["clip_max"])
+        return self.scale_tools["scaler"].transform(embs_2d).reshape(og_shape)
     
     def print_top(self, top):
         for i in range(len(top)):

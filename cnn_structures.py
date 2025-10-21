@@ -37,7 +37,9 @@ def smooth_weights(weights, max_ratio=1.2):
     smoothed = np.clip(weights_array, 1/max_ratio, max_ratio)
     return dict(zip(weights.keys(), smoothed))
 
-# 64 labels | 6 time steps | 25 songs | global scaler | 250 oversample 0 compensate
+# 64 labels | 6 time steps | 25 songs | minmax scaler | 250 oversample 0 compensate
+
+# 64 labels | 6 time steps | 25 songs | standard scaler | 250 oversample 0 compensate
 # 2025-10-21 14:11 Training took 1687.92 seconds or 28.13 minutes.
 # 2025-10-21 14:11 Training Accuracy: 0.6085 | Loss: 1.3586
 # 2025-10-21 14:11 Validation Accuracy: 0.3201 | Loss: 2.6769

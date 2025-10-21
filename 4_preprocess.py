@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 import gc
 import global_params as g
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from enum import Enum
 
 class SamplingType(Enum):
@@ -24,13 +24,24 @@ OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
 
 g.load_data(3)
 
-scaler = StandardScaler()
+all_values = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]], axis=0)
+clip_min = np.percentile(all_values, 1, axis=0)
+clip_max = np.percentile(all_values, 99, axis=0)
+
+print("Clipping ranges per feature:")
+print(pd.DataFrame({"clip_min": clip_min, "clip_max": clip_max}))
+
+del all_values
+gc.collect()
+
+scaler = MinMaxScaler()
 data_count = len(g.data)
 for start in range(0, data_count, SCALE_BATCH_SIZE):
     end = min(start + SCALE_BATCH_SIZE, data_count)
     batch = [g.data.at[i, "data"] for i in range(start, end)]
 
     batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
+    batch_2d = np.clip(batch_2d, clip_min, clip_max)
     scaler.partial_fit(batch_2d)
 
     del batch_2d, batch
@@ -41,6 +52,7 @@ for start in range(0, data_count, SCALE_BATCH_SIZE):
     batch = [g.data.at[i, "data"] for i in range(start, end)]
 
     batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
+    batch_2d = np.clip(batch_2d, clip_min, clip_max)
     batch_scaled_2d = scaler.transform(batch_2d)
 
     offset = 0
@@ -53,7 +65,12 @@ for start in range(0, data_count, SCALE_BATCH_SIZE):
     del batch, batch_2d, batch_scaled_2d
     gc.collect()
 
-joblib.dump(scaler, g.CACHE_DIR / "scaler.joblib")
+scale_tools = {
+    "scaler": scaler,
+    "clip_min": clip_min,
+    "clip_max": clip_max,
+}
+joblib.dump(scale_tools, g.CACHE_DIR / "scale_tools.joblib")
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
@@ -107,7 +124,7 @@ if all_new_rows:
     g.data = pd.concat([g.data] + all_new_rows, ignore_index=False)
 
 validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
-print("== Validate label counts ==")
+print("\n== Validate label counts ==")
 for label, count in validate_data["label"].value_counts().items():
     print(f"{g.labels[label]}: {count}")
 
