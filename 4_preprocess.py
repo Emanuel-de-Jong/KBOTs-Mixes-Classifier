@@ -11,6 +11,8 @@ class SamplingType(Enum):
     undersample = 1
     oversample = 2
 
+SCALE_BATCH_SIZE = 1000
+
 VALIDATE_PERC = 0.2
 
 SAMPLING = SamplingType.oversample
@@ -22,25 +24,36 @@ OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
 
 g.load_data(3)
 
-datas = np.stack(g.data["data"].to_numpy())
-g.data["data"] = None
-gc.collect()
+scaler = StandardScaler()
+data_count = len(g.data)
+for start in range(0, data_count, SCALE_BATCH_SIZE):
+    end = min(start + SCALE_BATCH_SIZE, data_count)
+    batch = [g.data.at[i, "data"] for i in range(start, end)]
 
-og_shape = datas.shape
-datas_2d = datas.reshape(len(datas), -1)
-del datas
-gc.collect()
+    batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
+    scaler.partial_fit(batch_2d)
 
-z_score_scaler = StandardScaler().fit(datas_2d)
-datas_scaled = z_score_scaler.transform(datas_2d).reshape(og_shape)
-del datas_2d
-gc.collect()
+    del batch_2d, batch
+    gc.collect()
 
-g.data["data"] = list(datas_scaled)
-del datas_scaled
-gc.collect()
+for start in range(0, data_count, SCALE_BATCH_SIZE):
+    end = min(start + SCALE_BATCH_SIZE, data_count)
+    batch = [g.data.at[i, "data"] for i in range(start, end)]
 
-joblib.dump(z_score_scaler, g.CACHE_DIR / "scaler.joblib")
+    batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
+    batch_scaled_2d = scaler.transform(batch_2d)
+
+    offset = 0
+    for i, arr in enumerate(batch):
+        sz = np.prod(arr.shape[:-1])
+        arr_scaled = batch_scaled_2d[offset:offset+sz].reshape(arr.shape)
+        g.data.at[start + i, "data"] = arr_scaled
+        offset += sz
+
+    del batch, batch_2d, batch_scaled_2d
+    gc.collect()
+
+joblib.dump(scaler, g.CACHE_DIR / "scaler.joblib")
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()

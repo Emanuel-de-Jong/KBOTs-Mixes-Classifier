@@ -63,8 +63,8 @@ def load_existing_model():
     return model, history
     
 def save_model(name, model, training_data):
-    # model.save(g.CACHE_DIR / f'model_global.keras')
-    model.save(g.MODELS_DIR / f'model_{name}.keras')
+    model.save(g.CACHE_DIR / f'model_global.keras')
+    # model.save(g.MODELS_DIR / f'model_{name}.keras')
 
     history = {}
     history["accuracy"] = training_data.history["accuracy"]

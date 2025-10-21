@@ -19,19 +19,120 @@ def create_model(layer_array):
     layer_array.append(layers.Dense(g.label_count, activation='softmax'))
     return Sequential(layer_array)
 
-def calc_class_weight(y_train):
+def calc_class_weight(y_train, should_smooth=False):
     y = np.argmax(y_train, axis=1)
     cw = class_weight.compute_class_weight(
         class_weight='balanced',
         classes=np.unique(y),
         y=y)
+    
     weights = dict(enumerate(cw))
-    return smooth_weights(weights)
+    if should_smooth:
+        weights = smooth_weights(weights)
+    
+    return weights
 
 def smooth_weights(weights, max_ratio=1.2):
     weights_array = np.array(list(weights.values()))
     smoothed = np.clip(weights_array, 1/max_ratio, max_ratio)
     return dict(zip(weights.keys(), smoothed))
+
+# 64 labels | 6 time steps | 25 songs | global scaler | 250 oversample 0 compensate
+# 2025-10-21 14:11 Training took 1687.92 seconds or 28.13 minutes.
+# 2025-10-21 14:11 Training Accuracy: 0.6085 | Loss: 1.3586
+# 2025-10-21 14:11 Validation Accuracy: 0.3201 | Loss: 2.6769
+# 2025-10-21 14:11 Test Accuracy: 0.2951 | Loss: 2.6142
+#                   accuracy                           0.30      1098
+#                  macro avg       0.31      0.30      0.28      1098
+#               weighted avg       0.31      0.30      0.28      1098
+
+# 64 labels | 6 time steps | 25 songs | raw | 250 oversample 0 compensate
+# 2025-10-21 12:46 Training took 883.69 seconds or 14.73 minutes.
+# 2025-10-21 12:46 Training Accuracy: 0.5816 | Loss: 1.4465
+# 2025-10-21 12:46 Validation Accuracy: 0.2882 | Loss: 2.8663
+# 2025-10-21 12:46 Test Accuracy: 0.2787 | Loss: 2.5558
+#                   accuracy                           0.28      1098
+#                  macro avg       0.26      0.27      0.24      1098
+#               weighted avg       0.25      0.28      0.24      1098
+
+# 64 labels | 6 time steps | 25 songs | 250 oversample 0 compensate
+# 2025-10-21 11:55 Training took 1282.27 seconds or 21.37 minutes.
+# 2025-10-21 11:55 Training Accuracy: 0.6341 | Loss: 1.2145
+# 2025-10-21 11:55 Validation Accuracy: 0.3208 | Loss: 2.8925
+# 2025-10-21 11:55 Test Accuracy: 0.3597 | Loss: 2.4498
+#                   accuracy                           0.36      1098
+#                  macro avg       0.33      0.37      0.33      1098
+#               weighted avg       0.33      0.36      0.33      1098
+
+# 64 labels | 6 time steps | 25 songs | 250 oversample 0.1 compensate
+# 2025-10-21 11:08 Training took 1170.87 seconds or 19.51 minutes.
+# 2025-10-21 11:08 Training Accuracy: 0.5746 | Loss: 1.4196
+# 2025-10-21 11:08 Validation Accuracy: 0.3193 | Loss: 2.6825
+# 2025-10-21 11:08 Test Accuracy: 0.3069 | Loss: 2.4371
+#                   accuracy                           0.31      1098
+#                  macro avg       0.34      0.31      0.28      1098
+#               weighted avg       0.34      0.31      0.28      1098
+
+# 64 labels | 6 time steps | 25 songs | 150 undersample
+# 2025-10-21 11:32 Training took 827.69 seconds or 13.79 minutes.
+# 2025-10-21 11:32 Training Accuracy: 0.5649 | Loss: 1.4311
+# 2025-10-21 11:32 Validation Accuracy: 0.2962 | Loss: 2.8039
+# 2025-10-21 11:32 Test Accuracy: 0.2923 | Loss: 2.5097
+#                   accuracy                           0.29      1098
+#                  macro avg       0.29      0.29      0.26      1098
+#               weighted avg       0.29      0.29      0.26      1098
+
+# 64 labels | 6 time steps | 25 songs | 150 undersample
+# 2025-10-21 00:50 Training took 944.85 seconds or 15.75 minutes.
+# 2025-10-21 00:50 Training Accuracy: 0.5968 | Loss: 1.3201
+# 2025-10-21 00:50 Validation Accuracy: 0.3174 | Loss: 2.7109
+# 2025-10-21 00:50 Test Accuracy: 0.3488 | Loss: 2.4375
+#                   accuracy                           0.35      1098
+#                  macro avg       0.35      0.35      0.32      1098
+#               weighted avg       0.35      0.35      0.32      1098
+def m16(name, X_train, y_train, validation_data):
+    kernel_regularizer = regularizers.l2(0.0001)
+    model = create_model([
+        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,4)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
+        layers.MaxPooling2D((1,2)),
+        layers.SpatialDropout2D(0.3),
+
+        layers.GlobalAveragePooling2D(),
+
+        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
+
+        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.0005),
+        loss=LOSS,
+        metrics=METRICS,
+    )
+
+    model.summary()
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
+
+    training_data = model.fit(
+        X_train,
+        y_train,
+        batch_size=32,
+        epochs=5000,
+        validation_data=validation_data,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    return model, training_data
 
 # 64 labels | 6 time steps | 25 songs | 150 undersample | 0.2 validation
 # 2025-10-21 01:42 Training took 838.46 seconds or 13.97 minutes.
@@ -241,94 +342,6 @@ def m17(name, X_train, y_train, validation_data):
 
     return model, training_data
 
-# 64 labels | 6 time steps | 25 songs | raw | 250 oversample 0 compensate
-# 2025-10-21 12:46 Training took 883.69 seconds or 14.73 minutes.
-# 2025-10-21 12:46 Training Accuracy: 0.5816 | Loss: 1.4465
-# 2025-10-21 12:46 Validation Accuracy: 0.2882 | Loss: 2.8663
-# 2025-10-21 12:46 Test Accuracy: 0.2787 | Loss: 2.5558
-#                   accuracy                           0.28      1098
-#                  macro avg       0.26      0.27      0.24      1098
-#               weighted avg       0.25      0.28      0.24      1098
-
-# 64 labels | 6 time steps | 25 songs | 250 oversample 0 compensate
-# 2025-10-21 11:55 Training took 1282.27 seconds or 21.37 minutes.
-# 2025-10-21 11:55 Training Accuracy: 0.6341 | Loss: 1.2145
-# 2025-10-21 11:55 Validation Accuracy: 0.3208 | Loss: 2.8925
-# 2025-10-21 11:55 Test Accuracy: 0.3597 | Loss: 2.4498
-#                   accuracy                           0.36      1098
-#                  macro avg       0.33      0.37      0.33      1098
-#               weighted avg       0.33      0.36      0.33      1098
-
-# 64 labels | 6 time steps | 25 songs | 250 oversample 0.1 compensate
-# 2025-10-21 11:08 Training took 1170.87 seconds or 19.51 minutes.
-# 2025-10-21 11:08 Training Accuracy: 0.5746 | Loss: 1.4196
-# 2025-10-21 11:08 Validation Accuracy: 0.3193 | Loss: 2.6825
-# 2025-10-21 11:08 Test Accuracy: 0.3069 | Loss: 2.4371
-#                   accuracy                           0.31      1098
-#                  macro avg       0.34      0.31      0.28      1098
-#               weighted avg       0.34      0.31      0.28      1098
-
-# 64 labels | 6 time steps | 25 songs | 150 undersample
-# 2025-10-21 11:32 Training took 827.69 seconds or 13.79 minutes.
-# 2025-10-21 11:32 Training Accuracy: 0.5649 | Loss: 1.4311
-# 2025-10-21 11:32 Validation Accuracy: 0.2962 | Loss: 2.8039
-# 2025-10-21 11:32 Test Accuracy: 0.2923 | Loss: 2.5097
-#                   accuracy                           0.29      1098
-#                  macro avg       0.29      0.29      0.26      1098
-#               weighted avg       0.29      0.29      0.26      1098
-
-# 64 labels | 6 time steps | 25 songs | 150 undersample
-# 2025-10-21 00:50 Training took 944.85 seconds or 15.75 minutes.
-# 2025-10-21 00:50 Training Accuracy: 0.5968 | Loss: 1.3201
-# 2025-10-21 00:50 Validation Accuracy: 0.3174 | Loss: 2.7109
-# 2025-10-21 00:50 Test Accuracy: 0.3488 | Loss: 2.4375
-#                   accuracy                           0.35      1098
-#                  macro avg       0.35      0.35      0.32      1098
-#               weighted avg       0.35      0.35      0.32      1098
-def m16(name, X_train, y_train, validation_data):
-    kernel_regularizer = regularizers.l2(0.0001)
-    model = create_model([
-        layers.Conv2D(64, (5,5), padding='same', activation='relu'),
-        layers.MaxPooling2D((1,4)),
-        layers.SpatialDropout2D(0.3),
-
-        layers.Conv2D(128, (3,3), padding='same', activation='relu'),
-        layers.MaxPooling2D((1,2)),
-        layers.SpatialDropout2D(0.3),
-
-        layers.Conv2D(256, (3,3), padding='same', activation='relu'),
-        layers.MaxPooling2D((1,2)),
-        layers.SpatialDropout2D(0.3),
-
-        layers.GlobalAveragePooling2D(),
-
-        layers.Dense(256, activation='relu', kernel_regularizer=kernel_regularizer),
-
-        layers.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
-    ])
-
-    model.compile(
-        optimizer=Adam(learning_rate=0.0005),
-        loss=LOSS,
-        metrics=METRICS,
-    )
-
-    model.summary()
-    
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
-
-    training_data = model.fit(
-        X_train,
-        y_train,
-        batch_size=32,
-        epochs=5000,
-        validation_data=validation_data,
-        callbacks=[reduce_lr, early_stopping],
-    )
-
-    return model, training_data
-
 # 64 labels | 6 time steps | 25 songs | 200 undersample | 0.2 validation
 # 2025-10-20 23:56 Training took 907.91 seconds or 15.13 minutes.
 # 2025-10-20 23:56 Training Accuracy: 0.5458 | Loss: 1.4426
@@ -377,7 +390,7 @@ def m15(name, X_train, y_train, validation_data):
         batch_size=32,
         epochs=5000,
         validation_data=validation_data,
-        class_weight=calc_class_weight(y_train),
+        class_weight=calc_class_weight(y_train, should_smooth=True),
         callbacks=[reduce_lr, early_stopping],
     )
 

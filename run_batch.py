@@ -13,9 +13,9 @@ logger = Logger(g.BATCH_DIR / "log.log")
 mert = Mert()
 models = {
     "global": None,
-    # "general_pop": None,
-    # "rock": None,
-    # "edm": None,
+    "general_pop": None,
+    "rock": None,
+    "edm": None,
 }
 
 cache = {}

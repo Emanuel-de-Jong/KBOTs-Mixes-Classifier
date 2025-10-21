@@ -3,6 +3,7 @@ import os
 os.environ["KERAS_BACKEND"] = "torch"
 
 import numpy as np
+import joblib
 import global_params as g
 from keras.models import load_model
 from Mert import Mert
@@ -14,12 +15,17 @@ class Classifier():
             mert = Mert()
         self.mert = mert
         self.model = load_model(g.CACHE_DIR / "model_global.keras")
+        self.scaler = joblib.load(g.CACHE_DIR / "scaler.joblib")
     
     def infer(self, path, embs=None):
         if embs is None:
             embs = self.mert.run(path)
             if embs is None or len(embs) == 0:
-                return None
+                return None, None
+            
+            og_shape = embs.shape
+            embs_2d = embs.reshape(-1, embs.shape[-1])
+            embs = self.scaler.transform(embs_2d).reshape(og_shape)
         
         embs_probs = self.model.predict(embs)
         
