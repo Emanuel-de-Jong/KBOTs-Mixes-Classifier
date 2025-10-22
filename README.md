@@ -38,6 +38,8 @@ For a directory full of MP3 files:
 
 If you want to get the results of multiple models like the `global`, `general_pop`, `rock`, `edm_hard` and `edm_easy` in `run_batch.py`, you'll have to run the full pipeline multiple times. After each run, delete the `test` directory, replace the songs in the `train` directory and change the NAME variable in `global_params.py`.
 
+Don't forget to add the source playlists for merging, even if they fall outside the model's scope. Example: `Electro Swing` for `Swing` in the `general_pop` model.
+
 ## Roadmap
 - Balanced batching
 - Duplicates to balance songs?
