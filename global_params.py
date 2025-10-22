@@ -21,8 +21,8 @@ BATCH_DIR = Path("batch")
 
 labels = None
 label_count = 0
-if os.path.exists(CACHE_DIR / "labels.joblib"):
-    labels = joblib.load(CACHE_DIR / "labels.joblib")
+if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):
+    labels = joblib.load(CACHE_DIR / f"labels_{NAME}.joblib")
     label_count = len(labels)
 
 def get_song_name(song_path):

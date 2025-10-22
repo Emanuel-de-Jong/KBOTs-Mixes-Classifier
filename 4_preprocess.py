@@ -12,7 +12,7 @@ class SamplingType(Enum):
     undersample = 1
     oversample = 2
 
-SCALE_TOOLS_PATH = g.CACHE_DIR / "scale_tools.joblib"
+SCALE_TOOLS_PATH = g.CACHE_DIR / f"scale_tools_{g.NAME}.joblib"
 SCALE_BATCH_SIZE = 1000
 
 VALIDATE_PERC = 0.2
@@ -77,7 +77,7 @@ for start in range(0, data_count, SCALE_BATCH_SIZE):
     gc.collect()
 
 if not is_scale_tools_loaded:
-    joblib.dump(scale_tools, g.CACHE_DIR / "scale_tools.joblib")
+    joblib.dump(scale_tools, SCALE_TOOLS_PATH)
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()

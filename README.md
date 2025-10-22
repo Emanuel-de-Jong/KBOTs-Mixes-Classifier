@@ -40,8 +40,6 @@ If you want to get the results of multiple models like the `global`, `general_po
 
 ## Roadmap
 - Reevaluate removing/merging playlists
-- Name var in globals for model and labels filenames
-    - Use different labels in run_batch
 - Remove unneeded packages
 
 - Balanced batching

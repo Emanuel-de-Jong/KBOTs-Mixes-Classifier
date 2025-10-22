@@ -24,7 +24,7 @@ labels = sorted([folder.name for folder in g.TRAIN_DIR.iterdir() if folder.is_di
 if TEST_LABEL_COUNT != -1:
     labels = labels[:TEST_LABEL_COUNT]
 
-joblib.dump(labels, g.CACHE_DIR / "labels.joblib")
+joblib.dump(labels, g.CACHE_DIR / f"labels_{g.NAME}.joblib")
 
 label_to_num = {label: i for i, label in enumerate(labels)}
 

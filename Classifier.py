@@ -9,13 +9,14 @@ from keras.models import load_model
 from Mert import Mert
 
 class Classifier():
-    def __init__(self, model_name="global", mert=None):
-        self.model_name = model_name
+    def __init__(self, name="global", mert=None):
+        self.name = name
         if mert is None:
             mert = Mert()
         self.mert = mert
-        self.model = load_model(g.CACHE_DIR / f"model_{model_name}.keras")
-        self.scale_tools = joblib.load(g.CACHE_DIR / "scale_tools.joblib")
+        self.model = load_model(g.CACHE_DIR / f"model_{name}.keras")
+        self.labels = joblib.load(g.CACHE_DIR / f"labels_{name}.joblib")
+        self.scale_tools = joblib.load(g.CACHE_DIR / f"scale_tools_{name}.joblib")
     
     def infer(self, path, embs=None):
         if embs is None:
@@ -33,7 +34,7 @@ class Classifier():
         results = []
         for idx in top_indices:
             prob_to_percent = int(probs_avg[idx] * 10000) / 100.0
-            results.append((g.labels[idx], prob_to_percent))
+            results.append((self.labels[idx], prob_to_percent))
 
         return results, embs
     
