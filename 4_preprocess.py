@@ -18,11 +18,13 @@ SCALE_BATCH_SIZE = 1000
 VALIDATE_PERC = 0.2
 
 SAMPLING = SamplingType.oversample
-# -1 means no treshold
-UNDERSAMPLE_TRES = 150
-# -1 means no treshold
-OVERSAMPLE_TRES = 250
-OVERSAMPLE_COMPENSATION = int(OVERSAMPLE_TRES * 0.0)
+USE_UNDERSAMPLE_TRES = True
+UNDERSAMPLE_TRES_MULTIPLIER = 16
+USE_OVERSAMPLE_TRES = True
+OVERSAMPLE_TRES_MULTIPLIER = 28
+
+undersample_tres = g.MIN_SONG_COUNT * UNDERSAMPLE_TRES_MULTIPLIER
+oversample_tres = g.MIN_SONG_COUNT * OVERSAMPLE_TRES_MULTIPLIER
 
 g.load_data(3)
 
@@ -199,17 +201,17 @@ def oversample(label, sample_target):
     g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
 if SAMPLING == SamplingType.undersample:
-    undersample_tres = UNDERSAMPLE_TRES if UNDERSAMPLE_TRES != -1 else label_counts.min()
+    tres = undersample_tres if USE_UNDERSAMPLE_TRES else label_counts.min()
     for label, count in label_counts.items():
-        if count > undersample_tres:
-            undersample(label, undersample_tres)
+        if count > tres:
+            undersample(label, tres)
 elif SAMPLING == SamplingType.oversample:
-    oversample_tres = OVERSAMPLE_TRES if OVERSAMPLE_TRES != -1 else label_counts.max()
+    tres = oversample_tres if USE_OVERSAMPLE_TRES else label_counts.max()
     for label, count in label_counts.items():
-        if count > oversample_tres:
-            undersample(label, oversample_tres)
-        elif count < oversample_tres - OVERSAMPLE_COMPENSATION:
-            oversample(label, oversample_tres - OVERSAMPLE_COMPENSATION)
+        if count > tres:
+            undersample(label, tres)
+        elif count < tres:
+            oversample(label, tres)
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data["label"].value_counts()

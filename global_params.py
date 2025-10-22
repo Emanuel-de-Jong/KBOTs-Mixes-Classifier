@@ -19,6 +19,8 @@ MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 BATCH_DIR = Path("batch")
 
+MIN_SONG_COUNT = min(len(list(f.glob("*.mp3"))) for f in TRAIN_DIR.iterdir() if f.is_dir())
+
 labels = None
 label_count = 0
 if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):
