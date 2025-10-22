@@ -9,11 +9,11 @@ Finds the right playlist for a new song.
 | ![](/Screenshots/1-Stats-Matrix.png) | ![](/Screenshots/2-Stats-Graph.png) |
 
 ## Requirements
-- python (tested on 3.11)
-- ffmpeg
+- python (tested on `3.11`)
+- ffmpeg (tested on `2025-08-04-git-9a32b86307-full_build-www.gyan.dev`)
 
 ## Setup
-1. `pip install poetry`.
+1. `pip install poetry` (tested on `2.2.1`).
 2. `poetry install`.
 3. `poetry env activate` and run the script displayed.
 4. Put playlist directories with MP3 files in the `music` directory.
@@ -39,8 +39,6 @@ For a directory full of MP3 files:
 If you want to get the results of multiple models like the `global`, `general_pop`, `rock` and `edm` in `run_batch.py`, you'll have to run the full pipeline multiple times. Rename the `cache/model_global.joblib` file before running again!
 
 ## Roadmap
-- Remove unneeded packages
-
 - Balanced batching
 - Duplicates to balance songs?
     - Up to max songs per label

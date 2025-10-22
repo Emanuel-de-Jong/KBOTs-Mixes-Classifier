@@ -12,7 +12,6 @@ NAME = "global"
 
 TRAIN_DIR = Path("train")
 TEST_DIR = Path("test")
-TEST_DIR.mkdir(exist_ok=True)
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 MODELS_DIR = Path("models")

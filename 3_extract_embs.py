@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
 import global_params as g
-from sklearn.utils import resample
 from Mert import Mert
 from tqdm import tqdm
 
 MAX_CHUNKS_TRAIN = 18
-MAX_CHUNKS_TEST = MAX_CHUNKS_TRAIN
+MAX_CHUNKS_TEST = -1
 
 songs_train = pd.read_csv(g.CACHE_DIR / "labels_train.csv")
 songs_test = pd.read_csv(g.CACHE_DIR / "labels_test.csv")
@@ -23,12 +22,6 @@ def extract(data, data_set_type):
         song_embs = mert.run(song.song, max_chunks)
         if song_embs is None:
             continue
-
-        # Fill with dupes so each song has the same amount of training data.
-        # If used, remove dupes first when undersampling and make sure no dupes are in the validation split!
-        # if len(song_embs) < max_chunks:
-        #     fill_embs = resample(song_embs, replace=False, n_samples=max_chunks - len(song_embs), random_state=1)
-        #     song_embs = np.concatenate((song_embs, fill_embs))
         
         for emb in song_embs:
             if not isinstance(emb, np.ndarray):

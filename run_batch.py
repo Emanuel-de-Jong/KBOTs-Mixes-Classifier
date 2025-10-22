@@ -43,6 +43,7 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
             logger.writeln(f'[ERROR]: Inference failed on model: "{model_name}", song: "{song_path}"!')
             sys.exit(1)
         
+        print(f"{song_path}: {top}")
         tops[model_name] = top
     
     song_name, _ = os.path.splitext(os.path.basename(song_path))

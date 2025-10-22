@@ -105,7 +105,7 @@ class Mert():
 
             embs = np.array(embs)
             
-            print(f"Success! Generated {len(embs)} embs")
+            # print(f"Success! Generated {len(embs)} embs")
             return embs
         
         except Exception as e:

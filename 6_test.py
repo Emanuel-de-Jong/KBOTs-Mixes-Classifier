@@ -52,10 +52,10 @@ for r in results:
 result_count = len(results)
 top_1_pass_count = sum(1 for r in results if r.is_top_1)
 top_1_fail_count = result_count - top_1_pass_count
-top_1_perc = top_1_pass_count/(top_1_pass_count+top_1_fail_count)*100
+top_1_perc = round(top_1_pass_count/(top_1_pass_count+top_1_fail_count)*100, 4)
 top_3_pass_count = sum(1 for r in results if r.is_top_3)
 top_3_fail_count = result_count - top_3_pass_count
-top_3_perc = top_3_pass_count/(top_3_pass_count+top_3_fail_count)*100
+top_3_perc = round(top_3_pass_count/(top_3_pass_count+top_3_fail_count)*100, 4)
 
 logger.writeln(f"\n[Top 1] Pass: ({top_1_pass_count}/{result_count}) ({top_1_perc}%) | Fail: ({top_1_fail_count}/{result_count})")
 logger.writeln(f"[Top 3] Pass: ({top_3_pass_count}/{result_count}) ({top_3_perc}%) | Fail: ({top_3_fail_count}/{result_count})")
