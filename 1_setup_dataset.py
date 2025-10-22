@@ -59,6 +59,16 @@ for folder in os.listdir(g.TRAIN_DIR):
 
 # Merge playlists
 for target, sources in PLAYLISTS_TO_MERGE.items():
+    is_src_dir_missing = False
+    for src in sources:
+        src_dir = g.TRAIN_DIR / src
+        if not os.path.exists(src_dir):
+            is_src_dir_missing = True
+            break
+    
+    if is_src_dir_missing:
+        continue
+    
     target_dir = g.TRAIN_DIR / target
     target_dir.mkdir(exist_ok=True)
     for src in sources:
