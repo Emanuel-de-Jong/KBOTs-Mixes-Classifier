@@ -27,10 +27,10 @@ PLAYLISTS_TO_REMOVE = [
 ]
 PLAYLISTS_TO_MERGE = {
     # New
-    "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
     "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
     "Dark and Psyc Rock": ["Dark Rock", "Psyc Rock"],
     # Combined
+    "Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
     "Progressive House": ["Mainstream Progressive House"],
     "Slap House": ["Chill Slap House"],
     "Swing": ["Electro Swing"],

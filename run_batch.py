@@ -11,12 +11,10 @@ from Mert import Mert
 cache_path = g.BATCH_DIR / "cache.joblib"
 logger = Logger(g.BATCH_DIR / "log.log")
 mert = Mert()
-models = {
-    "global": None,
-    "general_pop": None,
-    "rock": None,
-    "edm": None,
-}
+
+models = {}
+for name in g.MODELS.keys():
+    models[name] = None
 
 cache = {}
 if cache_path.exists():

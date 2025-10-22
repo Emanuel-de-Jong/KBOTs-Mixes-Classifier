@@ -36,7 +36,7 @@ For a directory full of MP3 files:
 1. Put the MP3 files in the `batch` directory.
 2. `poetry run python run_batch.py`.
 
-If you want to get the results of multiple models like the `global`, `general_pop`, `rock` and `edm` in `run_batch.py`, you'll have to run the full pipeline multiple times. Rename the `cache/model_global.joblib` file before running again!
+If you want to get the results of multiple models like the `global`, `general_pop`, `rock`, `edm_hard` and `edm_easy` in `run_batch.py`, you'll have to run the full pipeline multiple times. After each run, delete the `test` directory, replace the songs in the `train` directory and change the NAME variable in `global_params.py`.
 
 ## Roadmap
 - Balanced batching

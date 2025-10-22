@@ -9,6 +9,25 @@ class DataSetType(Enum):
     test = 2
 
 NAME = "global"
+MODELS = {
+    "global": [],
+    "general_pop": [],
+    "rock": [],
+    "edm_hard": [],
+    "edm_easy": [
+        "Bassline",
+        "Breakcore",
+        "Chillstep",
+        "Future Funk",
+        "Groovy UK Garage",
+        "Hardstyle",
+        "Lofi Hip Hop",
+        "Melodic Extratone",
+        "Pioneer Glitch Hop",
+        "Rawstyle",
+        "Synthwave",
+    ],
+}
 
 TRAIN_DIR = Path("train")
 TEST_DIR = Path("test")

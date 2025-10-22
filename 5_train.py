@@ -63,8 +63,7 @@ def load_existing_model():
     return model, history
     
 def save_model(name, model, training_data):
-    model.save(g.CACHE_DIR / f'model_{g.NAME}.keras')
-    # model.save(g.MODELS_DIR / f'model_{name}.keras')
+    model.save(g.CACHE_DIR / f'model_{name}.keras')
 
     history = {}
     history["accuracy"] = training_data.history["accuracy"]
@@ -127,7 +126,8 @@ def test(model, history, name=""):
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
 def train(model_func):
-    name = model_func.__name__
+    name = g.NAME
+    # name = model_func.__name__
     logger.writeln(name)
 
     start_time = time.time()
