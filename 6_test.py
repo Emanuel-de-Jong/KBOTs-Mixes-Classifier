@@ -17,7 +17,7 @@ class Result():
     def to_str(self):
         return f'[{self.correct_label}] top: {self.is_top_1} {"" if self.is_top_1 else f"({self.top[0][0]}) "}| top 3: {self.is_top_3}'
 
-classifier = Classifier("global")
+classifier = Classifier(g.NAME)
 
 logger = Logger("test.log")
 

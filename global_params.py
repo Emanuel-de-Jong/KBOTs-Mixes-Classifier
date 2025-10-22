@@ -8,6 +8,8 @@ class DataSetType(Enum):
     validate = 1
     test = 2
 
+NAME = "global"
+
 TRAIN_DIR = Path("train")
 TEST_DIR = Path("test")
 TEST_DIR.mkdir(exist_ok=True)

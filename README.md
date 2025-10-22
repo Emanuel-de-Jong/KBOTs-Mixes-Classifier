@@ -40,11 +40,13 @@ If you want to get the results of multiple models like the `global`, `general_po
 
 ## Roadmap
 - Reevaluate removing/merging playlists
+- Name var in globals for model and labels filenames
+    - Use different labels in run_batch
 - Remove unneeded packages
 
 - Balanced batching
 - Duplicates to balance songs?
-    - up to max songs per label
-    - make sure no songs removed during downsample
-    - remove dupes before others?
+    - Up to max songs per label
+    - Make sure no songs removed during downsample
+    - Remove dupes before others?
 - Don't use unique songs in validate if not enough data?

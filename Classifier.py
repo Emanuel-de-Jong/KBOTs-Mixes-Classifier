@@ -14,7 +14,7 @@ class Classifier():
         if mert is None:
             mert = Mert()
         self.mert = mert
-        self.model = load_model(g.CACHE_DIR / "model_global.keras")
+        self.model = load_model(g.CACHE_DIR / f"model_{model_name}.keras")
         self.scale_tools = joblib.load(g.CACHE_DIR / "scale_tools.joblib")
     
     def infer(self, path, embs=None):

@@ -51,7 +51,7 @@ y_test_hot = to_categorical(y_test)
 validation_data=(X_validate, y_validate_hot)
 
 def load_existing_model():
-    model_path = g.CACHE_DIR / f'model_global.keras'
+    model_path = g.CACHE_DIR / f'model_{g.NAME}.keras'
     history_path = g.MODELS_DIR / f'history.json'
     if not os.path.exists(model_path) or not os.path.exists(history_path):
         return None, None
@@ -63,7 +63,7 @@ def load_existing_model():
     return model, history
     
 def save_model(name, model, training_data):
-    model.save(g.CACHE_DIR / f'model_global.keras')
+    model.save(g.CACHE_DIR / f'model_{g.NAME}.keras')
     # model.save(g.MODELS_DIR / f'model_{name}.keras')
 
     history = {}
