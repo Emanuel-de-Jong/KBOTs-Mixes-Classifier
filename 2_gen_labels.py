@@ -3,7 +3,7 @@ import random
 import csv
 import global_params as g
 
-MIN_MAX_SONGS_MULTIPLIER = 3
+MIN_MAX_SONGS_MULTIPLIER = 5 # 8*5=40
 # Only for testing! -1 to disable.
 TEST_LABEL_COUNT = -1
 

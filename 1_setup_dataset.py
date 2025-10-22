@@ -5,6 +5,7 @@ import os
 import global_params as g
 
 PLAYLISTS_TO_REMOVE = [
+    # Too vague
     "Chill EDM",
     "Gamer",
     "Groovy EDM",
@@ -12,18 +13,17 @@ PLAYLISTS_TO_REMOVE = [
     "Nature Vibe",
     "Pioneer",
     "Romantic",
-    "Jazz",
-    "Ambient Techno",
-    "Chill Alternate Rock",
-    "DnB",
-    "Funk",
-    "Grunge",
-    "Blues",
-    "Folk",
-    "IDM",
-    "Punk",
-    "Acoustic",
-    "Groovy House",
+    # Low song count
+    "Jazz", # 4
+    "Ambient Techno", # 5
+    "Chill Alternate Rock", # 5
+    "DnB", # 5
+    "Funk", # 5
+    "Grunge", # 5
+    "Blues", # 6
+    "Folk", # 6
+    "IDM", # 6
+    "Punk", # 6
 ]
 PLAYLISTS_TO_MERGE = {
     # New
