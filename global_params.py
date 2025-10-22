@@ -37,7 +37,8 @@ MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 BATCH_DIR = Path("batch")
 
-MIN_SONG_COUNT = min(len(list(f.glob("*.mp3"))) for f in TRAIN_DIR.iterdir() if f.is_dir())
+song_counts = [len(list(f.glob("*.mp3"))) for f in TRAIN_DIR.iterdir() if f.is_dir()]
+MIN_SONG_COUNT = min(song_counts) if len(song_counts) > 0 else 0
 
 labels = None
 label_count = 0
