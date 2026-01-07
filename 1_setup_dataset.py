@@ -13,28 +13,19 @@ PLAYLISTS_TO_REMOVE = [
     "Nature Vibe",
     "Pioneer",
     "Romantic",
-    # Low song count
-    "Jazz", # 4
-    "Ambient Techno", # 5
-    "Chill Alternate Rock", # 5
-    "DnB", # 5
-    "Funk", # 5
-    "Grunge", # 5
-    "Blues", # 6
-    "Folk", # 6
-    "IDM", # 6
-    "Punk", # 6
+    # Pending
+    "Pending",
+    "Pending Genre",
+    "Pending Second Chance",
+    "Pending Mainstream Vocal Psytrance",
+    "Pending Trance",
 ]
 PLAYLISTS_TO_MERGE = {
     # New
     "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
-    "Dark and Psyc Rock": ["Dark Rock", "Psyc Rock"],
+    "Dark and Psych Rock": ["Dark Rock", "Psych Rock"],
     # Combined
     "Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
-    "Progressive House": ["Mainstream Progressive House"],
-    "Slap House": ["Chill Slap House"],
-    "Swing": ["Electro Swing"],
-    "Synthwave": ["Synth Funk"],
 }
 
 # Clean folder names
