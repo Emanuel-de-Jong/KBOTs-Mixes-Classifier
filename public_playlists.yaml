@@ -1,0 +1,191 @@
+requirements:
+    - "At least 20 songs"
+
+general:
+    Acoustic:
+        - https://youtube.com/playlist?list=PLzgNR90nQBQCmJdLinrmlo7_Ac8QLc6-i&si=XYrNiw_DWuyYgf7-
+        - 
+    Blues:
+        - 
+    Bossa Nova:
+        - 
+    Chill:
+        - 
+    City Pop:
+        - 
+    Cloud Rap:
+        - 
+    Epic Orchestra:
+        - 
+    Folk:
+        - 
+    Funk:
+        - 
+    Indietronica:
+        - 
+    Jazz:
+        - 
+    Nature Vibe:
+        - 
+    Neoclassical:
+        - 
+    Pioneer:
+        - 
+    Romantic:
+        - 
+    Soul:
+        - 
+    Swing:
+        - 
+    Trip Hop:
+        - 
+
+rock:
+    Chill Alternate Rock:
+        - 
+    Chill Old Rock:
+        - 
+    Chill Rock:
+        - 
+    Dark Rock:
+        - 
+    Grunge:
+        - 
+    Hard Rock:
+        - 
+    Indie Rock:
+        - 
+    Metal:
+        - 
+    Old Rock:
+        - 
+    Post Rock:
+        - 
+    Psych Rock:
+        - 
+    Psychedelic Rock:
+        - 
+    Punk:
+        - 
+    Symphonic Metal:
+        - 
+
+pop:
+    Chill Pop:
+        - 
+    Dark Pop:
+        - 
+    Indie Pop:
+        - 
+    Pop:
+        - 
+    Psych Pop:
+        - 
+
+edm:
+    Acid Techno:
+        - 
+    Acid Trance:
+        - 
+    Ambient Techno:
+        - 
+    Bassline:
+        - 
+    Breakbeat:
+        - 
+    Breakcore:
+        - 
+    Chill EDM:
+        - 
+    Chill Slap House:
+        - 
+    Chillstep:
+        - 
+    Club:
+        - 
+    Deep House:
+        - 
+    DnB:
+        - 
+    Downbeat Vocal Trance:
+        - 
+    Electro Swing:
+        - 
+    Festival:
+        - 
+    Future Bass:
+        - 
+    Future Funk:
+        - 
+    Gamer:
+        - 
+    Goa Trance:
+        - 
+    Groovy EDM:
+        - 
+    Groovy House:
+        - 
+    Groovy UK Garage:
+        - 
+    Hard Techno:
+        - 
+    Hardstyle:
+        - 
+    Hardwave:
+        - 
+    IDM:
+        - 
+    Jazzstep:
+        - 
+    Liquid DnB:
+        - 
+    Lofi Hip Hop:
+        - 
+    Mainstream DnB:
+        - 
+    Mainstream Liquid DnB:
+        - 
+    Mainstream Progressive House:
+        - 
+    Mainstream Techno:
+        - 
+    Mainstream Vocal Psytrance:
+        - 
+    Melodic Dubstep:
+        - 
+    Melodic Extratone:
+        - 
+    Neurofunk:
+        - 
+    Phonk:
+        - 
+    Pioneer EDM:
+        - 
+    Pioneer Glitch Hop:
+        - 
+    Progressive House:
+        - 
+    Psytrance:
+        - 
+    Rawstyle:
+        - 
+    Slap House:
+        - 
+    Stutter House:
+        - 
+    Synth Funk:
+        - 
+    Synthwave:
+        - 
+    Techno:
+        - 
+    Trance:
+        - 
+    Trap:
+        - 
+    Tropical House:
+        - 
+    Upbeat Vocal Trance:
+        - 
+    Uplifting Trance:
+        - 
