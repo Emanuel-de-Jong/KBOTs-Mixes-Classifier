@@ -33,9 +33,15 @@ general:
         - 
     Joyful Classical:
         - 
+    Nature Vibe:
+        - 
     Neoclassical:
         - 
+    Pioneer:
+        - 
     Rap:
+        - 
+    Romantic:
         - 
     Smooth Jazz:
         - 
@@ -59,7 +65,7 @@ rock:
         - 
     Chill Rock:
         - 
-    Dark and Psych Rock:
+    Dark Rock:
         - 
     Grunge:
         - 
@@ -73,6 +79,8 @@ rock:
         - 
     Post Rock:
         - 
+    Psych Rock:
+        - 
     Psychedelic Rock:
         - 
     Punk:
@@ -83,11 +91,13 @@ rock:
 pop:
     Chill Pop:
         - 
-    Dark and Psych Pop:
+    Dark Pop:
         - 
     Indie Pop:
         - 
     Pop:
+        - 
+    Psych Pop:
         - 
     Soulful Pop:
         - 
@@ -105,6 +115,8 @@ edm:
         - 
     Breakcore:
         - 
+    Chill EDM:
+        - 
     Chill Slap House:
         - 
     Chillstep:
@@ -115,6 +127,8 @@ edm:
         - 
     DnB:
         - 
+    Downbeat Vocal Trance:
+        - 
     Electro Swing:
         - 
     Festival:
@@ -123,7 +137,11 @@ edm:
         - 
     Future Funk:
         - 
+    Gamer:
+        - 
     Goa Trance:
+        - 
+    Groovy EDM:
         - 
     Groovy House:
         - 
@@ -145,6 +163,8 @@ edm:
         - 
     Mainstream DnB:
         - 
+    Mainstream Hardstyle:
+        - 
     Mainstream Liquid DnB:
         - 
     Mainstream Progressive House:
@@ -160,6 +180,8 @@ edm:
     Neurofunk:
         - 
     Phonk:
+        - 
+    Pioneer EDM:
         - 
     Pioneer Glitch Hop:
         - 
@@ -185,7 +207,7 @@ edm:
         - 
     Tropical House:
         - 
+    Upbeat Vocal Trance:
+        - 
     Uplifting Trance:
         - 
-    Vocal Trance:
-        -
