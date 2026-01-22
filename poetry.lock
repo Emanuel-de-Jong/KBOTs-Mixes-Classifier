@@ -1013,14 +1013,14 @@ test-extras = ["pytest-mpl", "pytest-randomly"]
 
 [[package]]
 name = "nnaudio"
-version = "0.3.3"
+version = "0.3.4"
 description = "A fast GPU audio processing toolbox with 1D convolutional neural network"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "nnAudio-0.3.3-py3-none-any.whl", hash = "sha256:4ea1fdc4638b9cf53c9b58ca11a9d474105a2b58da8bb5f6e75416ba5ada5e46"},
-    {file = "nnAudio-0.3.3.tar.gz", hash = "sha256:076697199811314d41714d563d9d72ed0808e7c2da2dacf11dd4e3069d4ec054"},
+    {file = "nnaudio-0.3.4-py3-none-any.whl", hash = "sha256:48db0c54443f4f3f54057d416bd9ba304110552b4bba32f897e864f55deaa87c"},
+    {file = "nnaudio-0.3.4.tar.gz", hash = "sha256:bda234f99c11dd7806e13593d607fdd258b86d87dc6735e810e0d8ce57fd3711"},
 ]
 
 [package.dependencies]
@@ -2467,4 +2467,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "118c0e141701639898e0fead412270d23302bd2f634d0441d878e4b0e0d0f549"
+content-hash = "ca0f09b5d0b6f952f14e8164594998214cc4f4a4fa9ef0f61f4cab423b5d39eb"

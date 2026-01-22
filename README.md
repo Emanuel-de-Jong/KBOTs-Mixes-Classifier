@@ -17,7 +17,7 @@ Finds the right playlist for a new song.
 1. `pip install poetry` (tested on `2.2.1`).
 2. `poetry install`.
 3. `poetry env activate` and run the script displayed.
-4. Put playlist directories with MP3 files in the `music` directory.
+4. Put playlist directories with MP3 files in the `train` directory.
 5. The rest can be done in 2 ways:
     - Manual:
         1. `python 1_setup_dataset.py`.

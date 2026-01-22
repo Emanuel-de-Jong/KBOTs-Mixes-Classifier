@@ -1,5 +1,6 @@
 requirements:
-    - "At least 20 songs"
+    - "At least 30 songs"
+    - "Mixes with 50+ songs already don't need public songs"
 
 general:
     Acoustic:
@@ -81,13 +82,9 @@ rock:
         - 
 
 pop:
-    Chill Pop:
-        - 
     Dark and Psych Pop:
         - 
     Indie Pop:
-        - 
-    Pop:
         - 
     Soulful Pop:
         - 
@@ -179,13 +176,9 @@ edm:
         - 
     Techno:
         - 
-    Trance:
-        - 
     Trap:
         - 
     Tropical House:
         - 
     Uplifting Trance:
         - 
-    Vocal Trance:
-        -
