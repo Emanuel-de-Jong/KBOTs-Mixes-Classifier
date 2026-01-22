@@ -5,8 +5,6 @@ general:
     Acoustic:
         - https://youtube.com/playlist?list=PLzgNR90nQBQCmJdLinrmlo7_Ac8QLc6-i&si=XYrNiw_DWuyYgf7-
         - 
-    Blues:
-        - 
     Bossa Nova:
         - 
     Chill:
@@ -15,15 +13,25 @@ general:
         - 
     Cloud Rap:
         - 
-    Epic Orchestra:
+    Downbeat Blues Rock:
         - 
-    Folk:
+    Downbeat Folk:
+        - 
+    Downbeat Jazz:
+        - 
+    Downbeat Soul:
+        - 
+    Electric Blues:
+        - 
+    Energetic Classical:
+        - 
+    Epic Orchestra:
         - 
     Funk:
         - 
     Indietronica:
         - 
-    Jazz:
+    Joyful Classical:
         - 
     Nature Vibe:
         - 
@@ -31,13 +39,23 @@ general:
         - 
     Pioneer:
         - 
+    Rap:
+        - 
     Romantic:
         - 
-    Soul:
+    Smooth Jazz:
         - 
     Swing:
         - 
     Trip Hop:
+        - 
+    Upbeat Blues Rock:
+        - 
+    Upbeat Folk:
+        - 
+    Upbeat Jazz:
+        - 
+    Upbeat Soul:
         - 
 
 rock:
@@ -80,6 +98,8 @@ pop:
     Pop:
         - 
     Psych Pop:
+        - 
+    Soulful Pop:
         - 
 
 edm:
@@ -142,6 +162,8 @@ edm:
     Lofi Hip Hop:
         - 
     Mainstream DnB:
+        - 
+    Mainstream Hardstyle:
         - 
     Mainstream Liquid DnB:
         - 

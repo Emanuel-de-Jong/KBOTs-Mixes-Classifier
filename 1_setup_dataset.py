@@ -24,8 +24,9 @@ PLAYLISTS_TO_MERGE = {
     # New
     "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
     "Dark and Psych Rock": ["Dark Rock", "Psych Rock"],
+    "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
     # Combined
-    "Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
+    "Hardstyle": ["Mainstream Hardstyle"],
 }
 
 # Clean folder names

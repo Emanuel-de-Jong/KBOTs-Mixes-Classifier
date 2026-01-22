@@ -42,6 +42,8 @@ If you want to get the results of multiple models like the `global`, `general_po
 Don't forget to add the source playlists for merging, even if they fall outside the model's scope. Example: `Electro Swing` for `Swing` in the `general_pop` model.
 
 ## Roadmap
+- Look for outliers in training data
+- 3x weight on songs from my playlist vs public songs
 - Balanced batching
 - Duplicates to balance songs?
     - Up to max songs per label
