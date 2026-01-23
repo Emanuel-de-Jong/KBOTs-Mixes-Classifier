@@ -5,7 +5,6 @@ requirements:
 general:
     Acoustic:
         - https://youtube.com/playlist?list=PLzgNR90nQBQCmJdLinrmlo7_Ac8QLc6-i&si=XYrNiw_DWuyYgf7-
-        - 
     Bossa Nova:
         - 
     Chill:
@@ -33,6 +32,8 @@ general:
     Indietronica:
         - 
     Joyful Classical:
+        - 
+    Nature Vibe:
         - 
     Neoclassical:
         - 
@@ -91,16 +92,19 @@ pop:
 
 edm:
     Acid Techno:
-        - 
+        - https://youtube.com/playlist?list=PLePJZhE-Pv2pcqi_TKRJQSoly3HqLodI8&si=b4Ku42ShhK277RI5
     Acid Trance:
-        - 
+        - https://youtube.com/playlist?list=PLA32675043C33FA1D&si=HNejUTU0Z9HnFSsl
     Ambient Techno:
-        - 
+        - https://youtu.be/2F6B9EibJjw?si=kaa5TpMkU3jtDNiB
+        - https://youtube.com/playlist?list=PLYdlp_rUP3i4D6MR0lVzfC-pfmlFEcWbv&si=nCvptHOKuExwEt2i
     Bassline:
-        - 
+        - https://youtube.com/playlist?list=PLVjnc1hF4kNNES4rNQo5Gh8WejWKvDCBN&si=1UxJBQJb7xJgpejo
     Breakbeat:
         - 
     Breakcore:
+        - 
+    Chill EDM:
         - 
     Chill Slap House:
         - 
@@ -121,6 +125,8 @@ edm:
     Future Funk:
         - 
     Goa Trance:
+        - 
+    Groovy EDM:
         - 
     Groovy House:
         - 

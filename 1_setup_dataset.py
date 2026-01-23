@@ -6,11 +6,8 @@ import global_params as g
 
 PLAYLISTS_TO_REMOVE = [
     # Too vague
-    "Chill EDM",
     "Gamer",
-    "Groovy EDM",
     "Pioneer EDM",
-    "Nature Vibe",
     "Pioneer",
     "Romantic",
     # Pending
