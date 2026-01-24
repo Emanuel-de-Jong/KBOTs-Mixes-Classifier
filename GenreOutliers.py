@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import joblib
 import global_params as g
+from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 from Mert import Mert
 
 class GenreOutliers():
-    MAX_CHUNKS = 5
-    Z_TRES = 1.2
+    MAX_CHUNKS = 15
+    CONTRAST_FACTOR = 1.1
 
     def __init__(self, use_cache=True):
         self.use_cache = use_cache
@@ -62,7 +63,25 @@ class GenreOutliers():
                     "data": emb
                 })
 
-        return pd.DataFrame(song_embeddings)
+        df = pd.DataFrame(song_embeddings)
+        if len(df) == 0:
+            return df
+
+        all_vals = np.concatenate([x.reshape(-1, x.shape[-1]) for x in df["data"]], axis=0)
+        clip_min = np.percentile(all_vals, 1, axis=0)
+        clip_max = np.percentile(all_vals, 99, axis=0)
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        scaler.fit(np.clip(all_vals, clip_min, clip_max))
+
+        scaled = []
+        for arr in df["data"]:
+            flat = arr.reshape(-1, arr.shape[-1])
+            flat = np.clip(flat, clip_min, clip_max)
+            flat = scaler.transform(flat)
+            scaled.append(flat.reshape(arr.shape))
+
+        df["data"] = scaled
+        return df
 
     def compute_outliers(self, song_embeddings):
         if song_embeddings is None or len(song_embeddings) == 0:
@@ -71,38 +90,51 @@ class GenreOutliers():
         song_tensors = {}
         for song, group in song_embeddings.groupby("song"):
             chunks = np.stack(group["data"].values, axis=0)
-            song_tensors[song] = chunks.mean(axis=0)
+            song_tensors[song] = np.median(chunks, axis=0)
 
         songs = list(song_tensors.keys())
-        if len(songs) < 3:
+        n = len(songs)
+        if n < 3:
             return None
 
         X = np.stack([song_tensors[s] for s in songs], axis=0)
-        centroid = X.mean(axis=0)
 
         layer_vars = []
         for l in range(X.shape[-1]):
-            layer_flat = X[:, :, :, l].reshape(len(songs), -1)
-            layer_vars.append(np.var(layer_flat, axis=0).mean())
+            flat = X[..., l].reshape(n, -1)
+            layer_vars.append(np.var(flat, axis=0).mean())
 
         layer_vars = np.asarray(layer_vars)
         weights = layer_vars / (layer_vars.sum() + 1e-12)
 
         distances = []
-        for s in songs:
-            d = self.weighted_layerwise_cosine(song_tensors[s], centroid, weights)
-            distances.append(d)
+        for i in range(n):
+            centroid = (X.sum(axis=0) - X[i]) / (n - 1)
+            distances.append(self.weighted_layerwise_cosine(X[i], centroid, weights))
 
+        distances = np.asarray(distances)
         z, med, mad, scale = self.robust_zscores(distances)
 
         results = pd.DataFrame({
             "song": songs,
             "distance": distances,
             "robust_z": z
-        }).sort_values("distance", ascending=False)
+        }).sort_values("distance", ascending=False).reset_index(drop=True)
+
+        if n <= 9:
+            k = 1
+        elif n <= 15:
+            k = 2
+        else:
+            k = max(2, int(0.15 * n))
+
+        gate = self.CONTRAST_FACTOR * np.median(distances)
+        outliers = results.head(k)
+        outliers = outliers[outliers["distance"] >= gate]
 
         return {
             "results": results,
+            "outliers": outliers,
             "median": med,
             "mad": mad,
             "layer_weights": weights
@@ -111,8 +143,8 @@ class GenreOutliers():
     def weighted_layerwise_cosine(self, a, b, weights):
         d = 0.0
         for l in range(a.shape[-1]):
-            va = self.l2_normalize(a[:, :, l].reshape(-1))
-            vb = self.l2_normalize(b[:, :, l].reshape(-1))
+            va = self.l2_normalize(a[..., l].reshape(-1))
+            vb = self.l2_normalize(b[..., l].reshape(-1))
             d += weights[l] * (1.0 - float(np.dot(va, vb)))
         return float(d)
 
@@ -134,14 +166,13 @@ class GenreOutliers():
             return None
 
         results = out["results"]
-        outliers = results[results["robust_z"] >= self.Z_TRES]
+        outliers = out["outliers"]
 
         lines = []
         lines.append(f"= {genre} =")
         lines.append(f"Songs: {len(results)}")
         lines.append(f"Median distance: {out['median']:.6f}")
         lines.append(f"MAD: {out['mad']:.6f}")
-        lines.append(f"Z threshold: {self.Z_TRES}")
 
         if len(outliers) == 0:
             lines.append("No clear outliers found.")
@@ -157,6 +188,6 @@ class GenreOutliers():
 
 if __name__ == "__main__":
     genre = "Acid Trance"
-    genre_outliers = GenreOutliers(use_cache=True)
+    genre_outliers = GenreOutliers(use_cache=False)
     out, _ = genre_outliers.run(genre)
     print(genre_outliers.results_to_string(genre, out))
