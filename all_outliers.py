@@ -1,8 +1,8 @@
 import global_params as g
 from GenreOutliers import GenreOutliers
 
-GENRE_MIN_SONG_COUNT = 5
-GENRE_MAX_SONG_COUNT = 50
+GENRE_MIN_SONG_COUNT = -1
+GENRE_MAX_SONG_COUNT = -1
 
 genre_counts = {}
 for path in g.TRAIN_DIR.iterdir():
@@ -12,14 +12,18 @@ for path in g.TRAIN_DIR.iterdir():
 
 out_by_genre = {}
 genre_outliers = GenreOutliers(use_cache=True)
+
+compute_outliers_sum_time = 0
 for genre, count in sorted(genre_counts.items()):
     if GENRE_MIN_SONG_COUNT != -1 and count < GENRE_MIN_SONG_COUNT:
         continue
     if GENRE_MAX_SONG_COUNT != -1 and count > GENRE_MAX_SONG_COUNT:
         continue
 
-    out = genre_outliers.run(genre)
+    out, compute_outliers_time = genre_outliers.run(genre)
     out_by_genre[genre] = out
+
+    compute_outliers_sum_time += compute_outliers_time
 
 with open("outliers.log", "w") as f:
     for genre, out in sorted(out_by_genre.items()):
@@ -27,3 +31,5 @@ with open("outliers.log", "w") as f:
         if results_str:
             print(results_str)
             f.write(results_str + "\n")
+
+# print(f"Computing the outliers took {compute_outliers_sum_time:.2f} seconds")

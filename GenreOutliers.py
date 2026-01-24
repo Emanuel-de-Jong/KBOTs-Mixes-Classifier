@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import pandas as pd
 import joblib
@@ -8,7 +9,7 @@ from Mert import Mert
 
 class GenreOutliers():
     MAX_CHUNKS = 5
-    Z_TRES = 1.0
+    Z_TRES = 1.2
 
     def __init__(self, use_cache=True):
         self.use_cache = use_cache
@@ -25,12 +26,11 @@ class GenreOutliers():
             saved = {"data": df}
             joblib.dump(saved, outliers_path)
 
+        compute_outliers_start_time = time.perf_counter()
         out = self.compute_outliers(df)
-        if out is not None:
-            saved["outliers"] = out["results"]
-            joblib.dump(saved, outliers_path)
+        compute_outliers_time = time.perf_counter() - compute_outliers_start_time
 
-        return out
+        return out, compute_outliers_time
 
     def extract_embeddings(self, genre):
         print(f"\n= Finding outliers in {genre} =")
@@ -160,5 +160,5 @@ class GenreOutliers():
 if __name__ == "__main__":
     genre = "Breakbeat"
     genre_outliers = GenreOutliers()
-    out = genre_outliers.run(genre)
+    out, _ = genre_outliers.run(genre)
     print(genre_outliers.results_to_string(genre, out))
