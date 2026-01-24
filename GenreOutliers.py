@@ -10,7 +10,7 @@ from Mert import Mert
 
 class GenreOutliers():
     MAX_CHUNKS = 15
-    CONTRAST_FACTOR = 1.1
+    CONTRAST_FACTOR = 1.25
 
     def __init__(self, use_cache=True):
         self.use_cache = use_cache
