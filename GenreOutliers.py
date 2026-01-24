@@ -10,13 +10,14 @@ class GenreOutliers():
     MAX_CHUNKS = 5
     Z_TRES = 1.0
 
-    def __init__(self):
+    def __init__(self, use_cache=True):
+        self.use_cache = use_cache
         self.mert = Mert()
 
     def run(self, genre):
         outliers_path = g.CACHE_DIR / f"outliers_{genre}.joblib"
 
-        if os.path.exists(outliers_path):
+        if self.use_cache and os.path.exists(outliers_path):
             saved = joblib.load(outliers_path)
             df = saved.get("data", None)
         else:
@@ -32,6 +33,8 @@ class GenreOutliers():
         return out
 
     def extract_embeddings(self, genre):
+        print(f"\n= Finding outliers in {genre} =")
+
         genre_dir = g.TRAIN_DIR / genre
         if not genre_dir.exists() or not genre_dir.is_dir():
             raise Exception(f"Genre dir not found: {genre_dir}")
@@ -135,18 +138,21 @@ class GenreOutliers():
 
         outliers = results[results["robust_z"] >= self.Z_TRES]
 
-        print(f"Genre: {genre}")
+        print(f"= {genre} =")
         print(f"Songs: {len(results)}")
         print(f"Median distance: {med:.6f}")
         print(f"MAD: {mad:.6f}")
         print(f"Z threshold: {self.Z_TRES}")
-        print("")
 
         if len(outliers) == 0:
             print("No clear outliers found.")
         else:
             for _, row in outliers.iterrows():
-                print(f"{row['song']}: distance={row['distance']:.6f} z={row['robust_z']:.3f}")
+                print(row["song"])
+                print(f"\tdistance: {row['distance']:.6f}")
+                print(f"\tz: {row['robust_z']:.3f}")
+
+            print("")
 
 if __name__ == "__main__":
     genre = "Breakbeat"
