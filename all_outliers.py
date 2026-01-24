@@ -1,7 +1,7 @@
 import global_params as g
 from GenreOutliers import GenreOutliers
 
-GENRE_MIN_SONG_COUNT = -1
+GENRE_MIN_SONG_COUNT = 5
 GENRE_MAX_SONG_COUNT = -1
 
 genre_counts = {}

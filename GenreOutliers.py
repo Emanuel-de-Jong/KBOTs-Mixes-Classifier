@@ -11,6 +11,7 @@ class GenreOutliers():
     MAX_CHUNKS = 5
     RANK_THRESHOLD = 0.75 # Lower = more sensitive
     MEDIAN_MULT = 1.15 # Lower = more sensitive
+    SMALL_N_STRICT_MULT = 2.0
 
     def __init__(self, use_cache=True):
         self.use_cache = use_cache
@@ -72,6 +73,7 @@ class GenreOutliers():
             return None
 
         songs = list(song_embeddings.keys())
+        N = len(songs)
 
         X = np.stack([
             self.flatten_layers(song_embeddings[s]) for s in songs
@@ -86,9 +88,9 @@ class GenreOutliers():
 
         order = np.argsort(distances)
         ranks = np.empty_like(order)
-        ranks[order] = np.arange(len(distances))
+        ranks[order] = np.arange(N)
 
-        rank_score = ranks / max(1, len(distances) - 1)
+        rank_score = ranks / max(1, N - 1)
 
         med = np.median(distances)
 
@@ -98,10 +100,15 @@ class GenreOutliers():
             "rank_score": rank_score
         }).sort_values("distance", ascending=False)
 
-        outliers = results[
-            (results["rank_score"] >= self.RANK_THRESHOLD) &
-            (results["distance"] >= self.MEDIAN_MULT * med)
-        ]
+        if N < 8:
+            outliers = results[
+                results["distance"] >= self.SMALL_N_STRICT_MULT * med
+            ]
+        else:
+            outliers = results[
+                (results["rank_score"] >= self.RANK_THRESHOLD) &
+                (results["distance"] >= self.MEDIAN_MULT * med)
+            ]
 
         return {
             "results": results,
@@ -112,9 +119,7 @@ class GenreOutliers():
     def flatten_layers(self, x):
         layers = []
         for l in range(x.shape[-1]):
-            v = x[:, l]
-            v = v / (np.linalg.norm(v) + 1e-12)
-            layers.append(v)
+            layers.append(x[:, l])
         return np.concatenate(layers)
 
     def l2_normalize_batch(self, X, eps=1e-12):
@@ -149,7 +154,7 @@ class GenreOutliers():
         return "\n".join(lines)
 
 if __name__ == "__main__":
-    genre = "Breakbeat"
+    genre = "Acid Trance"
     genre_outliers = GenreOutliers(use_cache=True)
     out, _ = genre_outliers.run(genre)
     print(genre_outliers.results_to_string(genre, out))
