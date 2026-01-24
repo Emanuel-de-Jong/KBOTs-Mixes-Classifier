@@ -11,7 +11,7 @@ for path in g.TRAIN_DIR.iterdir():
         genre_counts[path.name] = mp3_count
 
 out_by_genre = {}
-genre_outliers = GenreOutliers()
+genre_outliers = GenreOutliers(use_cache=True)
 for genre, count in sorted(genre_counts.items()):
     if GENRE_MIN_SONG_COUNT != -1 and count < GENRE_MIN_SONG_COUNT:
         continue
@@ -21,5 +21,9 @@ for genre, count in sorted(genre_counts.items()):
     out = genre_outliers.run(genre)
     out_by_genre[genre] = out
 
-for genre, out in sorted(out_by_genre.items()):
-    genre_outliers.print_results(genre, out)
+with open("outliers.log", "w") as f:
+    for genre, out in sorted(out_by_genre.items()):
+        results_str = genre_outliers.results_to_string(genre, out)
+        if results_str:
+            print(results_str)
+            f.write(results_str + "\n")

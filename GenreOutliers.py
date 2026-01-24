@@ -127,10 +127,10 @@ class GenreOutliers():
         z = (values - med) / (scale + 1e-12)
         return z, med, mad, scale
     
-    def print_results(self, genre, out):
+    def results_to_string(self, genre, out):
         if out is None:
             print("No data.")
-            return
+            return None
 
         results = out["results"]
         med = out["median"]
@@ -138,24 +138,27 @@ class GenreOutliers():
 
         outliers = results[results["robust_z"] >= self.Z_TRES]
 
-        print(f"= {genre} =")
-        print(f"Songs: {len(results)}")
-        print(f"Median distance: {med:.6f}")
-        print(f"MAD: {mad:.6f}")
-        print(f"Z threshold: {self.Z_TRES}")
+        lines = []
+        lines.append(f"= {genre} =")
+        lines.append(f"Songs: {len(results)}")
+        lines.append(f"Median distance: {med:.6f}")
+        lines.append(f"MAD: {mad:.6f}")
+        lines.append(f"Z threshold: {self.Z_TRES}")
 
         if len(outliers) == 0:
-            print("No clear outliers found.")
+            lines.append("No clear outliers found.")
         else:
             for _, row in outliers.iterrows():
-                print(row["song"])
-                print(f"\tdistance: {row['distance']:.6f}")
-                print(f"\tz: {row['robust_z']:.3f}")
+                lines.append(row["song"])
+                lines.append(f"\tdistance: {row['distance']:.6f}")
+                lines.append(f"\tz: {row['robust_z']:.3f}")
 
-            print("")
+            lines.append("")
+
+        return "\n".join(lines)
 
 if __name__ == "__main__":
     genre = "Breakbeat"
     genre_outliers = GenreOutliers()
     out = genre_outliers.run(genre)
-    genre_outliers.print_results(genre, out)
+    print(genre_outliers.results_to_string(genre, out))
