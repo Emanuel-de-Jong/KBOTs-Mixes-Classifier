@@ -38,7 +38,10 @@ def yt_dlp_hook(d):
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
     "progress_hooks": [yt_dlp_hook],
+    
     "download_archive": DLS_DIR / "archive.txt",
+    "restrictfilenames": True,
+    "windowsfilenames": True,
 
     "format": "bestaudio/best",
     "postprocessors": [{
@@ -47,7 +50,7 @@ yt_dlp_config_base = {
     }],
 
     "noplaylist": False,
-    "playlist_random": True,
+    "playlistrandom": True,
     "match_filter": yt_dlp.utils.match_filter_func("duration<600"),
 }
 
@@ -68,7 +71,7 @@ for category, genres_playlists in categories_playlists.items():
 
         for playlist_url in valid_playlists:
             url = urlparse(playlist_url)
-            
+
             if "://music.y" in playlist_url:
                 query = parse_qs(url.query)
                 query.pop('v', None)
@@ -76,6 +79,7 @@ for category, genres_playlists in categories_playlists.items():
 
             unsanitized_playlist_name = url.path + url.query
             playlist_name = re.sub(r'[^a-zA-Z0-9]', '', unsanitized_playlist_name)
+            playlist_name = playlist_name[:32]
             playlist_dir = genre_dir / playlist_name
 
             existing = 0
