@@ -1,6 +1,7 @@
 import sys
 import yaml
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import yt_dlp
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -13,15 +14,15 @@ DLS_DIR.mkdir(exist_ok=True)
 class YtDlpLogger:
     def debug(self, msg):
         if msg.startswith('[debug] '):
-            pass
+            print(msg)
         else:
             self.info(msg)
 
     def info(self, msg):
-        pass
+        print(msg)
 
     def warning(self, msg):
-        pass
+        print(msg)
 
     def error(self, msg):
         print(msg)
@@ -33,15 +34,16 @@ def yt_dlp_hook(d):
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
     "progress_hooks": [yt_dlp_hook],
-    "format": "ba[acodec^=mp3]/ba/b",
-    "extractaudio": True,
-    "audioformat": "mp3",
+
+    "format": "bestaudio/best",
     "postprocessors": [{
         "key": "FFmpegExtractAudio",
         "preferredcodec": "mp3",
     }],
+
+    "noplaylist": False,
     "playlist_random": True,
-    "max_downloads": 60,
+    "max_downloads": 2,
     "match_filter": yt_dlp.utils.match_filter_func("duration<600"),
 }
 
@@ -54,6 +56,12 @@ for category, genres_playlists in categories_playlists.items():
         for playlist_url in genre_playlists:
             if not playlist_url:
                 continue
+
+            if "://music.y" in playlist_url:
+                url = urlparse(playlist_url)
+                query = parse_qs(url.query)
+                query.pop('v', None)
+                playlist_url = urlunparse(url._replace(query=urlencode(query, doseq=True)))
 
             genre_dir = DLS_DIR / genre
             genre_dir.mkdir(exist_ok=True)
@@ -69,6 +77,3 @@ for category, genres_playlists in categories_playlists.items():
                     error_code = ydl.download([playlist_url])
                 except yt_dlp.utils.MaxDownloadsReached:
                     pass
-                
-                if error_code != 0:
-                    raise Exception(f"yt_dlp error code {error_code} on {genre} {playlist_url} .")
