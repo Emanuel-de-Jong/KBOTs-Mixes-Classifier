@@ -4,6 +4,7 @@ batch/*
 !batch/.gitkeep
 cache/
 models/
+public_playlists/archive.txt
 public_playlists/dls/
 test/
 train/*

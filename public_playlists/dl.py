@@ -34,6 +34,7 @@ def yt_dlp_hook(d):
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
     "progress_hooks": [yt_dlp_hook],
+    "download_archive": PUBLIC_PLAYLISTS_DIR / "archive.txt",
 
     "format": "bestaudio/best",
     "postprocessors": [{
@@ -68,9 +69,7 @@ for category, genres_playlists in categories_playlists.items():
 
             yt_dlp_config = {
                 **yt_dlp_config_base,
-                "outtmpl": str(
-                    genre_dir / "%(playlist)s/%(playlist_index)s_-_%(title)s.%(ext)s"
-                ),
+                "outtmpl": str(genre_dir / "%(playlist)s/%(playlist_index)s_-_%(title)s.%(ext)s"),
             }
             with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
                 try:
