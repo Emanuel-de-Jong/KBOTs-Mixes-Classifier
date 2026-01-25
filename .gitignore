@@ -1,12 +1,13 @@
 
+*.log
 batch/*
 !batch/.gitkeep
 cache/
 models/
+public_playlists/dls/
 test/
 train/*
 !train/.gitkeep
-*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
