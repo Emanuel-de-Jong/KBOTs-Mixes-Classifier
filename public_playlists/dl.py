@@ -39,6 +39,7 @@ class YtDlpLogger:
 availability_expr = " & ".join(f"availability!='{a}'" for a in AVAILABILITY_BLACKLIST)
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
+    "ignoreerrors": "only_download",
     "js_runtimes": {
         "deno": {
             "path": "/home/graviton/.deno/bin/deno",
@@ -70,7 +71,6 @@ def get_playlists_songs_needed(valid_playlists):
     yt_dlp_config = {
         **yt_dlp_config_base,
         "simulate": True,
-        "ignoreerrors": True,
         "extract_flat": "in_playlist",
     }
     with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
@@ -117,7 +117,10 @@ def create_progress_hook(song_bar):
 def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
     genre_dir.mkdir(exist_ok=True)
 
-    for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
+    for playlist_url, songs_needed in tqdm(
+            zip(valid_playlists, playlists_songs_needed),
+            desc="Playlists",
+            position=2):
         url = urlparse(playlist_url)
 
         if "://music.y" in playlist_url:
@@ -138,33 +141,22 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
         if remaining_dl == 0:
             continue
 
-        with tqdm(
-            total=remaining_dl,
-            desc="playlist",
-            position=2,
-            leave=False
-        ) as playlist_bar:
-            yt_dlp_config = {
-                **yt_dlp_config_base,
-                "max_downloads": remaining_dl,
-                "outtmpl": str(playlist_dir / "%(title)s.%(ext)s"),
-                "progress_hooks": [create_progress_hook(song_bar)],
-            }
-            with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
-                try:
-                    error_code = ydl.download([playlist_url])
-                except yt_dlp.utils.DownloadError as e:
-                    if "private video." not in e.msg.lower():
-                        raise e
-                except yt_dlp.utils.MaxDownloadsReached:
-                    pass
-
-            playlist_bar.update(song_bar.n - playlist_bar.n)
+        yt_dlp_config = {
+            **yt_dlp_config_base,
+            "max_downloads": remaining_dl,
+            "outtmpl": str(playlist_dir / "%(title)s.%(ext)s"),
+            "progress_hooks": [create_progress_hook(song_bar)],
+        }
+        with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
+            try:
+                error_code = ydl.download([playlist_url])
+            except yt_dlp.utils.MaxDownloadsReached:
+                pass
 
 for category, genres_playlists in categories_playlists.items():
     for genre, genre_playlists in tqdm(
             genres_playlists.items(),
-            desc=f"Category: {category}",
+            desc="Genres",
             position=0):
         valid_playlists = [p for p in genre_playlists if p]
         if not valid_playlists:
@@ -185,7 +177,7 @@ for category, genres_playlists in categories_playlists.items():
 
         with tqdm(
             total=total_to_dl,
-            desc=f"Genre: {genre}",
+            desc=f"Songs in genre",
             position=1,
             leave=False
         ) as song_bar:
