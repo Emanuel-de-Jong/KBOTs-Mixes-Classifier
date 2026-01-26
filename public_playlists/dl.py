@@ -117,10 +117,7 @@ def create_progress_hook(song_bar):
 def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
     genre_dir.mkdir(exist_ok=True)
 
-    for playlist_url, songs_needed in tqdm(
-            zip(valid_playlists, playlists_songs_needed),
-            desc="Playlists",
-            position=2):
+    for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
         url = urlparse(playlist_url)
 
         if "://music.y" in playlist_url:
@@ -177,7 +174,7 @@ for category, genres_playlists in categories_playlists.items():
 
         with tqdm(
             total=total_to_dl,
-            desc=f"Songs in genre",
+            desc=f"Songs",
             position=1,
             leave=False
         ) as song_bar:
