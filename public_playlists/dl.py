@@ -122,7 +122,7 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed):
         yt_dlp_config = {
             **yt_dlp_config_base,
             "max_downloads": remaining_dl,
-            "outtmpl": str(playlist_dir / "%(playlist_index)s_-_%(title)s.%(ext)s"),
+            "outtmpl": str(playlist_dir / "%(title)s.%(ext)s"),
         }
         with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
             try:
