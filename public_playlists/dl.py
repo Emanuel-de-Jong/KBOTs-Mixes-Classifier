@@ -72,6 +72,7 @@ def get_playlists_songs_needed(valid_playlists):
         **yt_dlp_config_base,
         "simulate": True,
         "ignoreerrors": True,
+        "extract_flat": "in_playlist",
     }
     with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
         for playlist_url in valid_playlists:
@@ -96,10 +97,13 @@ def get_playlists_songs_needed(valid_playlists):
     while remaining_songs > 0:
         progressed = False
         for i, cap in enumerate(playlist_caps):
-            if playlists_songs_needed[i] < cap and remaining_songs > 0:
+            if playlists_songs_needed[i] < cap:
                 playlists_songs_needed[i] += 1
                 remaining_songs -= 1
                 progressed = True
+
+                if remaining_songs == 0:
+                    break
         
         if not progressed:
             break
