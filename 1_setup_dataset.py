@@ -14,7 +14,6 @@ PLAYLISTS_TO_REMOVE = [
     "Pending",
     "Pending Genre",
     "Pending Second Chance",
-    "Pending Mainstream Vocal Psytrance",
     "Pending Trance",
 ]
 PLAYLISTS_TO_MERGE = {
@@ -24,6 +23,7 @@ PLAYLISTS_TO_MERGE = {
     "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
     # Combined
     "Hardstyle": ["Mainstream Hardstyle"],
+    "Mainstream Vocal Psytrance": ["Pending Mainstream Vocal Psytrance"],
 }
 
 # Clean folder names

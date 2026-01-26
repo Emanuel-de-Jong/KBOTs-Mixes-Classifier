@@ -44,6 +44,7 @@ Don't forget to add the source playlists for merging, even if they fall outside 
 ## Roadmap
 - Look for outliers in training data
 - 3x weight on songs from my playlist vs public songs
+- Undersample public playlist songs first if available
 - Balanced batching
 - Duplicates to balance songs?
     - Up to max songs per label
