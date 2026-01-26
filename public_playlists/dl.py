@@ -18,7 +18,7 @@ DLS_DIR.mkdir(exist_ok=True)
 
 class YtDlpLogger:
     def debug(self, msg):
-        if msg.startswith('[debug] '):
+        if msg.startswith("[debug] "):
             print(msg)
         else:
             self.info(msg)
@@ -33,13 +33,18 @@ class YtDlpLogger:
         print(msg)
 
 def yt_dlp_hook(d):
-    if d['status'] == 'finished':
+    if d["status"] == "finished":
         pass
 
 availability_expr = " & ".join(f"availability!='{a}'" for a in AVAILABILITY_BLACKLIST)
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
     "progress_hooks": [yt_dlp_hook],
+    "js_runtimes": {
+        "deno": {
+            "path": "/home/graviton/.deno/bin/deno",
+        },
+    },
     
     "download_archive": str(DLS_DIR / "archive.txt"),
     "restrictfilenames": True,
@@ -107,7 +112,7 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed):
             playlist_url = urlunparse(url._replace(query=urlencode(query, doseq=True)))
 
         unsanitized_playlist_name = url.path + url.query
-        playlist_name = re.sub(r'[^a-zA-Z0-9]', '', unsanitized_playlist_name)
+        playlist_name = re.sub(r"[^a-zA-Z0-9]", "", unsanitized_playlist_name)
         playlist_name = playlist_name[:32]
         playlist_dir = genre_dir / playlist_name
 
@@ -127,6 +132,9 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed):
         with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
             try:
                 error_code = ydl.download([playlist_url])
+            except yt_dlp.utils.DownloadError as e:
+                if "private video." not in e.msg.lower():
+                    raise e
             except yt_dlp.utils.MaxDownloadsReached:
                 pass
 

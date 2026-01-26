@@ -41,6 +41,15 @@ If you want to get the results of multiple models like the `global`, `general_po
 
 Don't forget to add the source playlists for merging, even if they fall outside the model's scope. Example: `Electro Swing` for `Swing` in the `general_pop` model.
 
+## Public playlists
+Lets you download playlists from YouTube for more training data.
+
+# Setup
+You'll have to install deno and let yt-dlp know about it:
+1. Install deno with `curl -fsSL https://deno.land/install.sh | sh`.
+2. Find the path to deno with `which deno`.
+3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
+
 ## Roadmap
 - Look for outliers in training data
 - 3x weight on songs from my playlist vs public songs
