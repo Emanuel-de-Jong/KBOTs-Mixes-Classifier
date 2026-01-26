@@ -1,7 +1,6 @@
 import re
 import sys
 import yaml
-import math
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import yt_dlp
@@ -64,12 +63,44 @@ for category, genres_playlists in categories_playlists.items():
         if not valid_playlists:
             continue
 
-        per_playlist_target = math.ceil(SONGS_PER_GENRE / len(valid_playlists))
-
         genre_dir = DLS_DIR / genre
+        if genre_dir.exists():
+            existing_songs = len(list(genre_dir.rglob("*.mp3")))
+            if existing_songs >= SONGS_PER_GENRE:
+                continue
+
+        playlist_caps = []
+        with yt_dlp.YoutubeDL({**yt_dlp_config_base, "simulate": True}) as ydl:
+            for playlist_url in valid_playlists:
+                info = ydl.extract_info(playlist_url, download=False)
+
+                usable = 0
+                entries = info.get("entries") or []
+                for e in entries:
+                    if not e:
+                        continue
+
+                    if e.get("duration") and e["duration"] < 600:
+                        usable += 1
+                
+                playlist_caps.append(usable)
+
+        remaining_songs = SONGS_PER_GENRE
+        playlists_songs_needed = [0] * len(valid_playlists)
+        while remaining_songs > 0:
+            progressed = False
+            for i, cap in enumerate(playlist_caps):
+                if playlists_songs_needed[i] < cap and remaining_songs > 0:
+                    playlists_songs_needed[i] += 1
+                    remaining_songs -= 1
+                    progressed = True
+            
+            if not progressed:
+                break
+
         genre_dir.mkdir(exist_ok=True)
 
-        for playlist_url in valid_playlists:
+        for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
             url = urlparse(playlist_url)
 
             if "://music.y" in playlist_url:
@@ -82,17 +113,17 @@ for category, genres_playlists in categories_playlists.items():
             playlist_name = playlist_name[:32]
             playlist_dir = genre_dir / playlist_name
 
-            existing = 0
+            existing_songs = 0
             if playlist_dir.exists():
-                existing = len(list(playlist_dir.rglob("*.mp3")))
+                existing_songs = len(list(playlist_dir.rglob("*.mp3")))
 
-            remaining = max(per_playlist_target - existing, 0)
-            if remaining == 0:
+            remaining_dl = max(songs_needed - existing_songs, 0)
+            if remaining_dl == 0:
                 continue
 
             yt_dlp_config = {
                 **yt_dlp_config_base,
-                "max_downloads": remaining,
+                "max_downloads": remaining_dl,
                 "outtmpl": str(playlist_dir / "%(playlist_index)s_-_%(title)s.%(ext)s"),
             }
             with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
