@@ -67,7 +67,13 @@ with open(PUBLIC_PLAYLISTS_DIR / "public_playlists.yaml", "r") as f:
 
 def get_playlists_songs_needed(valid_playlists):
     playlist_caps = []
-    with yt_dlp.YoutubeDL({**yt_dlp_config_base, "simulate": True}) as ydl:
+
+    yt_dlp_config = {
+        **yt_dlp_config_base,
+        "simulate": True,
+        "ignoreerrors": True,
+    }
+    with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
         for playlist_url in valid_playlists:
             info = ydl.extract_info(playlist_url, download=False)
 
