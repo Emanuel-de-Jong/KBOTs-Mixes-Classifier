@@ -1,9 +1,10 @@
 import re
 import sys
 import yaml
+import yt_dlp
+from tqdm import tqdm
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-import yt_dlp
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 import global_params as g
@@ -19,27 +20,25 @@ DLS_DIR.mkdir(exist_ok=True)
 class YtDlpLogger:
     def debug(self, msg):
         if msg.startswith("[debug] "):
-            print(msg)
+            # self.info(msg)
+            pass
         else:
             self.info(msg)
 
     def info(self, msg):
-        print(msg)
+        # self.info(msg)
+        pass
 
     def warning(self, msg):
-        print(msg)
+        # self.info(msg)
+        pass
 
     def error(self, msg):
         print(msg)
 
-def yt_dlp_hook(d):
-    if d["status"] == "finished":
-        pass
-
 availability_expr = " & ".join(f"availability!='{a}'" for a in AVAILABILITY_BLACKLIST)
 yt_dlp_config_base = {
     "logger": YtDlpLogger(),
-    "progress_hooks": [yt_dlp_hook],
     "js_runtimes": {
         "deno": {
             "path": "/home/graviton/.deno/bin/deno",
@@ -79,13 +78,12 @@ def get_playlists_songs_needed(valid_playlists):
             info = ydl.extract_info(playlist_url, download=False)
 
             usable = 0
-            entries = info.get("entries") or []
-            for e in entries:
-                if not e:
+            for entry in info.get("entries") or []:
+                if not entry:
                     continue
-                if e.get("duration") and e["duration"] > MAX_DURATION_SECONDS:
+                if entry.get("duration") and entry["duration"] > MAX_DURATION_SECONDS:
                     continue
-                if e.get("availability") and e["availability"] in AVAILABILITY_BLACKLIST:
+                if entry.get("availability") and entry["availability"] in AVAILABILITY_BLACKLIST:
                     continue
 
                 usable += 1
@@ -110,7 +108,13 @@ def get_playlists_songs_needed(valid_playlists):
     
     return playlists_songs_needed
 
-def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed):
+def create_progress_hook(song_bar):
+    def hook(d):
+        if d.get("status") == "finished":
+            song_bar.update(1)
+    return hook
+
+def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
     genre_dir.mkdir(exist_ok=True)
 
     for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
@@ -134,26 +138,39 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed):
         if remaining_dl == 0:
             continue
 
-        yt_dlp_config = {
-            **yt_dlp_config_base,
-            "max_downloads": remaining_dl,
-            "outtmpl": str(playlist_dir / "%(title)s.%(ext)s"),
-        }
-        with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
-            try:
-                error_code = ydl.download([playlist_url])
-            except yt_dlp.utils.DownloadError as e:
-                if "private video." not in e.msg.lower():
-                    raise e
-            except yt_dlp.utils.MaxDownloadsReached:
-                pass
+        with tqdm(
+            total=remaining_dl,
+            desc="playlist",
+            position=2,
+            leave=False
+        ) as playlist_bar:
+            yt_dlp_config = {
+                **yt_dlp_config_base,
+                "max_downloads": remaining_dl,
+                "outtmpl": str(playlist_dir / "%(title)s.%(ext)s"),
+                "progress_hooks": [create_progress_hook(song_bar)],
+            }
+            with yt_dlp.YoutubeDL(yt_dlp_config) as ydl:
+                try:
+                    error_code = ydl.download([playlist_url])
+                except yt_dlp.utils.DownloadError as e:
+                    if "private video." not in e.msg.lower():
+                        raise e
+                except yt_dlp.utils.MaxDownloadsReached:
+                    pass
+
+            playlist_bar.update(song_bar.n - playlist_bar.n)
 
 for category, genres_playlists in categories_playlists.items():
-    for genre, genre_playlists in genres_playlists.items():
+    for genre, genre_playlists in tqdm(
+            genres_playlists.items(),
+            desc=f"Category: {category}",
+            position=0):
         valid_playlists = [p for p in genre_playlists if p]
         if not valid_playlists:
             continue
 
+        existing_songs = 0
         genre_dir = DLS_DIR / genre
         if genre_dir.exists():
             existing_songs = len(list(genre_dir.rglob("*.mp3")))
@@ -161,4 +178,15 @@ for category, genres_playlists in categories_playlists.items():
                 continue
 
         playlists_songs_needed = get_playlists_songs_needed(valid_playlists)
-        dl_playlists(genre_dir, valid_playlists, playlists_songs_needed)
+
+        total_to_dl = sum(playlists_songs_needed) - existing_songs
+        if total_to_dl <= 0:
+            continue
+
+        with tqdm(
+            total=total_to_dl,
+            desc=f"Genre: {genre}",
+            position=1,
+            leave=False
+        ) as song_bar:
+            dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar)
