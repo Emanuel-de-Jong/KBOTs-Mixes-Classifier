@@ -10,6 +10,8 @@ PLAYLISTS_TO_REMOVE = [
     "Pioneer EDM",
     "Pioneer",
     "Romantic",
+    "Chill EDM",
+    "Groovy EDM",
     # Pending
     "Pending",
     "Pending Genre",
