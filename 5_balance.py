@@ -11,14 +11,9 @@ OVERSAMPLE_TRES = g.MIN_SONG_COUNT * OVERSAMPLE_TRES_MULTIPLIER
 
 BATCH_SIZE = 10_000
 
-def iter_data_files(step, data_set_type):
-    count = g.get_data_count(step, data_set_type)
-    for idx in range(count):
-        yield idx
-
 dfs = []
-for idx in iter_data_files(4, g.DataSetType.train):
-    g.load_data(4, g.DataSetType.train, idx)
+for data_path in g.iter_data_paths(4, g.DataSetType.train):
+    g.load_data(data_path)
     dfs.append(g.data)
 
 train_data = pd.concat(dfs, ignore_index=True)

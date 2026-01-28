@@ -21,6 +21,8 @@ model, history = None, None
 
 logger = Logger(g.MODELS_DIR / "train.log")
 
+data_paths = g.get_all_data_paths(5)
+
 def set_seed(seed=1):
     random.seed(seed)
     np.random.seed(seed)
@@ -31,11 +33,6 @@ def set_seed(seed=1):
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 # set_seed()
-
-def iter_data_files(step, data_set_type):
-    count = g.get_data_count(step, data_set_type)
-    for idx in range(count):
-        yield g.CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib"
 
 def load_existing_model():
     model_path = g.CACHE_DIR / f'model_{g.NAME}.keras'
@@ -97,8 +94,8 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    for p in iter_data_files(5, g.DataSetType.test):
-        df = joblib.load(p)
+    for data_path in data_paths[g.DataSetType.test]:
+        df = joblib.load(data_path)
         X_test = np.stack(df["data"].to_numpy())
         y_test = df["label"].to_numpy()
 
@@ -122,7 +119,7 @@ def test(model, history, name=""):
     plt.close()
 
     test_loss, test_accuracy = model.evaluate(
-        DiskShardedSequence(list(iter_data_files(5, g.DataSetType.test)), shuffle=False),
+        DiskShardedSequence(data_paths[g.DataSetType.test], shuffle=False),
         verbose=0
     )
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
@@ -133,12 +130,12 @@ def train(model_func):
     logger.writeln(name)
 
     train_seq = DiskShardedSequence(
-        list(iter_data_files(5, g.DataSetType.train)),
+        data_paths[g.DataSetType.train],
         shuffle=True
     )
 
     validate_seq = DiskShardedSequence(
-        list(iter_data_files(5, g.DataSetType.validate)),
+        data_paths[g.DataSetType.validate],
         shuffle=False
     )
 

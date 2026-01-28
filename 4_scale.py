@@ -12,23 +12,14 @@ BATCH_SIZE = 10_000
 scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
 
-def iter_data_files(step, data_set_type):
-    count = g.get_data_count(step, data_set_type)
-    for idx in range(count):
-        yield idx
-
 if is_scale_tools_loaded:
     scale_tools = joblib.load(SCALE_TOOLS_PATH)
 else:
     sample_loaded = False
-    for data_set_type in g.DataSetType:
-        for idx in iter_data_files(3, data_set_type):
-            g.load_data(3, data_set_type, idx)
-            feature_dim = g.data.iloc[0]["data"].shape[-1]
-            sample_loaded = True
-            break
-        if sample_loaded:
-            break
+    for data_path in g.iter_all_data_paths():
+        g.load_data(data_path)
+        feature_dim = g.data.iloc[0]["data"].shape[-1]
+        break
 
     clip_min = np.empty(feature_dim, dtype=np.float32)
     clip_max = np.empty(feature_dim, dtype=np.float32)
@@ -36,15 +27,14 @@ else:
     for f in range(feature_dim):
         values = []
 
-        for data_set_type in g.DataSetType:
-            for idx in iter_data_files(3, data_set_type):
-                g.load_data(3, data_set_type, idx)
+        for data_path in g.iter_all_data_paths():
+            g.load_data(data_path)
 
-                layer_vals = np.concatenate(
-                    [arr[..., f].reshape(-1) for arr in g.data["data"]],
-                    axis=0
-                )
-                values.append(layer_vals)
+            layer_vals = np.concatenate(
+                [arr[..., f].reshape(-1) for arr in g.data["data"]],
+                axis=0
+            )
+            values.append(layer_vals)
 
         values = np.concatenate(values, axis=0)
         clip_min[f] = np.percentile(values, 1)
@@ -65,25 +55,24 @@ else:
         "clip_max": clip_max
     }))
 
-    for data_set_type in g.DataSetType:
-        for idx in iter_data_files(3, data_set_type):
-            g.load_data(3, data_set_type, idx)
+    for data_path in g.iter_all_data_paths():
+        g.load_data(data_path)
 
-            all_values = np.concatenate(
-                [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
-                axis=0
-            )
+        all_values = np.concatenate(
+            [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
+            axis=0
+        )
 
-            all_values = np.clip(
-                all_values,
-                clip_min,
-                clip_max
-            )
+        all_values = np.clip(
+            all_values,
+            clip_min,
+            clip_max
+        )
 
-            scale_tools["scaler"].partial_fit(all_values)
+        scale_tools["scaler"].partial_fit(all_values)
 
-            del all_values
-            gc.collect()
+        del all_values
+        gc.collect()
 
     joblib.dump(scale_tools, SCALE_TOOLS_PATH)
 
@@ -91,8 +80,8 @@ for data_set_type in g.DataSetType:
     out_idx = 0
     out_rows = []
 
-    for idx in iter_data_files(3, data_set_type):
-        g.load_data(3, data_set_type, idx)
+    for data_path in g.iter_data_paths(3, data_set_type):
+        g.load_data(data_path)
 
         all_values = np.concatenate(
             [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
