@@ -7,7 +7,7 @@ from tqdm import tqdm
 MAX_CHUNKS_TRAIN = 18
 MAX_CHUNKS_TEST = -1
 
-SONGS_BATCH_SIZE = 40
+SONGS_BATCH_SIZE = 30
 
 songs_train = pd.read_csv(g.CACHE_DIR / "labels_train.csv")
 songs_test = pd.read_csv(g.CACHE_DIR / "labels_test.csv")
@@ -29,6 +29,7 @@ def extract(data_set_type):
         for _, song in tqdm(
                 batch.iterrows(),
                 total=len(batch),
+                desc="Songs",
                 position=1,
                 leave=False):
             song_label = int(song.label)
@@ -46,7 +47,6 @@ def extract(data_set_type):
                     continue
 
                 data.append({
-                    'data_set': data_set_type,
                     'label': song_label,
                     'song': song_name,
                     'is_public': song.is_public,

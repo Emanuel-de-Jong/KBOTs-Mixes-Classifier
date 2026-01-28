@@ -7,61 +7,124 @@ import global_params as g
 from sklearn.preprocessing import MinMaxScaler
 
 SCALE_TOOLS_PATH = g.CACHE_DIR / f"scale_tools_{g.NAME}.joblib"
-SCALE_BATCH_SIZE = 1000
-
-g.load_data(3)
+BATCH_SIZE = 10_000
 
 scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
+
+def iter_data_files(step, data_set_type):
+    count = g.get_data_count(step, data_set_type)
+    for idx in range(count + 1):
+        yield idx
+
 if is_scale_tools_loaded:
     scale_tools = joblib.load(SCALE_TOOLS_PATH)
 else:
-    all_values = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]], axis=0)
-    scale_tools = {
-        "scaler": MinMaxScaler(feature_range=(-1, 1)),
-        "clip_min": np.percentile(all_values, 1, axis=0),
-        "clip_max": np.percentile(all_values, 99, axis=0),
-    }
+    sample_loaded = False
+    for data_set_type in g.DataSetType:
+        for idx in iter_data_files(3, data_set_type):
+            g.load_data(3, data_set_type, idx)
+            feature_dim = g.data.iloc[0]["data"].shape[-1]
+            sample_loaded = True
+            break
+        if sample_loaded:
+            break
 
-    del all_values
-    gc.collect()
+    clip_min = np.empty(feature_dim, dtype=np.float32)
+    clip_max = np.empty(feature_dim, dtype=np.float32)
 
-    print("Clipping ranges per feature:")
-    print(pd.DataFrame({"clip_min": scale_tools["clip_min"], "clip_max": scale_tools["clip_max"]}))
+    for f in range(feature_dim):
+        values = []
 
-data_count = len(g.data)
+        for data_set_type in g.DataSetType:
+            for idx in iter_data_files(3, data_set_type):
+                g.load_data(3, data_set_type, idx)
 
-if not is_scale_tools_loaded:
-    for start in range(0, data_count, SCALE_BATCH_SIZE):
-        end = min(start + SCALE_BATCH_SIZE, data_count)
-        batch = [g.data.at[i, "data"] for i in range(start, end)]
+                layer_vals = np.concatenate(
+                    [arr[..., f].reshape(-1) for arr in g.data["data"]],
+                    axis=0
+                )
+                values.append(layer_vals)
 
-        batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
-        batch_2d = np.clip(batch_2d, scale_tools["clip_min"], scale_tools["clip_max"])
-        scale_tools["scaler"].partial_fit(batch_2d)
+        values = np.concatenate(values, axis=0)
+        clip_min[f] = np.percentile(values, 1)
+        clip_max[f] = np.percentile(values, 99)
 
-        del batch_2d, batch
+        del values
         gc.collect()
 
-for start in range(0, data_count, SCALE_BATCH_SIZE):
-    end = min(start + SCALE_BATCH_SIZE, data_count)
-    batch = [g.data.at[i, "data"] for i in range(start, end)]
+    scale_tools = {
+        "scaler": MinMaxScaler(feature_range=(-1, 1)),
+        "clip_min": clip_min,
+        "clip_max": clip_max,
+    }
 
-    batch_2d = np.concatenate([arr.reshape(-1, arr.shape[-1]) for arr in batch], axis=0)
-    batch_2d = np.clip(batch_2d, scale_tools["clip_min"], scale_tools["clip_max"])
-    batch_scaled_2d = scale_tools["scaler"].transform(batch_2d)
+    print("Clipping ranges per feature:")
+    print(pd.DataFrame({
+        "clip_min": clip_min,
+        "clip_max": clip_max
+    }))
 
-    offset = 0
-    for i, arr in enumerate(batch):
-        sz = np.prod(arr.shape[:-1])
-        arr_scaled = batch_scaled_2d[offset:offset+sz].reshape(arr.shape)
-        g.data.at[start + i, "data"] = arr_scaled
-        offset += sz
+    for data_set_type in g.DataSetType:
+        for idx in iter_data_files(3, data_set_type):
+            g.load_data(3, data_set_type, idx)
 
-    del batch, batch_2d, batch_scaled_2d
-    gc.collect()
+            all_values = np.concatenate(
+                [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
+                axis=0
+            )
 
-if not is_scale_tools_loaded:
+            all_values = np.clip(
+                all_values,
+                clip_min,
+                clip_max
+            )
+
+            scale_tools["scaler"].partial_fit(all_values)
+
+            del all_values
+            gc.collect()
+
     joblib.dump(scale_tools, SCALE_TOOLS_PATH)
 
-g.save_data(4)
+for data_set_type in g.DataSetType:
+    out_idx = 0
+    out_rows = []
+
+    for idx in iter_data_files(3, data_set_type):
+        g.load_data(3, data_set_type, idx)
+
+        all_values = np.concatenate(
+            [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
+            axis=0
+        )
+
+        all_values = np.clip(
+            all_values,
+            scale_tools["clip_min"],
+            scale_tools["clip_max"]
+        )
+
+        all_scaled = scale_tools["scaler"].transform(all_values)
+
+        offset = 0
+        for _, row in g.data.iterrows():
+            arr = row["data"]
+            sz = np.prod(arr.shape[:-1])
+            row["data"] = all_scaled[offset:offset + sz].reshape(arr.shape)
+            offset += sz
+
+            out_rows.append(row)
+
+            if len(out_rows) >= BATCH_SIZE:
+                g.data = pd.DataFrame(out_rows)
+                g.save_data(4, data_set_type, out_idx)
+                out_idx += 1
+                out_rows = []
+
+        del all_values, all_scaled
+        gc.collect()
+
+    if out_rows:
+        g.data = pd.DataFrame(out_rows)
+        g.save_data(4, data_set_type, out_idx)

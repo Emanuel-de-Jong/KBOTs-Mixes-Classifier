@@ -56,7 +56,7 @@ class Mert():
                 os.unlink(temp_path)
     
     def run(self, path, max_chunks=-1):
-        print(f"Processing: {os.path.basename(path)}")
+        # print(f"Processing: {os.path.basename(path)}")
         
         try:
             audio_samples, resample_rate = self.load_audio_ffmpeg(path)
