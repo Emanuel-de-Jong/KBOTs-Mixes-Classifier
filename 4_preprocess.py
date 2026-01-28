@@ -5,26 +5,15 @@ import gc
 import os
 import global_params as g
 from sklearn.preprocessing import MinMaxScaler
-from enum import Enum
-
-class SamplingType(Enum):
-    none = 0
-    undersample = 1
-    oversample = 2
 
 SCALE_TOOLS_PATH = g.CACHE_DIR / f"scale_tools_{g.NAME}.joblib"
 SCALE_BATCH_SIZE = 1000
 
-VALIDATE_PERC = 0.2
+VALIDATE_PERC = 0.3
+VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
-SAMPLING = SamplingType.oversample
-USE_UNDERSAMPLE_TRES = True
-UNDERSAMPLE_TRES_MULTIPLIER = 18 # 8*18=144
-USE_OVERSAMPLE_TRES = True
 OVERSAMPLE_TRES_MULTIPLIER = 32 # 8*32=256
-
-undersample_tres = g.MIN_SONG_COUNT * UNDERSAMPLE_TRES_MULTIPLIER
-oversample_tres = g.MIN_SONG_COUNT * OVERSAMPLE_TRES_MULTIPLIER
+OVERSAMPLE_TRES = g.MIN_SONG_COUNT * OVERSAMPLE_TRES_MULTIPLIER
 
 g.load_data(3)
 
@@ -88,8 +77,18 @@ all_new_rows = []
 validate_target = label_counts.max() * VALIDATE_PERC
 for label in range(g.LABEL_COUNT):
     label_train_data = train_data[train_data["label"] == label]
-    songs = label_train_data['song'].unique()
+
+    non_public_label_train_data = label_train_data[label_train_data["is_public"] == False]
+    songs = non_public_label_train_data['song'].unique()
     np.random.shuffle(songs)
+
+    songs = songs[:int(len(songs) * VALIDATE_MAX_NON_PUBLIC_PERC)]
+
+    public_label_train_data = label_train_data[label_train_data["is_public"] == True]
+    public_songs = public_label_train_data['song'].unique()
+    np.random.shuffle(public_songs)
+
+    songs = np.concatenate([songs, public_songs])
 
     total_rows = 0
     validate_songs = []
@@ -213,18 +212,12 @@ def oversample(label, sample_target):
     new_train_data = pd.concat([train_data, pd.DataFrame(new_rows)], ignore_index=False)
     g.data = pd.concat([new_train_data, non_train_data], ignore_index=False)
 
-if SAMPLING == SamplingType.undersample:
-    tres = undersample_tres if USE_UNDERSAMPLE_TRES else label_counts.min()
-    for label, count in label_counts.items():
-        if count > tres:
-            undersample(label, tres)
-elif SAMPLING == SamplingType.oversample:
-    tres = oversample_tres if USE_OVERSAMPLE_TRES else label_counts.max()
-    for label, count in label_counts.items():
-        if count > tres:
-            undersample(label, tres)
-        elif count < tres:
-            oversample(label, tres)
+train_sample_target = min(OVERSAMPLE_TRES, label_counts.max())
+for label, count in label_counts.items():
+    if count > train_sample_target:
+        undersample(label, train_sample_target)
+    elif count < train_sample_target:
+        oversample(label, train_sample_target)
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data["label"].value_counts()

@@ -51,8 +51,8 @@ You'll have to install deno and let yt-dlp know about it:
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
 
 ## Roadmap
-- Make validate set after oversampling?
 - Data sequential processing
+- Remove duplicate songs
 - Look for outliers in training data
 - 3x weight on songs from my playlist vs public songs
 - Undersample public playlist songs first if available
