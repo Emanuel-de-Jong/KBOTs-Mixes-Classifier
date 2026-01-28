@@ -14,7 +14,7 @@ is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
 
 def iter_data_files(step, data_set_type):
     count = g.get_data_count(step, data_set_type)
-    for idx in range(count + 1):
+    for idx in range(count):
         yield idx
 
 if is_scale_tools_loaded:

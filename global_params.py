@@ -70,7 +70,7 @@ def get_data_count(step, data_set_type=DataSetType.train):
     while idx < 100_000:
         data_path = CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib"
         if not data_path.exists():
-            return idx - 1
+            return idx
 
         idx += 1
 
