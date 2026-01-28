@@ -1,4 +1,5 @@
 import joblib
+import sys
 import os
 from pathlib import Path
 from enum import Enum
@@ -61,9 +62,18 @@ def get_song_name(song_path):
     return os.path.splitext(os.path.basename(song_path))[0]
 
 data = None
-def save_data(name):
-    joblib.dump(data, CACHE_DIR / f"data_{name}.joblib")
+def save_data(step, data_set_type=DataSetType.train, idx=0):
+    joblib.dump(data, CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib")
 
-def load_data(name):
+def get_data_count(step, data_set_type=DataSetType.train):
+    idx = 0
+    while idx < sys.maxint:
+        data_path = CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib"
+        if not data_path.exists():
+            return idx - 1
+
+        idx += 1
+
+def load_data(step, data_set_type=DataSetType.train, idx=0):
     global data
-    data = joblib.load(CACHE_DIR / f"data_{name}.joblib")
+    data = joblib.load(CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib")
