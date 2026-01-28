@@ -110,11 +110,11 @@ def test(model, history, name=""):
     y_pred = model.predict(X_test)
     y_pred_sk = np.argmax(y_pred, axis=-1)
 
-    report = classification_report(y_test, y_pred_sk, target_names = g.labels)
+    report = classification_report(y_test, y_pred_sk, target_names = g.LABELS)
     logger.writeln(report)
 
     cm = confusion_matrix(y_test, y_pred_sk)
-    disp = ConfusionMatrixDisplay(cm, display_labels = g.labels)
+    disp = ConfusionMatrixDisplay(cm, display_labels = g.LABELS)
 
     _, ax = plt.subplots(figsize=(20, 22), dpi=200)
     disp.plot(ax=ax, xticks_rotation=90, colorbar=True)

@@ -35,6 +35,7 @@ def extract(data, data_set_type):
                 'data_set': data_set_type,
                 'label': song_label,
                 'song': song_name,
+                'is_public': song.is_public,
                 'data': emb})
 
 data = []

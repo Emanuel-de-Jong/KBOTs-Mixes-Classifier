@@ -7,8 +7,10 @@ models/
 public_playlists/archive.txt
 public_playlists/dls/
 test/
-train/*
-!train/.gitkeep
+train/playlists/*
+!train/playlists/.gitkeep
+train/public_playlists/*
+!train/public_playlists/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

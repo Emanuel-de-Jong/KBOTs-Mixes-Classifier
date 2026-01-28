@@ -7,19 +7,14 @@ MIN_MAX_SONGS_MULTIPLIER = 5 # 8*5=40
 # Only for testing! -1 to disable.
 TEST_LABEL_COUNT = -1
 
-playlist_counts = []
-for folder in g.TRAIN_DIR.iterdir():
-    if folder.is_dir():
-        mp3_count = len(list(folder.glob("*.mp3")))
-        playlist_counts.append((folder.name, mp3_count))
-
-playlist_counts.sort(key=lambda x: x[1])
-for name, count in playlist_counts:
+sorted_playlist_counts = sorted(g.PLAYLIST_COUNTS.items(), key=lambda x: x[1])
+for name, count in sorted_playlist_counts:
     print(f"{name}: {count}")
 
 max_song_count = int(round(float(g.MIN_SONG_COUNT) * MIN_MAX_SONGS_MULTIPLIER))
+print(f"\nMax song count: {max_song_count}")
 
-labels = sorted([folder.name for folder in g.TRAIN_DIR.iterdir() if folder.is_dir()])
+labels = sorted([folder.name for folder in g.TRAIN_PLAYLISTS_DIR.iterdir() if folder.is_dir()])
 if TEST_LABEL_COUNT != -1:
     labels = labels[:TEST_LABEL_COUNT]
 
@@ -30,9 +25,9 @@ label_to_num = {label: i for i, label in enumerate(labels)}
 def get_song_labels(data_set_type):
     with open(g.CACHE_DIR / f"labels_{data_set_type.name}.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["song","label"])
+        w.writerow(["song", "label", "is_public"])
 
-        dir = g.TRAIN_DIR if data_set_type == g.DataSetType.train else g.TEST_DIR
+        dir = g.TRAIN_PLAYLISTS_DIR if data_set_type == g.DataSetType.train else g.TEST_DIR
         playlist_count = 0
         for playlist_dir in dir.iterdir():
             if playlist_dir.is_dir():
@@ -40,12 +35,22 @@ def get_song_labels(data_set_type):
                 if TEST_LABEL_COUNT != -1 and playlist_count > TEST_LABEL_COUNT:
                     break
 
-                songs = list(playlist_dir.glob("*.mp3"))
+                songs = list(playlist_dir.glob("**/*.mp3"))
                 random.shuffle(songs)
+
+                if data_set_type == g.DataSetType.train:
+                    public_playlist_dir = g.TRAIN_PUBLIC_PLAYLISTS_DIR / playlist_dir.name
+                    if public_playlist_dir.exists():
+                        public_songs = list(public_playlist_dir.glob("**/*.mp3"))
+                        random.shuffle(public_songs)
+                        songs.extend(public_songs)
                 
                 added_songs = 0
-                for p in songs:
-                    w.writerow([str(p.resolve()), label_to_num[playlist_dir.name]])
+                for song_path in songs:
+                    song = str(song_path.resolve())
+                    label = label_to_num[playlist_dir.name]
+                    is_public = True if song_path.is_relative_to(g.TRAIN_PUBLIC_PLAYLISTS_DIR) else False
+                    w.writerow([song, label, is_public])
                     
                     added_songs += 1
                     if added_songs >= max_song_count:

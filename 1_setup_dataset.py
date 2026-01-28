@@ -29,8 +29,8 @@ PLAYLISTS_TO_MERGE = {
 }
 
 # Clean folder names
-for folder in os.listdir(g.TRAIN_DIR):
-    folder_path = g.TRAIN_DIR / folder
+for folder in os.listdir(g.TRAIN_PLAYLISTS_DIR):
+    folder_path = g.TRAIN_PLAYLISTS_DIR / folder
     if folder_path.is_dir():
         new_name = folder
         if new_name.lower().startswith("kbot's "):
@@ -39,7 +39,7 @@ for folder in os.listdir(g.TRAIN_DIR):
             new_name = new_name[:-4]
         
         new_name = new_name.strip()
-        new_path = g.TRAIN_DIR / new_name
+        new_path = g.TRAIN_PLAYLISTS_DIR / new_name
 
         if os.path.basename(new_path) in PLAYLISTS_TO_REMOVE:
             shutil.rmtree(folder_path)
@@ -52,7 +52,7 @@ for folder in os.listdir(g.TRAIN_DIR):
 for target, sources in PLAYLISTS_TO_MERGE.items():
     is_src_dir_missing = False
     for src in sources:
-        src_dir = g.TRAIN_DIR / src
+        src_dir = g.TRAIN_PLAYLISTS_DIR / src
         if not os.path.exists(src_dir):
             is_src_dir_missing = True
             break
@@ -60,10 +60,10 @@ for target, sources in PLAYLISTS_TO_MERGE.items():
     if is_src_dir_missing:
         continue
     
-    target_dir = g.TRAIN_DIR / target
+    target_dir = g.TRAIN_PLAYLISTS_DIR / target
     target_dir.mkdir(exist_ok=True)
     for src in sources:
-        src_dir = g.TRAIN_DIR / src
+        src_dir = g.TRAIN_PLAYLISTS_DIR / src
         if src_dir.exists() and src_dir.is_dir():
             for mp3_file in src_dir.glob("*.mp3"):
                 dest_file = target_dir / mp3_file.name
@@ -72,7 +72,7 @@ for target, sources in PLAYLISTS_TO_MERGE.items():
             shutil.rmtree(src_dir)
 
 # Clean mp3 names
-for p in g.TRAIN_DIR.glob("*/*.mp3"):
+for p in g.TRAIN_DIR.glob("**/*.mp3"):
     old_stem = p.stem
     new_stem = unidecode.unidecode(old_stem)
     new_stem = re.sub(r'[^a-zA-Z0-9\s\.\-\_\,]', '', new_stem)
@@ -87,7 +87,7 @@ for p in g.TRAIN_DIR.glob("*/*.mp3"):
 
 # Fill test dir
 if not g.TEST_DIR.exists():
-    for subdir in g.TRAIN_DIR.iterdir():
+    for subdir in g.TRAIN_PLAYLISTS_DIR.iterdir():
         if subdir.is_dir():
             mp3_files = sorted(subdir.glob("*.mp3"))
             if mp3_files:

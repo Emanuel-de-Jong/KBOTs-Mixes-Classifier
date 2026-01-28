@@ -30,6 +30,8 @@ MODELS = {
 }
 
 TRAIN_DIR = Path("train")
+TRAIN_PLAYLISTS_DIR = TRAIN_DIR / "playlists"
+TRAIN_PUBLIC_PLAYLISTS_DIR = TRAIN_DIR / "public_playlists"
 TEST_DIR = Path("test")
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
@@ -37,14 +39,23 @@ MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 BATCH_DIR = Path("batch")
 
-song_counts = [len(list(f.glob("*.mp3"))) for f in TRAIN_DIR.iterdir() if f.is_dir()]
-MIN_SONG_COUNT = min(song_counts) if len(song_counts) > 0 else 0
+PLAYLIST_COUNTS = {}
+for folder in TRAIN_PLAYLISTS_DIR.iterdir():
+    if folder.is_dir():
+        mp3_count = len(list(folder.glob("**/*.mp3")))
+        PLAYLIST_COUNTS[folder.name] = mp3_count
+for folder in TRAIN_PUBLIC_PLAYLISTS_DIR.iterdir():
+    if folder.is_dir():
+        mp3_count = len(list(folder.glob("**/*.mp3")))
+        PLAYLIST_COUNTS[folder.name] += mp3_count
 
-labels = None
-label_count = 0
+MIN_SONG_COUNT = min(PLAYLIST_COUNTS.values())
+
+LABELS = None
+LABEL_COUNT = 0
 if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):
-    labels = joblib.load(CACHE_DIR / f"labels_{NAME}.joblib")
-    label_count = len(labels)
+    LABELS = joblib.load(CACHE_DIR / f"labels_{NAME}.joblib")
+    LABEL_COUNT = len(LABELS)
 
 def get_song_name(song_path):
     return os.path.splitext(os.path.basename(song_path))[0]

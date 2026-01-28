@@ -86,7 +86,7 @@ label_counts = train_data['label'].value_counts()
 
 all_new_rows = []
 validate_target = label_counts.max() * VALIDATE_PERC
-for label in range(g.label_count):
+for label in range(g.LABEL_COUNT):
     label_train_data = train_data[train_data["label"] == label]
     songs = label_train_data['song'].unique()
     np.random.shuffle(songs)
@@ -135,7 +135,7 @@ if all_new_rows:
 validate_data = g.data[g.data["data_set"] == g.DataSetType.validate]
 print("\n== Validate label counts ==")
 for label, count in validate_data["label"].value_counts().items():
-    print(f"{g.labels[label]}: {count}")
+    print(f"{g.LABELS[label]}: {count}")
 
 train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data['label'].value_counts()
@@ -148,11 +148,24 @@ def undersample(label, sample_target):
 
     song_counts = label_data['song'].value_counts().to_dict()
     last_removed = {s: label_data[label_data['song'] == s].index[-1] for s in song_counts}
+
+    songs_is_public = (
+        label_data
+        .groupby('song')['is_public']
+        .first()
+        .to_dict()
+    )
+    public_songs = {s for s, v in songs_is_public.items() if v}
+    non_public_songs = set(song_counts) - public_songs
     
     remove_idxs = []
     for _ in range(x):
-        max_count = max(song_counts.values())
-        candidates = [s for s, c in song_counts.items() if c == max_count]
+        active_songs = [s for s in public_songs if song_counts[s] > 0]
+        if not active_songs:
+            active_songs = [s for s in non_public_songs if song_counts[s] > 0]
+
+        max_count = max(song_counts[s] for s in active_songs)
+        candidates = [s for s in active_songs if song_counts[s] == max_count]
         song = candidates[0]
 
         song_rows = label_data[label_data['song'] == song]
@@ -217,6 +230,6 @@ train_data = g.data[g.data["data_set"] == g.DataSetType.train]
 label_counts = train_data["label"].value_counts()
 print("\n== Train label counts after resample ==")
 for label, count in label_counts.items():
-    print(f"{g.labels[label]}: {count}")
+    print(f"{g.LABELS[label]}: {count}")
 
 g.save_data(4)

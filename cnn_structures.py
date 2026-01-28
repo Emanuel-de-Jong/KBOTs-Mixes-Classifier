@@ -16,7 +16,7 @@ METRICS = ['accuracy']
 
 def create_model(layer_array):
     layer_array.insert(0, layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)))
-    layer_array.append(layers.Dense(g.label_count, activation='softmax'))
+    layer_array.append(layers.Dense(g.LABEL_COUNT, activation='softmax'))
     return Sequential(layer_array)
 
 def calc_class_weight(y_train, should_smooth=False):
