@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+python3 1_setup_dataset.py
+python3 2_gen_labels.py
+python3 3_extract_embs.py
+python3 4_scale.py
+python3 5_balance.py
+python3 6_train.py
+python3 7_test.py

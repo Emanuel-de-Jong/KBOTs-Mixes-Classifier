@@ -28,7 +28,7 @@ Finds the right playlist for a new song.
         6. `python 6_train.py`.
         7. Optionally run `python 7_test.py` for a more realistic inference simulation test.
     - Automatic:
-        1. `train.bat`. This will take a while.
+        1. `train.bat/sh`. This will take a while.
 
 ## Usage
 For a single MP3 file anywhere:
@@ -52,7 +52,6 @@ You'll have to install deno and let yt-dlp know about it:
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
 
 ## Roadmap
-- Data sequential processing
 - Remove duplicate songs
 - Look for outliers in training data
 - 2x weight on non public songs
