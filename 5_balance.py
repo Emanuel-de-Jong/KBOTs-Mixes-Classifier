@@ -3,11 +3,10 @@ import numpy as np
 import gc
 import global_params as g
 
-VALIDATE_PERC = 0.3
+VALIDATE_PERC = 0.25
 VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
-OVERSAMPLE_TRES_MULTIPLIER = 32 # 8*32=256
-OVERSAMPLE_TRES = g.MIN_SONG_COUNT * OVERSAMPLE_TRES_MULTIPLIER
+TRAIN_SAMPLE_TARGET_QUANTILE = 0.75
 
 BATCH_SIZE = 10_000
 
@@ -153,7 +152,7 @@ def oversample(train_data, label, sample_target):
 
     return pd.concat([train_data, pd.DataFrame(new_rows)], ignore_index=True)
 
-train_sample_target = min(OVERSAMPLE_TRES, label_counts.max())
+train_sample_target = int(label_counts.quantile(TRAIN_SAMPLE_TARGET_QUANTILE))
 for label, count in label_counts.items():
     if count > train_sample_target:
         train_data = undersample(train_data, label, train_sample_target)
