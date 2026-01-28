@@ -37,7 +37,7 @@ def smooth_weights(weights, max_ratio=1.2):
     smoothed = np.clip(weights_array, 1/max_ratio, max_ratio)
     return dict(zip(weights.keys(), smoothed))
 
-def m16(name, X_train, y_train, validation_data):
+def m16(name, train_seq, validation_data):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
         layers.Conv2D(64, (5,5), padding='same', activation='relu'),
@@ -71,8 +71,7 @@ def m16(name, X_train, y_train, validation_data):
     early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
 
     training_data = model.fit(
-        X_train,
-        y_train,
+        train_seq,
         batch_size=32,
         epochs=5000,
         validation_data=validation_data,
