@@ -36,7 +36,7 @@ def set_seed(seed=1):
 
 def load_existing_model():
     model_path = g.CACHE_DIR / f'model_{g.NAME}.keras'
-    history_path = g.MODELS_DIR / f'history.json'
+    history_path = g.MODELS_DIR / f'history_{g.NAME}.json'
     if not os.path.exists(model_path) or not os.path.exists(history_path):
         return None, None
     
@@ -94,7 +94,8 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    for data_path in data_paths[g.DataSetType.test]:
+    test_data_paths = list(g.iter_data_paths(3, g.DataSetType.test))
+    for data_path in test_data_paths:
         df = joblib.load(data_path)
         X_test = np.stack(df["data"].to_numpy())
         y_test = df["label"].to_numpy()
@@ -119,7 +120,7 @@ def test(model, history, name=""):
     plt.close()
 
     test_loss, test_accuracy = model.evaluate(
-        DiskShardedSequence(data_paths[g.DataSetType.test], shuffle=False),
+        DiskShardedSequence(test_data_paths, shuffle=False),
         verbose=0
     )
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
