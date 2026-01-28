@@ -15,7 +15,7 @@ from keras.models import load_model
 from keras.utils import to_categorical
 from Utils import Logger
 
-g.load_data(4)
+g.load_data(5)
 
 model, history = None, None
 

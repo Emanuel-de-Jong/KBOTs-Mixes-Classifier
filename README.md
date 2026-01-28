@@ -23,9 +23,10 @@ Finds the right playlist for a new song.
         1. `python 1_setup_dataset.py`.
         2. `python 2_gen_labels.py`.
         3. `python 3_extract_embs.py`. This will take a while.
-        4. `python 4_preprocess.py`.
-        5. `python 5_train.py`.
-        6. Optionally run `python 6_test.py` for a more realistic inference simulation test.
+        4. `python 4_scale.py`. This will take a while.
+        5. `python 5_balance.py`.
+        6. `python 6_train.py`.
+        7. Optionally run `python 7_test.py` for a more realistic inference simulation test.
     - Automatic:
         1. `train.bat`. This will take a while.
 
@@ -54,11 +55,4 @@ You'll have to install deno and let yt-dlp know about it:
 - Data sequential processing
 - Remove duplicate songs
 - Look for outliers in training data
-- 3x weight on songs from my playlist vs public songs
-- Undersample public playlist songs first if available
-- Balanced batching
-- Duplicates to balance songs?
-    - Up to max songs per label
-    - Make sure no songs removed during downsample
-    - Remove dupes before others?
-- Don't use unique songs in validate if not enough data?
+- 2x weight on non public songs
