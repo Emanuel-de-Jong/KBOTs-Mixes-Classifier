@@ -94,7 +94,7 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_data_paths(3, g.DataSetType.test))
+    test_data_paths = list(g.iter_data_paths(4, g.DataSetType.test))
     for data_path in test_data_paths:
         df = joblib.load(data_path)
         X_test = np.stack(df["data"].to_numpy())

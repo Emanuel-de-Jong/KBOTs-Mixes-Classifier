@@ -16,7 +16,7 @@ if is_scale_tools_loaded:
     scale_tools = joblib.load(SCALE_TOOLS_PATH)
 else:
     sample_loaded = False
-    for data_path in g.iter_all_data_paths():
+    for data_path in g.iter_data_paths(3, g.DataSetType.train):
         g.load_data(data_path)
         feature_dim = g.data.iloc[0]["data"].shape[-1]
         break
@@ -27,7 +27,7 @@ else:
     for f in range(feature_dim):
         values = []
 
-        for data_path in g.iter_all_data_paths():
+        for data_path in g.iter_data_paths(3, g.DataSetType.train):
             g.load_data(data_path)
 
             layer_vals = np.concatenate(
@@ -55,7 +55,7 @@ else:
         "clip_max": clip_max
     }))
 
-    for data_path in g.iter_all_data_paths():
+    for data_path in g.iter_data_paths(3, g.DataSetType.train):
         g.load_data(data_path)
 
         all_values = np.concatenate(
