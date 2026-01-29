@@ -25,8 +25,9 @@ Finds the right playlist for a new song.
         3. `python 3_extract_embs.py`. This will take a while.
         4. `python 4_scale.py`. This will take a while.
         5. `python 5_balance.py`.
-        6. `python 6_train.py`.
-        7. Optionally run `python 7_test.py` for a more realistic inference simulation test.
+        6. `python 6_shuffle.py`.
+        7. `python 7_train.py`.
+        8. Optionally run `python 8_test.py` for a more realistic inference simulation test.
     - Automatic:
         1. `train.bat/sh`. This will take a while.
 

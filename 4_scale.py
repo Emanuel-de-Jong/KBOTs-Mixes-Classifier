@@ -7,7 +7,6 @@ import global_params as g
 from sklearn.preprocessing import MinMaxScaler
 
 SCALE_TOOLS_PATH = g.CACHE_DIR / f"scale_tools_{g.NAME}.joblib"
-BATCH_SIZE = 10_000
 
 scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
@@ -17,8 +16,8 @@ if is_scale_tools_loaded:
 else:
     sample_loaded = False
     for data_path in g.iter_data_paths(3, g.DataSetType.train):
-        g.load_data(data_path)
-        feature_dim = g.data.iloc[0]["data"].shape[-1]
+        data = g.load_data(data_path)
+        feature_dim = data.iloc[0]["data"].shape[-1]
         break
 
     clip_min = np.empty(feature_dim, dtype=np.float32)
@@ -28,10 +27,10 @@ else:
         values = []
 
         for data_path in g.iter_data_paths(3, g.DataSetType.train):
-            g.load_data(data_path)
+            data = g.load_data(data_path)
 
             layer_vals = np.concatenate(
-                [arr[..., f].reshape(-1) for arr in g.data["data"]],
+                [arr[..., f].reshape(-1) for arr in data["data"]],
                 axis=0
             )
             values.append(layer_vals)
@@ -56,10 +55,10 @@ else:
     }))
 
     for data_path in g.iter_data_paths(3, g.DataSetType.train):
-        g.load_data(data_path)
+        data = g.load_data(data_path)
 
         all_values = np.concatenate(
-            [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
+            [arr.reshape(-1, arr.shape[-1]) for arr in data["data"]],
             axis=0
         )
 
@@ -81,10 +80,10 @@ for data_set_type in g.DataSetType:
     out_rows = []
 
     for data_path in g.iter_data_paths(3, data_set_type):
-        g.load_data(data_path)
+        data = g.load_data(data_path)
 
         all_values = np.concatenate(
-            [arr.reshape(-1, arr.shape[-1]) for arr in g.data["data"]],
+            [arr.reshape(-1, arr.shape[-1]) for arr in data["data"]],
             axis=0
         )
 
@@ -97,7 +96,7 @@ for data_set_type in g.DataSetType:
         all_scaled = scale_tools["scaler"].transform(all_values)
 
         offset = 0
-        for _, row in g.data.iterrows():
+        for _, row in data.iterrows():
             arr = row["data"]
             sz = np.prod(arr.shape[:-1])
             row["data"] = all_scaled[offset:offset + sz].reshape(arr.shape)
@@ -105,9 +104,8 @@ for data_set_type in g.DataSetType:
 
             out_rows.append(row)
 
-            if len(out_rows) >= BATCH_SIZE:
-                g.data = pd.DataFrame(out_rows)
-                g.save_data(4, data_set_type, out_idx)
+            if len(out_rows) >= g.DATA_BATCH_SIZE:
+                g.save_data(pd.DataFrame(out_rows), 4, data_set_type, out_idx)
                 out_idx += 1
                 out_rows = []
 
@@ -115,5 +113,4 @@ for data_set_type in g.DataSetType:
         gc.collect()
 
     if out_rows:
-        g.data = pd.DataFrame(out_rows)
-        g.save_data(4, data_set_type, out_idx)
+        g.save_data(pd.DataFrame(out_rows), 4, data_set_type, out_idx)

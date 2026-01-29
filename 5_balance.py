@@ -8,12 +8,9 @@ VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
 TRAIN_SAMPLE_TARGET_QUANTILE = 0.75
 
-BATCH_SIZE = 10_000
-
 dfs = []
 for data_path in g.iter_data_paths(4, g.DataSetType.train):
-    g.load_data(data_path)
-    dfs.append(g.data)
+    dfs.append(g.load_data(data_path))
 
 train_data = pd.concat(dfs, ignore_index=True)
 del dfs
@@ -80,9 +77,7 @@ print("\n== Validate label counts ==")
 for label, count in validate_data["label"].value_counts().items():
     print(f"{g.LABELS[label]}: {count}")
 
-for start in range(0, len(validate_data), BATCH_SIZE):
-    g.data = validate_data.iloc[start:start + BATCH_SIZE]
-    g.save_data(5, g.DataSetType.validate, start // BATCH_SIZE)
+g.save_data_batch(validate_data, 5, g.DataSetType.validate)
 
 validate_idxs = validate_data.index.unique()
 
@@ -163,6 +158,4 @@ print("\n== Train label counts after resample ==")
 for label, count in train_data["label"].value_counts().items():
     print(f"{g.LABELS[label]}: {count}")
 
-for start in range(0, len(train_data), BATCH_SIZE):
-    g.data = train_data.iloc[start:start + BATCH_SIZE]
-    g.save_data(5, g.DataSetType.train, start // BATCH_SIZE)
+g.save_data_batch(train_data, 5, g.DataSetType.train)

@@ -3,6 +3,10 @@ python 1_setup_dataset.py
 python 2_gen_labels.py
 python 3_extract_embs.py
 python 4_scale.py
+del "cache\data_3*"
 python 5_balance.py
-python 6_train.py
-python 7_test.py
+del "cache\data_4*"
+python 6_shuffle.py
+del "cache\data_5*"
+python 7_train.py
+python 8_test.py

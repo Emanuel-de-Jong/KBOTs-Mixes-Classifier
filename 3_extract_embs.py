@@ -52,8 +52,7 @@ def extract(data_set_type):
                     'is_public': song.is_public,
                     'data': emb})
         
-        g.data = pd.DataFrame(data)
-        g.save_data(3, data_set_type, i)
+        g.save_data(pd.DataFrame(data), 3, data_set_type, i)
 
 extract(g.DataSetType.train)
 extract(g.DataSetType.test)

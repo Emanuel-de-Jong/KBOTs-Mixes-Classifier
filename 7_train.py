@@ -21,8 +21,6 @@ model, history = None, None
 
 logger = Logger(g.MODELS_DIR / "train.log")
 
-data_paths = g.get_all_data_paths(5)
-
 def set_seed(seed=1):
     random.seed(seed)
     np.random.seed(seed)
@@ -94,7 +92,7 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_data_paths(4, g.DataSetType.test))
+    test_data_paths = list(g.iter_data_paths(6, g.DataSetType.test))
     for data_path in test_data_paths:
         df = joblib.load(data_path)
         X_test = np.stack(df["data"].to_numpy())
@@ -130,6 +128,8 @@ def train(model_func):
     # name = model_func.__name__
     logger.writeln(name)
 
+
+    data_paths = g.get_all_data_paths(6)
     train_seq = DiskShardedSequence(
         data_paths[g.DataSetType.train],
         shuffle=True

@@ -9,6 +9,8 @@ class DataSetType(Enum):
     validate = 1
     test = 2
 
+DATA_BATCH_SIZE = 30_000
+
 NAME = "global"
 MODELS = {
     "global": [],
@@ -61,17 +63,19 @@ if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):
 def get_song_name(song_path):
     return os.path.splitext(os.path.basename(song_path))[0]
 
-data = None
 def get_data_path(step, data_set_type=DataSetType.train, idx=0):
     return CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib"
 
-def save_data(step, data_set_type=DataSetType.train, idx=0):
+def save_data(data, step, data_set_type=DataSetType.train, idx=0):
     joblib.dump(data, get_data_path(step, data_set_type, idx))
 
+def save_data_batch(data, step, data_set_type=DataSetType.train, batch_size=DATA_BATCH_SIZE):
+    for idx, start in enumerate(range(0, len(data), batch_size)):
+        batch = data.iloc[start:start + batch_size]
+        save_data(batch, step, data_set_type, idx)
+
 def load_data(path):
-    global data
-    data = joblib.load(path)
-    return data
+    return joblib.load(path)
 
 def get_data_count(step, data_set_type=DataSetType.train):
     idx = 0
