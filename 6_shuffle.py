@@ -5,7 +5,7 @@ import pandas as pd
 import global_params as g
 
 g.DATA_BATCH_SIZE = 14_000
-BUCKET_COUNT = 1_000
+BUCKET_COUNT = 500
 
 g.TEMP_DIR.mkdir(exist_ok=True)
 
@@ -29,22 +29,22 @@ for data_set_type in g.DataSetType:
         batch["_bucket"] = np.random.randint(0, BUCKET_COUNT, size=len(batch))
 
         for bucket_id, data in batch.groupby("_bucket"):
-            save_bucket(data.drop(columns="_bucket"), bucket_id, data_set_type)
+            save_bucket(data.drop(columns="_bucket"), bucket_id)
 
         del batch
         gc.collect()
 
     data = None
     batch_idx = 0
-    for bucket_id in range(BUCKET_COUNT):
+    for bucket_id in np.random.permutation(BUCKET_COUNT):
         bucket = load_bucket(bucket_id)
         if bucket is None:
             continue
 
         if data is None:
-            data = pd.concat([data, bucket], ignore_index=True)
-        else:
             data = bucket
+        else:
+            data = pd.concat([data, bucket], ignore_index=True)
         
         if len(data.index) > g.DATA_BATCH_SIZE:
             data = data.sample(frac=1).reset_index(drop=True)
@@ -55,7 +55,10 @@ for data_set_type in g.DataSetType:
             gc.collect()
         
         del bucket
-        gc.collect()
+    
+    if data is not None and not data.empty:
+        data = data.sample(frac=1).reset_index(drop=True)
+        g.save_data(data, 6, data_set_type, batch_idx)
     
     for path in g.TEMP_DIR.iterdir():
         shutil.rmtree(path)
