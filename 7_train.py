@@ -93,16 +93,14 @@ def test(model, history, name=""):
     y_pred_sk = []
 
     test_data_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
-    for data_path in test_data_paths:
-        z = zarr.open(data_path, mode="r")
-        X_test = z["data"][:]
-        y_test = z["label"][:]
-
+    test_seq = DiskShardedSequence(test_data_paths, shuffle=False)
+    for i in range(len(test_seq)):
+        X_test, y_test = test_seq[i]
         y_pred = model.predict(X_test)
         y_pred_sk.extend(np.argmax(y_pred, axis=-1))
         y_true.extend(y_test)
 
-        del df, X_test, y_pred
+        del X_test, y_test, y_pred
         gc.collect()
 
     report = classification_report(y_true, y_pred_sk, target_names = g.LABELS)
@@ -118,7 +116,7 @@ def test(model, history, name=""):
     plt.close()
 
     test_loss, test_accuracy = model.evaluate(
-        DiskShardedSequence(test_data_paths, shuffle=False),
+        test_seq,
         verbose=0
     )
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
