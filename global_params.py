@@ -11,6 +11,7 @@ class DataSetType(Enum):
     test = 2
 
 DATA_BATCH_SIZE = 7_000
+ZARR_CHUNK_SIZE = 256
 
 NAME = "global"
 MODELS = {
@@ -116,15 +117,15 @@ def save_zarr(data, step, data_set_type, batch_idx):
     root.create_array(
         name="data",
         data=X,
-        chunks=(min(2048, len(X)),) + X.shape[1:],
-        compressors=[zarr.codecs.BloscCodec(cname="zstd", clevel=5, shuffle="shuffle")],
+        chunks=(min(ZARR_CHUNK_SIZE, len(X)),) + X.shape[1:],
+        compressors=[zarr.codecs.BloscCodec(cname="lz4", clevel=1, shuffle="shuffle")],
     )
 
     root.create_array(
         name="label",
         data=y,
-        chunks=(min(2048, len(y)),),
-        compressors=[zarr.codecs.BloscCodec(cname="zstd", clevel=5, shuffle="shuffle")],
+        chunks=(min(ZARR_CHUNK_SIZE, len(y)),),
+        compressors=[zarr.codecs.BloscCodec(cname="lz4", clevel=1, shuffle="shuffle")],
     )
 
 def iter_zarr_data_paths(step, data_set_type=DataSetType.train):
