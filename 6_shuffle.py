@@ -1,8 +1,10 @@
 import gc
 import shutil
+import joblib
 import numpy as np
 import pandas as pd
 import global_params as g
+from tqdm import tqdm
 
 g.DATA_BATCH_SIZE = 14_000
 BUCKET_COUNT = 500
@@ -12,19 +14,28 @@ g.TEMP_DIR.mkdir(exist_ok=True)
 def save_bucket(data, bucket_id):
     bucket_dir = g.TEMP_DIR / f"bucket_{bucket_id}"
     bucket_dir.mkdir(exist_ok=True)
-    part_id = len(list(bucket_dir.glob("*.parquet")))
-    data.to_parquet(bucket_dir / f"part-{part_id:05d}.parquet", index=False)
+    part_id = len(list(bucket_dir.glob("*.joblib")))
+    joblib.dump(data, bucket_dir / f"part-{part_id:05d}.joblib")
 
 def load_bucket(bucket_id):
     bucket_dir = g.TEMP_DIR / f"bucket_{bucket_id}"
-    parts = list(bucket_dir.glob("*.parquet"))
+    parts = list(bucket_dir.glob("*.joblib"))
     if not parts:
         return None
-    data = pd.concat([pd.read_parquet(p) for p in parts], ignore_index=True)
-    return data
+    
+    return pd.concat([joblib.load(p) for p in parts], ignore_index=True)
 
-for data_set_type in g.DataSetType:
-    for data_path in g.iter_data_paths(5, data_set_type):
+for data_set_type in tqdm(
+        g.DataSetType,
+        desc="Data Sets",
+        position=0):
+    step = 4 if data_set_type == g.DataSetType.test else 5
+    data_paths = list(g.iter_data_paths(step, data_set_type))
+    for data_path in tqdm(
+            data_paths,
+            desc="Batches",
+            position=1,
+            leave=False):
         batch = g.load_data(data_path)
         batch["_bucket"] = np.random.randint(0, BUCKET_COUNT, size=len(batch))
 
