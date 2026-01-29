@@ -9,7 +9,7 @@ class DataSetType(Enum):
     validate = 1
     test = 2
 
-DATA_BATCH_SIZE = 30_000
+DATA_BATCH_SIZE = 7_000
 
 NAME = "global"
 MODELS = {
@@ -69,7 +69,7 @@ def get_data_path(step, data_set_type=DataSetType.train, idx=0):
 def save_data(data, step, data_set_type=DataSetType.train, idx=0):
     joblib.dump(data, get_data_path(step, data_set_type, idx))
 
-def save_data_batch(data, step, data_set_type=DataSetType.train, batch_size=DATA_BATCH_SIZE):
+def save_data_batched(data, step, data_set_type=DataSetType.train, batch_size=DATA_BATCH_SIZE):
     for idx, start in enumerate(range(0, len(data), batch_size)):
         batch = data.iloc[start:start + batch_size]
         save_data(batch, step, data_set_type, idx)

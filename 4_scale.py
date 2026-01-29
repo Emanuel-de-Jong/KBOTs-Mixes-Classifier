@@ -6,6 +6,8 @@ import os
 import global_params as g
 from sklearn.preprocessing import MinMaxScaler
 
+g.DATA_BATCH_SIZE = 7_000
+
 SCALE_TOOLS_PATH = g.CACHE_DIR / f"scale_tools_{g.NAME}.joblib"
 
 scale_tools = {}
