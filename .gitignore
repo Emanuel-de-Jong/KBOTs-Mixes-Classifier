@@ -6,6 +6,7 @@ cache/
 models/
 public_playlists/archive.txt
 public_playlists/dls/
+temp/
 test/
 train/playlists/*
 !train/playlists/.gitkeep

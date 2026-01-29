@@ -1,5 +1,4 @@
 import joblib
-import sys
 import os
 from pathlib import Path
 from enum import Enum
@@ -38,6 +37,7 @@ TRAIN_PUBLIC_PLAYLISTS_DIR = TRAIN_DIR / "public_playlists"
 TEST_DIR = Path("test")
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
+TEMP_DIR = Path("temp")
 MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 BATCH_DIR = Path("batch")
