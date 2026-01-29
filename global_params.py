@@ -45,18 +45,6 @@ MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 BATCH_DIR = Path("batch")
 
-PLAYLIST_COUNTS = {}
-for folder in TRAIN_PLAYLISTS_DIR.iterdir():
-    if folder.is_dir():
-        mp3_count = len(list(folder.glob("**/*.mp3")))
-        PLAYLIST_COUNTS[folder.name] = mp3_count
-for folder in TRAIN_PUBLIC_PLAYLISTS_DIR.iterdir():
-    if folder.is_dir():
-        mp3_count = len(list(folder.glob("**/*.mp3")))
-        PLAYLIST_COUNTS[folder.name] += mp3_count
-
-MIN_SONG_COUNT = min(PLAYLIST_COUNTS.values())
-
 LABELS = None
 LABEL_COUNT = 0
 if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):

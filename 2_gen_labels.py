@@ -7,11 +7,22 @@ MIN_MAX_SONGS_MULTIPLIER = 4
 # Only for testing! -1 to disable.
 TEST_LABEL_COUNT = -1
 
-sorted_playlist_counts = sorted(g.PLAYLIST_COUNTS.items(), key=lambda x: x[1])
+playlist_counts = {}
+for folder in g.TRAIN_PLAYLISTS_DIR.iterdir():
+    if folder.is_dir():
+        mp3_count = len(list(folder.glob("**/*.mp3")))
+        playlist_counts[folder.name] = mp3_count
+for folder in g.TRAIN_PUBLIC_PLAYLISTS_DIR.iterdir():
+    if folder.is_dir():
+        mp3_count = len(list(folder.glob("**/*.mp3")))
+        playlist_counts[folder.name] += mp3_count
+
+sorted_playlist_counts = sorted(playlist_counts.items(), key=lambda x: x[1])
 for name, count in sorted_playlist_counts:
     print(f"{name}: {count}")
 
-max_song_count = int(round(float(g.MIN_SONG_COUNT) * MIN_MAX_SONGS_MULTIPLIER))
+min_song_count = max(min(playlist_counts.values()), 1)
+max_song_count = int(round(float(min_song_count) * MIN_MAX_SONGS_MULTIPLIER))
 print(f"\nMax song count: {max_song_count}")
 
 labels = sorted([folder.name for folder in g.TRAIN_PLAYLISTS_DIR.iterdir() if folder.is_dir()])
