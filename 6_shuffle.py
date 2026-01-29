@@ -9,6 +9,13 @@ from tqdm import tqdm
 g.DATA_BATCH_SIZE = 14_000
 BUCKET_COUNT = 500
 
+def clear_temp_dir():
+    for path in g.TEMP_DIR.iterdir():
+        shutil.rmtree(path)
+
+if g.TEMP_DIR.exists():
+    clear_temp_dir()
+
 g.TEMP_DIR.mkdir(exist_ok=True)
 
 def save_bucket(data, bucket_id):
@@ -57,9 +64,9 @@ for data_set_type in tqdm(
         else:
             data = pd.concat([data, bucket], ignore_index=True)
         
-        if len(data.index) > g.DATA_BATCH_SIZE:
+        if len(data.index) >= g.DATA_BATCH_SIZE:
             data = data.sample(frac=1).reset_index(drop=True)
-            g.save_data(data, 6, data_set_type, batch_idx)
+            g.save_zarr(data, 6, data_set_type, batch_idx)
             batch_idx += 1
 
             data = None
@@ -69,9 +76,8 @@ for data_set_type in tqdm(
     
     if data is not None and not data.empty:
         data = data.sample(frac=1).reset_index(drop=True)
-        g.save_data(data, 6, data_set_type, batch_idx)
+        g.save_zarr(data, 6, data_set_type, batch_idx)
     
-    for path in g.TEMP_DIR.iterdir():
-        shutil.rmtree(path)
+    clear_temp_dir()
 
 g.TEMP_DIR.rmdir()

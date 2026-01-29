@@ -4,10 +4,10 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import numpy as np
 import random
+import zarr
+import gc
 import global_params as g
 from keras.utils import to_categorical, Sequence
-import joblib
-import gc
 
 class DiskShardedSequence(Sequence):
     def __init__(self, shard_paths, batch_size=32, shuffle=True, **kwargs):
@@ -17,14 +17,14 @@ class DiskShardedSequence(Sequence):
         self.shuffle = shuffle
 
         self.index = []
-        for shard_id, p in enumerate(shard_paths):
-            df = joblib.load(p)
-            for i in range(len(df)):
+        for shard_id, path in enumerate(shard_paths):
+            z = zarr.open(path, mode="r")
+            n = z["label"].shape[0]
+            for i in range(n):
                 self.index.append((shard_id, i))
-            del df
 
         self.current_shard_id = None
-        self.current_df = None
+        self.current_zarr = None
         self.on_epoch_end()
 
     def __len__(self):
@@ -34,21 +34,20 @@ class DiskShardedSequence(Sequence):
         if self.shuffle:
             random.shuffle(self.index)
 
+    def load_shard(self, shard_id):
+        if self.current_shard_id != shard_id:
+            self.current_zarr = zarr.open(self.shard_paths[shard_id], mode="r")
+            self.current_shard_id = shard_id
+            gc.collect()
+
     def __getitem__(self, idx):
         batch = self.index[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         X, y = [], []
         for shard_id, row_idx in batch:
-            if shard_id != self.current_shard_id:
-                if self.current_df is not None:
-                    del self.current_df
-                    gc.collect()
-                self.current_df = joblib.load(self.shard_paths[shard_id])
-                self.current_shard_id = shard_id
-
-            row = self.current_df.iloc[row_idx]
-            X.append(row["data"])
-            y.append(row["label"])
+            self.load_shard(shard_id)
+            X.append(self.current_zarr["data"][row_idx])
+            y.append(self.current_zarr["label"][row_idx])
 
         X = np.stack(X)
         y = to_categorical(np.array(y), g.LABEL_COUNT)

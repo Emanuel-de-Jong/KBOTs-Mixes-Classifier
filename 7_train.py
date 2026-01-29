@@ -5,11 +5,11 @@ os.environ["KERAS_BACKEND"] = "torch"
 import matplotlib.pyplot as plt
 import cnn_structures as cnns
 import numpy as np
-import joblib
 import random
 import torch
 import json
 import time
+import zarr
 import gc
 import global_params as g
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
@@ -92,11 +92,11 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_data_paths(6, g.DataSetType.test))
+    test_data_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
     for data_path in test_data_paths:
-        df = joblib.load(data_path)
-        X_test = np.stack(df["data"].to_numpy())
-        y_test = df["label"].to_numpy()
+        z = zarr.open(data_path, mode="r")
+        X_test = z["data"][:]
+        y_test = z["label"][:]
 
         y_pred = model.predict(X_test)
         y_pred_sk.extend(np.argmax(y_pred, axis=-1))
@@ -128,15 +128,13 @@ def train(model_func):
     # name = model_func.__name__
     logger.writeln(name)
 
-
-    data_paths = g.get_all_data_paths(6)
     train_seq = DiskShardedSequence(
-        data_paths[g.DataSetType.train],
+        list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
         shuffle=True
     )
 
     validate_seq = DiskShardedSequence(
-        data_paths[g.DataSetType.validate],
+        list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
         shuffle=False
     )
 
@@ -153,37 +151,7 @@ def train(model_func):
 
 # model, history = load_existing_model()
 if model is None:
-    # train(cnns.m1)
-    # train(cnns.m2)
-    # train(cnns.m3)
-    # train(cnns.m4)
-    # train(cnns.m5)
-    # train(cnns.m6)
-    # train(cnns.m7)
-    # train(cnns.m8)
-    # train(cnns.m9)
-    # train(cnns.m10)
-    # train(cnns.m11)
-    # train(cnns.m12)
-    # train(cnns.m13)
-    # train(cnns.m14)
-    # train(cnns.m15)
     train(cnns.m16)
-    # train(cnns.m17)
-    # train(cnns.m18)
-    # train(cnns.m19)
-    # train(cnns.m20)
-
-    # train(cnns.m21)
-    # train(cnns.m22)
-    # train(cnns.m23)
-    # train(cnns.m24)
-    # train(cnns.m25)
-    # train(cnns.m26)
-    # train(cnns.m27)
-    # train(cnns.m28)
-    # train(cnns.m29)
-    # train(cnns.m30)
 
 else:
     test(model, history)

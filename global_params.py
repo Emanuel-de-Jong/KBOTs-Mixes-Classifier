@@ -1,5 +1,7 @@
 import joblib
 import os
+import zarr
+import numpy as np
 from pathlib import Path
 from enum import Enum
 
@@ -101,3 +103,36 @@ def get_all_data_paths(step):
         for path in iter_data_paths(step, data_set_type):
             data_paths[data_set_type].append(path)
     return data_paths
+
+def save_zarr(data, step, data_set_type, batch_idx):
+    root = zarr.open_group(
+        CACHE_DIR / f"data_{step}_{data_set_type.name}_{batch_idx}.zarr",
+        mode="w"
+    )
+
+    X = np.stack(data["data"].to_numpy())
+    y = data["label"].to_numpy(dtype=np.int64)
+
+    root.create_array(
+        name="data",
+        data=X,
+        chunks=(min(2048, len(X)),) + X.shape[1:],
+        compressors=[zarr.codecs.BloscCodec(cname="zstd", clevel=5, shuffle="shuffle")],
+    )
+
+    root.create_array(
+        name="label",
+        data=y,
+        chunks=(min(2048, len(y)),),
+        compressors=[zarr.codecs.BloscCodec(cname="zstd", clevel=5, shuffle="shuffle")],
+    )
+
+def iter_zarr_data_paths(step, data_set_type=DataSetType.train):
+    idx = 0
+    while idx < 100_000:
+        data_path = CACHE_DIR / f"data_{step}_{data_set_type.name}_{idx}.zarr"
+        if not data_path.exists():
+            break
+        
+        yield data_path
+        idx += 1
