@@ -98,7 +98,7 @@ def test(model, history, name=""):
         X_test, y_test = test_seq[i]
         y_pred = model.predict(X_test)
         y_pred_sk.extend(np.argmax(y_pred, axis=-1))
-        y_true.extend(y_test)
+        y_true.extend(np.argmax(y_test, axis=-1))
 
         del X_test, y_test, y_pred
         gc.collect()

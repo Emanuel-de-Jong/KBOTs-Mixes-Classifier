@@ -67,7 +67,7 @@ def get_song_name(song_path):
     return os.path.splitext(os.path.basename(song_path))[0]
 
 def get_data_path(step, data_set_type=DataSetType.train, idx=0):
-    return CACHE_DIR / f"data_{step}_{data_set_type}_{idx}.joblib"
+    return CACHE_DIR / f"data_{step}_{data_set_type.name}_{idx}.joblib"
 
 def save_data(data, step, data_set_type=DataSetType.train, idx=0):
     joblib.dump(data, get_data_path(step, data_set_type, idx))

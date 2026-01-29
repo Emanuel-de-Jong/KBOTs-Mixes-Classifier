@@ -6,8 +6,10 @@ python 3_extract_embs.py
 python 4_scale.py
 rm cache/data_3*
 python 5_balance.py
-rm cache/data_4*
+rm cache/data_4_train*
+rm cache/data_4_validate*
 python 6_shuffle.py
+rm cache/data_4_test*
 rm cache/data_5*
 python 7_train.py
 python 8_test.py
