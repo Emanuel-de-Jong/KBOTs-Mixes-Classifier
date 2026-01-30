@@ -3,7 +3,7 @@ import shutil
 import joblib
 import numpy as np
 import pandas as pd
-import global_params as g
+import s0_utils.global_params as g
 from tqdm import tqdm
 
 g.DATA_BATCH_SIZE = 14_000
@@ -36,7 +36,7 @@ for data_set_type in tqdm(
         g.DataSetType,
         desc="Data Sets",
         position=0):
-    step = 4 if data_set_type == g.DataSetType.test else 5
+    step = 3 if data_set_type == g.DataSetType.test else 4
     data_paths = list(g.iter_data_paths(step, data_set_type))
     for data_path in tqdm(
             data_paths,
@@ -66,7 +66,7 @@ for data_set_type in tqdm(
         
         if len(data.index) >= g.DATA_BATCH_SIZE:
             data = data.sample(frac=1).reset_index(drop=True)
-            g.save_zarr(data, 6, data_set_type, batch_idx)
+            g.save_zarr(data, 5, data_set_type, batch_idx)
             batch_idx += 1
 
             data = None
@@ -76,7 +76,7 @@ for data_set_type in tqdm(
     
     if data is not None and not data.empty:
         data = data.sample(frac=1).reset_index(drop=True)
-        g.save_zarr(data, 6, data_set_type, batch_idx)
+        g.save_zarr(data, 5, data_set_type, batch_idx)
     
     clear_temp_dir()
 

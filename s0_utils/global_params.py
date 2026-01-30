@@ -34,21 +34,20 @@ MODELS = {
     ],
 }
 
-TRAIN_DIR = Path("train")
+TRAIN_DIR = Path("data_sets/train")
 TRAIN_PLAYLISTS_DIR = TRAIN_DIR / "playlists"
 TRAIN_PUBLIC_PLAYLISTS_DIR = TRAIN_DIR / "public_playlists"
-TEST_DIR = Path("test")
+TEST_DIR = Path("data_sets/test")
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 TEMP_DIR = Path("temp")
 MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
-BATCH_DIR = Path("batch")
 
 LABELS = None
 LABEL_COUNT = 0
-if os.path.exists(CACHE_DIR / f"labels_{NAME}.joblib"):
-    LABELS = joblib.load(CACHE_DIR / f"labels_{NAME}.joblib")
+if os.path.exists(MODELS_DIR / f"labels_{NAME}.joblib"):
+    LABELS = joblib.load(MODELS_DIR / f"labels_{NAME}.joblib")
     LABEL_COUNT = len(LABELS)
 
 def get_song_name(song_path):

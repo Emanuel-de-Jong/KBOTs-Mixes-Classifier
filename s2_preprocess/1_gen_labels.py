@@ -1,7 +1,7 @@
 import joblib
 import random
 import csv
-import global_params as g
+import s0_utils.global_params as g
 
 MIN_MAX_SONGS_MULTIPLIER = 4
 # Only for testing! -1 to disable.
@@ -29,7 +29,7 @@ labels = sorted([folder.name for folder in g.TRAIN_PLAYLISTS_DIR.iterdir() if fo
 if TEST_LABEL_COUNT != -1:
     labels = labels[:TEST_LABEL_COUNT]
 
-joblib.dump(labels, g.CACHE_DIR / f"labels_{g.NAME}.joblib")
+joblib.dump(labels, g.MODELS_DIR / f"labels_{g.NAME}.joblib")
 
 label_to_num = {label: i for i, label in enumerate(labels)}
 

@@ -4,9 +4,9 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import numpy as np
 import joblib
-import global_params as g
+import s0_utils.global_params as g
 from keras.models import load_model
-from Mert import Mert
+from s0_utils.Mert import Mert
 
 class Classifier():
     def __init__(self, name="global", mert=None):
@@ -14,9 +14,9 @@ class Classifier():
         if mert is None:
             mert = Mert()
         self.mert = mert
-        self.model = load_model(g.CACHE_DIR / f"model_{name}.keras")
-        self.labels = joblib.load(g.CACHE_DIR / f"labels_{name}.joblib")
-        self.scale_tools = joblib.load(g.CACHE_DIR / f"scale_tools_{name}.joblib")
+        self.model = load_model(g.MODELS_DIR / f"model_{name}.keras")
+        self.labels = joblib.load(g.MODELS_DIR / f"labels_{name}.joblib")
+        self.scale_tools = joblib.load(g.MODELS_DIR / f"scale_tools_{name}.joblib")
     
     def infer(self, path, embs=None):
         if embs is None:

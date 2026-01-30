@@ -2,7 +2,7 @@ import unidecode
 import shutil
 import re
 import os
-import global_params as g
+import s0_utils.global_params as g
 
 PLAYLISTS_TO_REMOVE = [
     # Too vague
@@ -84,16 +84,3 @@ for p in g.TRAIN_DIR.glob("**/*.mp3"):
         
         if not new_path.exists():
             p.rename(new_path)
-
-# Fill test dir
-if not g.TEST_DIR.exists():
-    for subdir in g.TRAIN_PLAYLISTS_DIR.iterdir():
-        if subdir.is_dir():
-            mp3_files = sorted(subdir.glob("*.mp3"))
-            if mp3_files:
-                test_subdir = g.TEST_DIR / subdir.name
-                test_subdir.mkdir(parents=True, exist_ok=True)
-
-                src_file = mp3_files[0]
-                dest_file = test_subdir / src_file.name
-                shutil.move(str(src_file), str(dest_file))

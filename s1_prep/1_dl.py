@@ -1,20 +1,16 @@
 import re
-import sys
 import yaml
 import yt_dlp
-from tqdm import tqdm
 from pathlib import Path
+from tqdm import tqdm
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
-import global_params as g
 
 SONGS_PER_GENRE = 60
 MAX_DURATION_SECONDS = 600
 AVAILABILITY_BLACKLIST = ["private", "premium_only", "subscriber_only"]
 
-PUBLIC_PLAYLISTS_DIR = BASE_DIR / "public_playlists"
-DLS_DIR = PUBLIC_PLAYLISTS_DIR / "dls"
+STEP_DIR = Path("s1_prep")
+DLS_DIR = STEP_DIR / "dls"
 DLS_DIR.mkdir(exist_ok=True)
 
 class YtDlpLogger:
@@ -61,7 +57,7 @@ yt_dlp_config_base = {
     "match_filter": yt_dlp.utils.match_filter_func(f"duration<={MAX_DURATION_SECONDS} & {availability_expr}"),
 }
 
-with open(PUBLIC_PLAYLISTS_DIR / "public_playlists.yaml", "r") as f:
+with open(STEP_DIR / "public_playlists.yaml", "r") as f:
     categories_playlists = yaml.safe_load(f)
     categories_playlists.pop("requirements", None)
 

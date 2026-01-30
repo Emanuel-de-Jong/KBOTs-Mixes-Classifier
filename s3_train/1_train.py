@@ -9,17 +9,20 @@ import random
 import torch
 import json
 import time
-import zarr
 import gc
-import global_params as g
+import s0_utils.global_params as g
+from pathlib import Path
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from DiskShardedSequence import DiskShardedSequence
 from keras.models import load_model
-from Utils import Logger
+from s0_utils.Logger import Logger
+
+TRAINING_DIR = Path("s3_train/training")
+TRAINING_DIR.mkdir(exist_ok=True)
 
 model, history = None, None
 
-logger = Logger(g.MODELS_DIR / "train.log")
+logger = Logger(TRAINING_DIR / "training.log")
 
 def set_seed(seed=1):
     random.seed(seed)
@@ -33,8 +36,8 @@ def set_seed(seed=1):
 # set_seed()
 
 def load_existing_model():
-    model_path = g.CACHE_DIR / f'model_{g.NAME}.keras'
-    history_path = g.MODELS_DIR / f'history_{g.NAME}.json'
+    model_path = g.MODELS_DIR / f'model_{g.NAME}.keras'
+    history_path = TRAINING_DIR / f'history_{g.NAME}.json'
     if not os.path.exists(model_path) or not os.path.exists(history_path):
         return None, None
     
@@ -45,7 +48,7 @@ def load_existing_model():
     return model, history
     
 def save_model(name, model, training_data):
-    model.save(g.CACHE_DIR / f'model_{name}.keras')
+    model.save(g.MODELS_DIR / f'model_{name}.keras')
 
     history = {}
     history["accuracy"] = training_data.history["accuracy"]
@@ -53,7 +56,7 @@ def save_model(name, model, training_data):
     history["loss"] = training_data.history["loss"]
     history["val_loss"] = training_data.history["val_loss"]
 
-    with open(g.MODELS_DIR / f'history_{name}.json', 'w') as f:
+    with open(TRAINING_DIR / f'history_{name}.json', 'w') as f:
         json.dump(history, f)
     
     return history
@@ -80,7 +83,7 @@ def draw_acc_and_loss_graphs(history, name):
     plt.grid()
     plt.legend()
 
-    plt.savefig(g.MODELS_DIR / f'test_acc_loss_{name}.png', bbox_inches='tight')
+    plt.savefig(TRAINING_DIR/ f'test_acc_loss_{name}.png', bbox_inches='tight')
     plt.close()
 
 def test(model, history, name=""):
@@ -92,7 +95,7 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
+    test_data_paths = list(g.iter_zarr_data_paths(5, g.DataSetType.test))
     test_seq = DiskShardedSequence(test_data_paths, shuffle=False)
     for i in range(len(test_seq)):
         X_test, y_test = test_seq[i]
@@ -112,7 +115,7 @@ def test(model, history, name=""):
     _, ax = plt.subplots(figsize=(20, 22), dpi=200)
     disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
     plt.tight_layout(pad=3.0)
-    plt.savefig(g.MODELS_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
+    plt.savefig(TRAINING_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
     plt.close()
 
     test_loss, test_accuracy = model.evaluate(
@@ -127,12 +130,12 @@ def train(model_func):
     logger.writeln(name)
 
     train_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
+        list(g.iter_zarr_data_paths(5, g.DataSetType.train)),
         shuffle=True
     )
 
     validate_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
+        list(g.iter_zarr_data_paths(5, g.DataSetType.validate)),
         shuffle=False
     )
 

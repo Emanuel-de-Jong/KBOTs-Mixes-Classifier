@@ -3,13 +3,13 @@ import os
 os.environ["KERAS_BACKEND"] = "torch"
 
 import numpy as np
-import global_params as g
+import s0_utils.global_params as g
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from keras.models import Sequential
 from sklearn.utils import class_weight
 from keras import layers, regularizers
 from keras.optimizers import Adam
-from Mert import Mert
+from s0_utils.Mert import Mert
 
 LOSS = 'categorical_crossentropy'
 METRICS = ['accuracy']

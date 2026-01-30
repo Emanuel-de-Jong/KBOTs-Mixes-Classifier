@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 set -e
-python 1_setup_dataset.py
-python 2_gen_labels.py
-python 3_extract_embs.py
-python 4_scale.py
-rm cache/data_3*
-python 5_balance.py
-rm cache/data_4_train*
-python 6_shuffle.py
-rm cache/data_4_test*
-rm cache/data_5*
-python 7_train.py
-python 8_test.py
+python -m s2_preprocess.1_gen_labels
+python -m s2_preprocess.2_extract_embs
+python -m s2_preprocess.3_scale
+rm cache/data_2*
+python -m s2_preprocess.4_balance
+rm cache/data_3_train*
+python -m s2_preprocess.5_shuffle
+rm cache/data_3_test*
+rm cache/data_4*
+python -m s3_train.1_train
+python -m s3_train.2_test

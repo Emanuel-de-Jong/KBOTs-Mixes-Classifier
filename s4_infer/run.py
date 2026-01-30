@@ -1,6 +1,6 @@
 import sys
-import global_params as g
-from Classifier import Classifier
+import s0_utils.global_params as g
+from s0_utils.Classifier import Classifier
 
 path = "test/Bassline/Club Angel - Control Dem.mp3"
 if len(sys.argv) > 1:

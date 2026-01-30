@@ -2,14 +2,18 @@ import joblib
 import yaml
 import sys
 import os
-import global_params as g
-from Classifier import Classifier
-from Utils import Logger
+import s0_utils.global_params as g
+from pathlib import Path
+from s0_utils.Classifier import Classifier
+from s0_utils.Logger import Logger
 from tqdm import tqdm
-from Mert import Mert
+from s0_utils.Mert import Mert
 
-cache_path = g.BATCH_DIR / "cache.joblib"
-logger = Logger(g.BATCH_DIR / "log.log")
+BATCH_DIR = Path("s4_infer/batch")
+CACHE_PATH = BATCH_DIR / "cache.joblib"
+RESULTS_PATH = Path("s4_infer/batch_results.yaml")
+
+logger = Logger(BATCH_DIR / "batch.log")
 mert = Mert()
 
 models = {}
@@ -17,15 +21,15 @@ for name in g.MODELS.keys():
     models[name] = None
 
 cache = {}
-if cache_path.exists():
+if CACHE_PATH.exists():
     print("Loading cache...")
-    cache = joblib.load(cache_path)
+    cache = joblib.load(CACHE_PATH)
 
 for name in models.keys():
     models[name] = Classifier(name, mert)
 
 results = {}
-song_paths = list(g.BATCH_DIR.glob("*.mp3"))
+song_paths = list(BATCH_DIR.glob("*.mp3"))
 for song_path in tqdm(song_paths, total=len(song_paths)):
     embs = None
     if song_path in cache:
@@ -51,7 +55,7 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
     song_name, _ = os.path.splitext(os.path.basename(song_path))
     results[song_name] = tops
 
-joblib.dump(cache, cache_path)
+joblib.dump(cache, CACHE_PATH)
 
-with open(g.BATCH_DIR / "results.yaml", "w", encoding="utf-8") as f:
+with open(RESULTS_PATH, "w", encoding="utf-8") as f:
     yaml.dump(results, f)

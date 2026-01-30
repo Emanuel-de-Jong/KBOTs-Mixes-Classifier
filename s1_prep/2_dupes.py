@@ -1,12 +1,11 @@
 import re
-import os
-import global_params as g
+import s0_utils.global_params as g
 from pathlib import Path
 from itertools import combinations
 
 MIN_WORD_MATCHES = 5
 
-OUTPUT_FILE = Path("dupe_songs.log")
+OUTPUT_FILE = Path("s1_prep/2_dupe.log")
 
 def sanitize(name):
     sanitized = re.sub(r"[^A-Za-z0-9]+", " ", name)

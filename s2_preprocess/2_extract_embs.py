@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-import global_params as g
-from Mert import Mert
+import s0_utils.global_params as g
+from s0_utils.Mert import Mert
 from tqdm import tqdm
 
 MAX_CHUNKS_TRAIN = 18
@@ -52,7 +52,7 @@ def extract(data_set_type):
                     'is_public': song.is_public,
                     'data': emb})
         
-        g.save_data(pd.DataFrame(data), 3, data_set_type, i)
+        g.save_data(pd.DataFrame(data), 2, data_set_type, i)
 
 extract(g.DataSetType.train)
 extract(g.DataSetType.test)

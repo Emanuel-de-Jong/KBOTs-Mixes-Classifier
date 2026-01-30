@@ -1,17 +1,18 @@
 
 *.log
-batch/*
-!batch/.gitkeep
 cache/
 models/
-public_playlists/archive.txt
-public_playlists/dls/
 temp/
-test/
-train/playlists/*
-!train/playlists/.gitkeep
-train/public_playlists/*
-!train/public_playlists/.gitkeep
+data_sets/test/
+data_sets/train/playlists/*
+!data_sets/train/playlists/.gitkeep
+data_sets/train/public_playlists/*
+!data_sets/train/public_playlists/.gitkeep
+s1_prep/archive.txt
+s1_prep/dls/
+s3_train/training/
+s4_infer/batch/*
+!s4_infer/batch/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

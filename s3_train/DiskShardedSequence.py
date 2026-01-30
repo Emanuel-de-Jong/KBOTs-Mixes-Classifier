@@ -4,7 +4,7 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import random
 import zarr
-import global_params as g
+import s0_utils.global_params as g
 from keras.utils import to_categorical, Sequence
 
 class DiskShardedSequence(Sequence):

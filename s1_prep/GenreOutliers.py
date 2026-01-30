@@ -3,10 +3,10 @@ import time
 import numpy as np
 import pandas as pd
 import joblib
-import global_params as g
+import s0_utils.global_params as g
 from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
-from Mert import Mert
+from s0_utils.Mert import Mert
 
 class GenreOutliers():
     MAX_CHUNKS = 15

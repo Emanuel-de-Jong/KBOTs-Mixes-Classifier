@@ -1,6 +1,6 @@
-import global_params as g
-from Classifier import Classifier
-from Utils import Logger
+import s0_utils.global_params as g
+from s0_utils.Classifier import Classifier
+from s0_utils.Logger import Logger
 from tqdm import tqdm
 
 class Result():
