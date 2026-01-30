@@ -6,7 +6,6 @@ python 4_scale.py
 del "cache\data_3*"
 python 5_balance.py
 del "cache\data_4_train*"
-del "cache\data_4_validate*"
 python 6_shuffle.py
 del "cache\data_4_test*"
 del "cache\data_5*"

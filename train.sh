@@ -7,7 +7,6 @@ python 4_scale.py
 rm cache/data_3*
 python 5_balance.py
 rm cache/data_4_train*
-rm cache/data_4_validate*
 python 6_shuffle.py
 rm cache/data_4_test*
 rm cache/data_5*
