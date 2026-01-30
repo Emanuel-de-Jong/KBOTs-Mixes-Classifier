@@ -2,6 +2,9 @@ import s0_utils.global_params as g
 from s0_utils.Classifier import Classifier
 from s0_utils.Logger import Logger
 from tqdm import tqdm
+from pathlib import Path
+
+TEST_FILE = Path("s3_train/2_test.log")
 
 class Result():
     def __init__(self, correct_label, top, song):
@@ -19,7 +22,7 @@ class Result():
 
 classifier = Classifier(g.NAME)
 
-logger = Logger("test.log")
+logger = Logger(TEST_FILE)
 
 def test_playlist(playlist_dir):
     test_song = list(playlist_dir.glob("*.mp3"))[0]

@@ -16,22 +16,22 @@ ZARR_CHUNK_SIZE = 256
 NAME = "global"
 MODELS = {
     "global": [],
-    "general_pop": [],
-    "rock": [],
-    "edm_hard": [],
-    "edm_easy": [
-        "Bassline",
-        "Breakcore",
-        "Chillstep",
-        "Future Funk",
-        "Groovy UK Garage",
-        "Hardstyle",
-        "Lofi Hip Hop",
-        "Melodic Extratone",
-        "Pioneer Glitch Hop",
-        "Rawstyle",
-        "Synthwave",
-    ],
+    # "general_pop": [],
+    # "rock": [],
+    # "edm_hard": [],
+    # "edm_easy": [
+    #     "Bassline",
+    #     "Breakcore",
+    #     "Chillstep",
+    #     "Future Funk",
+    #     "Groovy UK Garage",
+    #     "Hardstyle",
+    #     "Lofi Hip Hop",
+    #     "Melodic Extratone",
+    #     "Pioneer Glitch Hop",
+    #     "Rawstyle",
+    #     "Synthwave",
+    # ],
 }
 
 TRAIN_DIR = Path("data_sets/train")

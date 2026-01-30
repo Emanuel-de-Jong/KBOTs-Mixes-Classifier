@@ -3,7 +3,7 @@ import os
 os.environ["KERAS_BACKEND"] = "torch"
 
 import matplotlib.pyplot as plt
-import cnn_structures as cnns
+import s3_train.cnn_structures as cnns
 import numpy as np
 import random
 import torch
@@ -13,7 +13,7 @@ import gc
 import s0_utils.global_params as g
 from pathlib import Path
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
-from DiskShardedSequence import DiskShardedSequence
+from s3_train.DiskShardedSequence import DiskShardedSequence
 from keras.models import load_model
 from s0_utils.Logger import Logger
 

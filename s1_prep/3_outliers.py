@@ -1,11 +1,11 @@
 import s0_utils.global_params as g
-from GenreOutliers import GenreOutliers
+from s1_prep.GenreOutliers import GenreOutliers
 from pathlib import Path
 
 GENRE_MIN_SONG_COUNT = 5
 GENRE_MAX_SONG_COUNT = 50
 
-OUTLIERS_FILE = Path("s1_prep/outliers.log")
+OUTLIERS_FILE = Path("s1_prep/3_outliers.log")
 
 genre_counts = {}
 for path in g.TRAIN_DIR.iterdir():
