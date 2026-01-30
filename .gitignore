@@ -8,7 +8,6 @@ data_sets/train/playlists/*
 !data_sets/train/playlists/.gitkeep
 data_sets/train/public_playlists/*
 !data_sets/train/public_playlists/.gitkeep
-s1_prep/archive.txt
 s1_prep/dls/
 s3_train/training/
 s4_infer/batch_results.yaml
