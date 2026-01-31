@@ -35,17 +35,23 @@ class GenreOutliers():
     def extract_embeddings(self, genre):
         print(f"\n= Finding outliers in {genre} =")
 
-        genre_dir = g.TRAIN_DIR / genre
-        if not genre_dir.exists() or not genre_dir.is_dir():
+        genre_dir = g.TRAIN_PLAYLISTS_DIR / genre
+        if not genre_dir.exists():
             raise Exception(f"Genre dir not found: {genre_dir}")
 
-        mp3s = sorted(list(genre_dir.glob("*.mp3")))
+        mp3s = list(genre_dir.glob("*.mp3"))
+
+        public_genre_dir = g.TRAIN_PUBLIC_PLAYLISTS_DIR / genre
+        if public_genre_dir.exists():
+            mp3s.extend(list(public_genre_dir.glob("**/*.mp3")))
+
         if len(mp3s) == 0:
             raise Exception(f"No mp3 files found in: {genre_dir}")
+        
+        mp3s = sorted(mp3s)
 
         song_embeddings = []
         for path in tqdm(mp3s, total=len(mp3s)):
-            song_name = g.get_song_name(str(path))
             song_embs = self.mert.run(str(path), self.MAX_CHUNKS)
             if song_embs is None or not isinstance(song_embs, np.ndarray):
                 continue
@@ -59,7 +65,7 @@ class GenreOutliers():
                     continue
 
                 song_embeddings.append({
-                    "song": song_name,
+                    "song": path,
                     "data": emb
                 })
 
@@ -178,7 +184,7 @@ class GenreOutliers():
             lines.append("No clear outliers found.")
         else:
             for _, row in outliers.iterrows():
-                lines.append(row["song"])
+                lines.append(str(row["song"]))
                 lines.append(f"\tdistance: {row['distance']:.6f}")
                 lines.append(f"\tz: {row['robust_z']:.3f}")
 

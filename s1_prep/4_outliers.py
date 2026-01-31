@@ -5,10 +5,10 @@ from pathlib import Path
 GENRE_MIN_SONG_COUNT = 5
 GENRE_MAX_SONG_COUNT = 50
 
-OUTLIERS_FILE = Path("s1_prep/3_outliers.log")
+OUTLIERS_FILE = Path("s1_prep/4_outliers.log")
 
 genre_counts = {}
-for path in g.TRAIN_DIR.iterdir():
+for path in g.TRAIN_PLAYLISTS_DIR.iterdir():
     if path.is_dir():
         mp3_count = sum(1 for f in path.iterdir() if f.suffix.lower() == ".mp3")
         genre_counts[path.name] = mp3_count

@@ -50,9 +50,6 @@ if os.path.exists(MODELS_DIR / f"labels_{NAME}.joblib"):
     LABELS = joblib.load(MODELS_DIR / f"labels_{NAME}.joblib")
     LABEL_COUNT = len(LABELS)
 
-def get_song_name(song_path):
-    return os.path.splitext(os.path.basename(song_path))[0]
-
 def get_data_path(step, data_set_type=DataSetType.train, idx=0):
     return CACHE_DIR / f"data_{step}_{data_set_type.name}_{idx}.joblib"
 

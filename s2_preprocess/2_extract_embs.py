@@ -3,6 +3,7 @@ import numpy as np
 import s0_utils.global_params as g
 from s0_utils.Mert import Mert
 from tqdm import tqdm
+from pathlib import Path
 
 MAX_CHUNKS_TRAIN = 18
 MAX_CHUNKS_TEST = -1
@@ -33,7 +34,7 @@ def extract(data_set_type):
                 position=1,
                 leave=False):
             song_label = int(song.label)
-            song_name = g.get_song_name(song.song)
+            song_name = Path(song.song).stem
             song_embs = mert.run(song.song, max_chunks)
             if song_embs is None:
                 continue
