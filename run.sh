@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -e
+
+category="$1"
+step="$2"
+
+declare -A CATEGORIES=(
+  [1]="s1_prep"
+  [2]="s2_preprocess"
+  [3]="s3_train"
+  [4]="s4_infer"
+)
+
+declare -A STEPS_1=(
+  [1]="1_sanitize"
+  [2]="2_dl"
+  [3]="3_dupes"
+  [4]="4_outliers"
+  [5]="5_test_data_set"
+)
+
+declare -A STEPS_2=(
+  [1]="1_gen_labels"
+  [2]="2_extract_embs"
+  [3]="3_scale"
+  [4]="4_balance"
+  [5]="5_shuffle"
+)
+
+declare -A STEPS_3=(
+  [1]="1_train"
+  [2]="2_test"
+)
+
+declare -A STEPS_4=(
+  [1]="run"
+  [2]="run_batch"
+)
+
+steps_var="STEPS_${category}"
+module="${CATEGORIES[$category]}"
+stepmod="$(eval "echo \${${steps_var}[$step]}")"
+
+python -m "${module}.${stepmod}"
