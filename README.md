@@ -1,8 +1,8 @@
 # KBOT's Mixes Classifier
 Finds the right playlist for a new song.
 
-**Active Development:** 2025-10-13 - 2026-01-30<br>
-**Last Change:** 2026-01-30<br>
+**Active Development:** 2025-10-13 - 2026-02-01<br>
+**Last Change:** 2026-02-01<br>
 **Highlights:** Machine Learning<br>
 
 | | |
