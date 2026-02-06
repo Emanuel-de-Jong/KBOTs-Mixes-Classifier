@@ -114,17 +114,8 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
     genre_dir.mkdir(exist_ok=True)
 
     for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
-        url = urlparse(playlist_url)
-
-        if "://music.y" in playlist_url:
-            query = parse_qs(url.query)
-            query.pop('v', None)
-            playlist_url = urlunparse(url._replace(query=urlencode(query, doseq=True)))
-
-        unsanitized_playlist_name = url.path + url.query
-        playlist_name = re.sub(r"[^a-zA-Z0-9]", "", unsanitized_playlist_name)
-        playlist_name = playlist_name[:32]
-        playlist_dir = genre_dir / playlist_name
+        playlist_dir = genre_dir / get_playlist_name(playlist_url)
+        playlist_url = fix_url(playlist_url)
 
         existing_songs = 0
         if playlist_dir.exists():
@@ -146,6 +137,19 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
             except yt_dlp.utils.MaxDownloadsReached:
                 pass
 
+def get_playlist_name(url):
+    unsanitized_playlist_name = "".join(url.split("/")[1:-1])
+    playlist_name = re.sub(r"[^a-zA-Z0-9]", "", unsanitized_playlist_name)
+    return playlist_name[:32]
+
+def fix_url(url):
+    url_obj = urlparse(url)
+    if "://music.y" in url:
+        query = parse_qs(url_obj.query)
+        query.pop('v', None)
+        url = urlunparse(url_obj._replace(query=urlencode(query, doseq=True)))
+    return url
+
 for category, genres_playlists in categories_playlists.items():
     for genre, genre_playlists in tqdm(
             genres_playlists.items(),
@@ -155,16 +159,29 @@ for category, genres_playlists in categories_playlists.items():
         if not valid_playlists:
             continue
 
-        existing_songs = 0
         genre_dir = DLS_DIR / genre
-        if genre_dir.exists():
-            existing_songs = len(list(genre_dir.rglob("*.mp3")))
-            if existing_songs >= SONGS_PER_GENRE:
-                continue
+
+        existing_songs = {}
+        has_empty_playlist = False
+        for playlist_url in valid_playlists:
+            playlist_dir = genre_dir / get_playlist_name(playlist_url)
+            existing_songs[playlist_url] = len(list(playlist_dir.rglob("*.mp3")))
+            if playlist_dir.exists() and existing_songs[playlist_url] == 0:
+                has_empty_playlist = True
+                break
+        
+        if sum(existing_songs.values()) >= SONGS_PER_GENRE and not has_empty_playlist:
+            continue
 
         playlists_songs_needed = get_playlists_songs_needed(valid_playlists)
 
-        total_to_dl = sum(playlists_songs_needed) - existing_songs
+        total_to_dl = SONGS_PER_GENRE
+        for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
+            if not playlist_url in existing_songs:
+                continue
+
+            total_to_dl -= max(songs_needed - existing_songs[playlist_url], 0)
+
         if total_to_dl <= 0:
             continue
 
