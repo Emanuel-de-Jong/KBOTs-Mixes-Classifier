@@ -138,7 +138,8 @@ def dl_playlists(genre_dir, valid_playlists, playlists_songs_needed, song_bar):
                 pass
 
 def get_playlist_name(url):
-    unsanitized_playlist_name = "".join(url.split("/")[1:-1])
+    url_obj = urlparse(url)
+    unsanitized_playlist_name = url_obj.path + url_obj.query
     playlist_name = re.sub(r"[^a-zA-Z0-9]", "", unsanitized_playlist_name)
     return playlist_name[:32]
 
@@ -179,12 +180,12 @@ for category, genres_playlists in categories_playlists.items():
 
         playlists_songs_needed = get_playlists_songs_needed(valid_playlists)
 
-        total_to_dl = SONGS_PER_GENRE
+        total_to_dl = 0
         for playlist_url, songs_needed in zip(valid_playlists, playlists_songs_needed):
-            if not playlist_url in existing_songs:
-                continue
-
-            total_to_dl -= min(existing_songs[playlist_url] - songs_needed, 0)
+            if playlist_url in existing_songs:
+                total_to_dl += max(songs_needed - existing_songs[playlist_url], 0)
+            else:
+                total_to_dl += songs_needed
 
         if total_to_dl <= 0:
             continue
