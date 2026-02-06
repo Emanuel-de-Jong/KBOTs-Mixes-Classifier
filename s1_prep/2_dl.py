@@ -165,8 +165,12 @@ for category, genres_playlists in categories_playlists.items():
         has_empty_playlist = False
         for playlist_url in valid_playlists:
             playlist_dir = genre_dir / get_playlist_name(playlist_url)
+            if not playlist_dir.exists():
+                has_empty_playlist = True
+                break
+
             existing_songs[playlist_url] = len(list(playlist_dir.rglob("*.mp3")))
-            if playlist_dir.exists() and existing_songs[playlist_url] == 0:
+            if existing_songs[playlist_url] == 0:
                 has_empty_playlist = True
                 break
         
@@ -180,7 +184,7 @@ for category, genres_playlists in categories_playlists.items():
             if not playlist_url in existing_songs:
                 continue
 
-            total_to_dl -= max(songs_needed - existing_songs[playlist_url], 0)
+            total_to_dl -= min(existing_songs[playlist_url] - songs_needed, 0)
 
         if total_to_dl <= 0:
             continue
