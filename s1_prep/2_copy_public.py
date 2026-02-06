@@ -50,29 +50,38 @@ for category, genres_playlists in categories_playlists.items():
             songs_by_playlist[playlist_dir] = songs
         
         playlist_count = len(songs_by_playlist.keys())
+        if playlist_count == 0:
+            continue
+
         song_target = math.ceil(SONGS_PER_GENRE / playlist_count)
 
         song_target_by_playlist = {}
-        for playlist_dir, songs in songs_by_playlist:
+        for playlist_dir, songs in songs_by_playlist.items():
             song_target_by_playlist[playlist_dir] = min(len(songs), song_target)
         
         song_count_to_balance = SONGS_PER_GENRE - sum(song_target_by_playlist.values())
         while song_count_to_balance > 0:
-            has_progess = False
-            for playlist_dir, songs in songs_by_playlist:
+            has_progress = False
+            for playlist_dir, songs in songs_by_playlist.items():
                 if len(songs) > song_target_by_playlist[playlist_dir]:
-                    has_progess = True
+                    has_progress = True
                     song_target_by_playlist[playlist_dir] += 1
                     song_count_to_balance -= 1
             
-            if not has_progess:
+            if not has_progress:
                 break
         
-        for playlist_dir, songs in songs_by_playlist:
+        for playlist_dir, songs in songs_by_playlist.items():
             random.shuffle(songs)
 
             song_target = song_target_by_playlist[playlist_dir]
             for i in range(song_target):
-                target_path = Path(songs[i])
-                destination_path = g.TRAIN_PUBLIC_PLAYLISTS_DIR / genre / target_path.name
+                target_path = songs[i]
+
+                destination_dir = g.TRAIN_PUBLIC_PLAYLISTS_DIR / genre
+                destination_dir.mkdir(exist_ok=True)
+
+                destination_filename = f"{target_path.stem}_{random.randint(100, 999)}{target_path.suffix}"
+                destination_path = destination_dir / destination_filename
+
                 shutil.copy2(target_path, destination_path)
