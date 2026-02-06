@@ -13,10 +13,11 @@ declare -A CATEGORIES=(
 
 declare -A STEPS_1=(
   [1]="1_dl"
-  [2]="2_sanitize"
-  [3]="3_dupes"
-  [4]="4_outliers"
-  [5]="5_test_data_set"
+  [2]="2_copy_public"
+  [3]="3_sanitize"
+  [4]="4_dupes"
+  [5]="5_outliers"
+  [6]="6_test_data_set"
 )
 
 declare -A STEPS_2=(

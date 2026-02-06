@@ -5,7 +5,7 @@ from pathlib import Path
 GENRE_MIN_SONG_COUNT = 5
 GENRE_MAX_SONG_COUNT = 50
 
-OUTLIERS_FILE = Path("s1_prep/4_outliers.log")
+OUTLIERS_FILE = Path("s1_prep/5_outliers.log")
 
 genre_counts = {}
 for path in g.TRAIN_PLAYLISTS_DIR.iterdir():

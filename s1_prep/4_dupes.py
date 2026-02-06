@@ -5,7 +5,7 @@ from itertools import combinations
 
 MIN_WORD_MATCHES = 5
 
-OUTPUT_FILE = Path("s1_prep/3_dupes.log")
+OUTPUT_FILE = Path("s1_prep/4_dupes.log")
 
 def sanitize(name):
     sanitized = re.sub(r"[^A-Za-z0-9]+", " ", name)
