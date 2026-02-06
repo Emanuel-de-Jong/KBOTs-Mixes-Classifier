@@ -34,15 +34,17 @@ MODELS = {
     # ],
 }
 
-TRAIN_DIR = Path("data_sets/train")
+TRAIN_DIR = Path("data_sets") / "train"
 TRAIN_PLAYLISTS_DIR = TRAIN_DIR / "playlists"
 TRAIN_PUBLIC_PLAYLISTS_DIR = TRAIN_DIR / "public_playlists"
-TEST_DIR = Path("data_sets/test")
+TEST_DIR = Path("data_sets") / "test"
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 TEMP_DIR = Path("temp")
 MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
+DLS_DIR = Path("s1_prep") / "dls"
+DLS_DIR.mkdir(exist_ok=True)
 
 LABELS = None
 LABEL_COUNT = 0

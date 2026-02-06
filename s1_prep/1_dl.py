@@ -1,6 +1,7 @@
 import re
 import yaml
 import yt_dlp
+import s0_utils.global_params as g
 from pathlib import Path
 from tqdm import tqdm
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -10,8 +11,6 @@ MAX_DURATION_SECONDS = 600
 AVAILABILITY_BLACKLIST = ["private", "premium_only", "subscriber_only"]
 
 STEP_DIR = Path("s1_prep")
-DLS_DIR = STEP_DIR / "dls"
-DLS_DIR.mkdir(exist_ok=True)
 
 class YtDlpLogger:
     def debug(self, msg):
@@ -42,7 +41,7 @@ yt_dlp_config_base = {
         },
     },
     
-    "download_archive": str(DLS_DIR / "archive.txt"),
+    "download_archive": str(g.DLS_DIR / "archive.txt"),
     "restrictfilenames": True,
     "windowsfilenames": True,
 
@@ -160,7 +159,7 @@ for category, genres_playlists in categories_playlists.items():
         if not valid_playlists:
             continue
 
-        genre_dir = DLS_DIR / genre
+        genre_dir = g.DLS_DIR / genre
 
         existing_songs = {}
         has_empty_playlist = False
