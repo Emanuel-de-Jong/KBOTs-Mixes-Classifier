@@ -12,8 +12,8 @@ declare -A CATEGORIES=(
 )
 
 declare -A STEPS_1=(
-  [1]="1_sanitize"
-  [2]="2_dl"
+  [1]="1_dl"
+  [2]="2_sanitize"
   [3]="3_dupes"
   [4]="4_outliers"
   [5]="5_test_data_set"
