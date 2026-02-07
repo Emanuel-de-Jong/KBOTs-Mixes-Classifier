@@ -72,7 +72,7 @@ for target, sources in PLAYLISTS_TO_MERGE.items():
             shutil.rmtree(src_dir)
 
 # Clean mp3 names
-for p in g.TRAIN_DIR.glob("**/*.mp3"):
+for p in g.TRAIN_DIR.rglob("*.mp3"):
     old_stem = p.stem
     new_stem = unidecode.unidecode(old_stem)
     new_stem = re.sub(r'[^a-zA-Z0-9\s\.\-\_\,]', '', new_stem)

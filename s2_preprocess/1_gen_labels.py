@@ -10,11 +10,11 @@ TEST_LABEL_COUNT = -1
 playlist_counts = {}
 for folder in g.TRAIN_PLAYLISTS_DIR.iterdir():
     if folder.is_dir():
-        mp3_count = len(list(folder.glob("**/*.mp3")))
+        mp3_count = len(list(folder.rglob("*.mp3")))
         playlist_counts[folder.name] = mp3_count
 for folder in g.TRAIN_PUBLIC_PLAYLISTS_DIR.iterdir():
     if folder.is_dir():
-        mp3_count = len(list(folder.glob("**/*.mp3")))
+        mp3_count = len(list(folder.rglob("*.mp3")))
         playlist_counts[folder.name] += mp3_count
 
 sorted_playlist_counts = sorted(playlist_counts.items(), key=lambda x: x[1])
@@ -46,13 +46,13 @@ def get_song_labels(data_set_type):
                 if TEST_LABEL_COUNT != -1 and playlist_count > TEST_LABEL_COUNT:
                     break
 
-                songs = list(playlist_dir.glob("**/*.mp3"))
+                songs = list(playlist_dir.rglob("*.mp3"))
                 random.shuffle(songs)
 
                 if data_set_type == g.DataSetType.train:
                     public_playlist_dir = g.TRAIN_PUBLIC_PLAYLISTS_DIR / playlist_dir.name
                     if public_playlist_dir.exists():
-                        public_songs = list(public_playlist_dir.glob("**/*.mp3"))
+                        public_songs = list(public_playlist_dir.rglob("*.mp3"))
                         random.shuffle(public_songs)
                         songs.extend(public_songs)
                 

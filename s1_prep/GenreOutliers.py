@@ -43,7 +43,7 @@ class GenreOutliers():
 
         public_genre_dir = g.TRAIN_PUBLIC_PLAYLISTS_DIR / genre
         if public_genre_dir.exists():
-            mp3s.extend(list(public_genre_dir.glob("**/*.mp3")))
+            mp3s.extend(list(public_genre_dir.rglob("*.mp3")))
 
         if len(mp3s) == 0:
             raise Exception(f"No mp3 files found in: {genre_dir}")

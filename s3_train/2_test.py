@@ -7,31 +7,49 @@ from pathlib import Path
 TEST_FILE = Path("s3_train/2_test.log")
 
 class Result():
-    def __init__(self, correct_label, top, song):
+    def __init__(self, correct_label, song_results):
         self.correct_label = correct_label
-        self.top = top
-        self.song = song
+        self.song_results = song_results
 
-        self.is_top_1 = top[0][0] == correct_label
-        self.is_top_3 = self.is_top_1 or \
-            (top[1][0] == correct_label) or \
-            (top[2][0] == correct_label)
+        self.result_count = len(song_results)
+        self.top1_hits = sum(r[0] for r in song_results)
+        self.top3_hits = sum(r[1] for r in song_results)
+
+        self.top_1_rate = self.top1_hits / self.result_count
+        self.top_3_rate = self.top3_hits / self.result_count
+
+        # 2/3 correct is enough
+        self.is_top_1 = (3 * self.top1_hits) >= (2 * self.result_count)
+        self.is_top_3 = (3 * self.top3_hits) >= (2 * self.result_count)
     
     def to_str(self):
-        return f'[{self.correct_label}] top: {self.is_top_1} {"" if self.is_top_1 else f"({self.top[0][0]}) "}| top 3: {self.is_top_3}'
+        return f"[{self.correct_label}] top: {self.is_top_1} ({self.top1_hits}/{self.result_count})" \
+            + f" | top 3: {self.is_top_3} ({self.top3_hits}/{self.result_count})"
 
 classifier = Classifier(g.NAME)
 
 logger = Logger(TEST_FILE)
 
 def test_playlist(playlist_dir):
-    test_song = list(playlist_dir.glob("*.mp3"))[0]
-    
-    top, _ = classifier.infer(test_song)
-    if top is None or len(top) == 0:
+    song_results = []
+    test_songs = list(playlist_dir.glob("*.mp3"))
+
+    for test_song in test_songs:
+        top, _ = classifier.infer(test_song)
+        if top is None or len(top) < 3:
+            continue
+
+        is_top_1 = top[0][0] == playlist_dir.name
+        is_top_3 = is_top_1 or \
+            (top[1][0] == playlist_dir.name) or \
+            (top[2][0] == playlist_dir.name)
+
+        song_results.append((int(is_top_1), int(is_top_3)))
+
+    if len(song_results) == 0:
         return None
 
-    return Result(playlist_dir.name, top, test_song.name)
+    return Result(playlist_dir.name, song_results)
 
 results = []
 # results.append(test_playlist(Path("test/Bossa Nova")))
