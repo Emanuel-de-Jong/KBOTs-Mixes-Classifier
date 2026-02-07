@@ -122,11 +122,11 @@ def write_results(results, out_same, out_diff, is_size=False):
     same_genre = []
     different_genre = []
     for metric, p1, p2 in results:
-        p1_genre = p1.parent.parent.name if "watchv" in p1 else p1.parent.name
-        p2_genre = p2.parent.parent.name if "watchv" in p2 else p2.parent.name
-
         p1 = Path(p1)
         p2 = Path(p2)
+
+        p1_genre = p1.parent.parent.name if "watchv" in str(p1) else p1.parent.name
+        p2_genre = p2.parent.parent.name if "watchv" in str(p2) else p2.parent.name
 
         if p1_genre == p2_genre:
             same_genre.append((metric, p1, p2))
