@@ -4,6 +4,8 @@ set -e
 category="$1"
 step="$2"
 
+shift 2
+
 declare -A CATEGORIES=(
   [1]="s1_prep"
   [2]="s2_preprocess"
@@ -42,4 +44,4 @@ steps_var="STEPS_${category}"
 module="${CATEGORIES[$category]}"
 stepmod="$(eval "echo \${${steps_var}[$step]}")"
 
-python -m "${module}.${stepmod}"
+python -m "${module}.${stepmod}" "$@"
