@@ -9,8 +9,9 @@ SAME_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_same_genre.log")
 DIFFERENT_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_different_genre.log")
 
 def sanitize(name):
-    # sanitized = re.sub(r"[._\-:]", "", name)
-    sanitized = re.sub(r"[^A-Za-z0-9]+", " ", name)
+    sanitized = name.lower()
+    sanitized = re.sub(r"[.\-:]", "", sanitized)
+    sanitized = re.sub(r"[^A-Za-z0-9 ]+", " ", sanitized)
     return re.sub(r"\s+", " ", sanitized).strip()
 
 def collect_songs(root):
