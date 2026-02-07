@@ -60,7 +60,6 @@ def sanitize(name):
     sanitized = name.lower()
     for phrase in BLACKLIST:
         sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized)
-        sanitized = re.sub(r"\s+", " ", sanitized).strip()
     
     sanitized = re.sub(r"[.':\-]", "", sanitized)
     sanitized = re.sub(r"[^A-Za-z0-9 ]+", " ", sanitized)
@@ -70,16 +69,16 @@ def collect_songs(root):
     songs = {}
     for path in root.rglob("*.mp3"):
         trimmed_path = Path(*path.parts[1:])
-        filename = sanitize(path.stem).split(" ")
+        words = set(sanitize(path.stem).split(" "))
         size_mb = path.stat().st_size / (1024 * 1024)
-        songs[trimmed_path] = SongInfo(filename, size_mb)
+        songs[trimmed_path] = SongInfo(words, size_mb)
     
     return songs
 
 def compare_songs_words(songs):
     results = []
     for (path1, s1), (path2, s2) in combinations(songs.items(), 2):
-        matches = len(set(s1.words) & set(s2.words))
+        matches = len(s1.words & s2.words)
         if matches >= MIN_WORD_MATCHES:
             p1, p2 = sorted((str(path1), str(path2)))
             results.append((matches, p1, p2))
@@ -99,7 +98,7 @@ def strip_blacklist(name):
     sanitized = name.replace("_", " ")
     for phrase in BLACKLIST:
         sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized, flags=re.IGNORECASE)
-        sanitized = re.sub(r"\s+", " ", sanitized).strip()
+    
     return sanitized
 
 def write_group(f, group, is_size=False):
@@ -115,14 +114,20 @@ def write_group(f, group, is_size=False):
         f.write(s2.ljust(spacing) + f"[{p2.parent}]\n\n")
 
 def write_results(results, out_same, out_diff, is_size=False):
+    if is_size:
+        results.sort(key=lambda x: (x[0], x[1], x[2]))
+    else:
+        results.sort(key=lambda x: (-x[0], x[1], x[2]))
+    
     same_genre = []
     different_genre = []
     for metric, p1, p2 in results:
+        p1_genre = p1.parent.parent.name if "watchv" in p1 else p1.parent.name
+        p2_genre = p2.parent.parent.name if "watchv" in p2 else p2.parent.name
+
         p1 = Path(p1)
         p2 = Path(p2)
 
-        p1_genre = p1.parent.parent.name if "watchv" in str(p1) else p1.parent.name
-        p2_genre = p2.parent.parent.name if "watchv" in str(p2) else p2.parent.name
         if p1_genre == p2_genre:
             same_genre.append((metric, p1, p2))
         else:
