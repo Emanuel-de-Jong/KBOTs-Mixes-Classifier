@@ -5,9 +5,11 @@ from itertools import combinations
 
 MIN_WORD_MATCHES = 5
 
-OUTPUT_FILE = Path("s1_prep/4_dupes.log")
+SAME_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_same_genre.log")
+DIFFERENT_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_different_genre.log")
 
 def sanitize(name):
+    # sanitized = re.sub(r"[._\-:]", "", name)
     sanitized = re.sub(r"[^A-Za-z0-9]+", " ", name)
     return re.sub(r"\s+", " ", sanitized).strip()
 
@@ -30,16 +32,35 @@ def compare_songs(songs):
     
     return results
 
+def write_group(f, group):
+    for matches, p1, p2 in group:
+        spacing = max(len(p1.stem), len(p2.stem)) + 6
+        f.write(f"{matches} words:\n")
+        f.write(p1.stem.replace("_", " ").ljust(spacing) + f"[{p1.parent}]\n")
+        f.write(p2.stem.replace("_", " ").ljust(spacing) + f"[{p2.parent}]\n\n")
+
 def write_results(results):
     results.sort(key=lambda x: (-x[0], x[1], x[2]))
-    with OUTPUT_FILE.open("w", encoding="utf-8") as f:
-        for matches, p1, p2 in results:
-            path1 = Path(p1)
-            path2 = Path(p2)
-            spacing = max(len(path1.stem), len(path2.stem)) + 6
-            f.write(f"{matches} words:\n")
-            f.write(path1.stem.replace("_", " ").ljust(spacing) + f"[{path1.parent}]\n")
-            f.write(path2.stem.replace("_", " ").ljust(spacing) + f"[{path2.parent}]\n\n")
+    
+    same_genre = []
+    different_genre = []
+    
+    for matches, p1, p2 in results:
+        p1 = Path(p1)
+        p2 = Path(p2)
+
+        p1_genre = p1.parent.parent.name if "watchv" in str(p1) else p1.parent.name
+        p2_genre = p2.parent.parent.name if "watchv" in str(p2) else p2.parent.name
+        if p1_genre == p2_genre:
+            same_genre.append((matches, p1, p2))
+        else:
+            different_genre.append((matches, p1, p2))
+    
+    with SAME_GENRE_OUTPUT_FILE.open("w", encoding="utf-8") as f:
+        write_group(f, same_genre)
+    
+    with DIFFERENT_GENRE_OUTPUT_FILE.open("w", encoding="utf-8") as f:
+        write_group(f, different_genre)
 
 songs = collect_songs(g.TRAIN_DIR)
 results = compare_songs(songs)
