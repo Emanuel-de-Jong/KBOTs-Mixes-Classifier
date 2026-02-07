@@ -38,13 +38,13 @@ BLACKLIST = list(map(lambda x: x.lower(), BLACKLIST))
 
 def sanitize(name):
     sanitized = name.lower()
+    for phrase in BLACKLIST:
+        sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized)
+        sanitized = re.sub(r"\s+", " ", sanitized).strip()
+    
     sanitized = re.sub(r"[.':\-]", "", sanitized)
     sanitized = re.sub(r"[^A-Za-z0-9 ]+", " ", sanitized)
-    sanitized = re.sub(r"\s+", " ", sanitized).strip()
-    for phrase in BLACKLIST:
-        sanitized = re.sub(rf"\b{re.escape(phrase)}\b", "", sanitized)
-        sanitized = re.sub(r"\s+", " ", sanitized).strip()
-    return sanitized
+    return re.sub(r"\s+", " ", sanitized).strip()
 
 def collect_songs(root):
     songs = {}
@@ -68,7 +68,7 @@ def compare_songs(songs):
 def strip_blacklist(name):
     sanitized = name.replace("_", " ")
     for phrase in BLACKLIST:
-        sanitized = re.sub(rf"\b{re.escape(phrase)}\b", "", sanitized, flags=re.IGNORECASE)
+        sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized, flags=re.IGNORECASE)
         sanitized = re.sub(r"\s+", " ", sanitized).strip()
     return sanitized
 
