@@ -8,11 +8,43 @@ MIN_WORD_MATCHES = 5
 SAME_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_same_genre.log")
 DIFFERENT_GENRE_OUTPUT_FILE = Path("s1_prep/4_dupes_different_genre.log")
 
+BLACKLIST = [
+    "As Played on Uplifting Only",
+    "Deep House Antidote Music",
+    "FREE DOWNLOAD",
+    "Emotional EDM Slap House",
+    "Emotional Slap House",
+    "Emotional EDM",
+    "2025 Dance Your Feelings",
+    "2025 Deep Slap House Feelings",
+    "2025 Deep Vibes",
+    "2025 Feel the Vibe",
+    "2025 Feel the Rush",
+    "2025 Night Vibes",
+    "Boris Brejcha Style Minimal Techno Song",
+    "Official Lyric Video",
+    "Official Music Video",
+    "Lyrics",
+    "Lyric",
+    "Music Video",
+    "Elektroshok Records",
+    "Deep House Atjazz Record Company",
+    "Deep House South Africa Records",
+    "Deep House South Africa",
+    "Antidote Music",
+    "4K",
+]
+BLACKLIST = list(map(lambda x: x.lower(), BLACKLIST))
+
 def sanitize(name):
     sanitized = name.lower()
-    sanitized = re.sub(r"[.\-:]", "", sanitized)
+    sanitized = re.sub(r"[.':\-]", "", sanitized)
     sanitized = re.sub(r"[^A-Za-z0-9 ]+", " ", sanitized)
-    return re.sub(r"\s+", " ", sanitized).strip()
+    sanitized = re.sub(r"\s+", " ", sanitized).strip()
+    for phrase in BLACKLIST:
+        sanitized = re.sub(rf"\b{re.escape(phrase)}\b", "", sanitized)
+        sanitized = re.sub(r"\s+", " ", sanitized).strip()
+    return sanitized
 
 def collect_songs(root):
     songs = {}
@@ -33,12 +65,21 @@ def compare_songs(songs):
     
     return results
 
+def strip_blacklist(name):
+    sanitized = name.replace("_", " ")
+    for phrase in BLACKLIST:
+        sanitized = re.sub(rf"\b{re.escape(phrase)}\b", "", sanitized, flags=re.IGNORECASE)
+        sanitized = re.sub(r"\s+", " ", sanitized).strip()
+    return sanitized
+
 def write_group(f, group):
     for matches, p1, p2 in group:
-        spacing = max(len(p1.stem), len(p2.stem)) + 6
+        s1 = strip_blacklist(p1.stem)
+        s2 = strip_blacklist(p2.stem)
+        spacing = max(len(s1), len(s2)) + 6
         f.write(f"{matches} words:\n")
-        f.write(p1.stem.replace("_", " ").ljust(spacing) + f"[{p1.parent}]\n")
-        f.write(p2.stem.replace("_", " ").ljust(spacing) + f"[{p2.parent}]\n\n")
+        f.write(s1.ljust(spacing) + f"[{p1.parent}]\n")
+        f.write(s2.ljust(spacing) + f"[{p2.parent}]\n\n")
 
 def write_results(results):
     results.sort(key=lambda x: (-x[0], x[1], x[2]))
