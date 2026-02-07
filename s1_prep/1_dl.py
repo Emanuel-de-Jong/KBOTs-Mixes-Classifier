@@ -44,12 +44,19 @@ yt_dlp_config_base = {
     "download_archive": str(g.DLS_DIR / "archive.txt"),
     "restrictfilenames": True,
     "windowsfilenames": True,
+    "overwrites": False,
 
     "format": "bestaudio/best",
-    "postprocessors": [{
-        "key": "FFmpegExtractAudio",
-        "preferredcodec": "mp3",
-    }],
+    "postprocessors": [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+        },
+        {
+            "key": "FFmpegMetadata",
+            "add_metadata": True,
+        },
+    ],
 
     "noplaylist": False,
     "playlistrandom": True,

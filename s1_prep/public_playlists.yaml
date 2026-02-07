@@ -4,7 +4,8 @@ requirements:
 
 general:
     Acoustic:
-        - https://youtube.com/playlist?list=PLzgNR90nQBQCmJdLinrmlo7_Ac8QLc6-i&si=XYrNiw_DWuyYgf7-
+        # - https://youtube.com/playlist?list=PLzgNR90nQBQCmJdLinrmlo7_Ac8QLc6-i&si=XYrNiw_DWuyYgf7-
+        - 
     Bossa Nova:
         - 
     Chill:
