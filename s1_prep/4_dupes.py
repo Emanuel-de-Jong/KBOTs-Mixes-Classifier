@@ -12,41 +12,41 @@ SIZE_SAME_GENRE_FILE = Path("s1_prep/4_dupes_size_same_genre.log")
 SIZE_DIFFERENT_GENRE_FILE = Path("s1_prep/4_dupes_size_different_genre.log")
 
 BLACKLIST = [
-    "As Played on Uplifting Only",
-    "Deep House Antidote Music",
-    "FREE DOWNLOAD",
-    "Emotional EDM Slap House",
-    "Emotional Slap House",
-    "Emotional EDM",
-    "2025 Dance Your Feelings",
-    "2025 Deep Slap House Feelings",
-    "2025 Deep Vibes",
-    "2025 Feel the Vibe",
-    "2025 Feel the Rush",
-    "2025 Night Vibes",
-    "2025 Sad Beautiful Vibes",
-    "2025 Let the Music Speak",
-    "2025 Feel Every Beat",
-    "Boris Brejcha Minimal Techno Style with Future Minimal",
-    "Boris Brejcha Style Minimal Techno Song",
-    "Boris Brejcha Style Minimal Techno",
-    "Official Lyric Video",
-    "Official Music Video",
+    "As_Played_on_Uplifting_Only",
+    "Deep_House_Antidote_Music",
+    "FREE_DOWNLOAD",
+    "Emotional_EDM_Slap_House",
+    "Emotional_Slap_House",
+    "Emotional_EDM",
+    "2025_Dance_Your_Feelings",
+    "2025_Deep_Slap_House_Feelings",
+    "2025_Deep_Vibes",
+    "2025_Feel_the_Vibe",
+    "2025_Feel_the_Rush",
+    "2025_Night_Vibes",
+    "2025_Sad_Beautiful_Vibes",
+    "2025_Let_the_Music_Speak",
+    "2025_Feel_Every_Beat",
+    "Boris_Brejcha_Minimal_Techno_Style_with_Future_Minimal",
+    "Boris_Brejcha_Style_Minimal_Techno_Song",
+    "Boris_Brejcha_Style_Minimal_Techno",
+    "Official_Lyric_Video",
+    "Official_Music_Video",
     "Lyrics",
     "Lyric",
-    "Music Video",
-    "Extended Mix",
-    "ASOT 800 Anthem",
-    "ASOT 900 Anthem",
-    "ASOT 2023 Anthem",
-    "FSOE 550 Anthem",
+    "Music_Video",
+    "Extended_Mix",
+    "ASOT_800_Anthem",
+    "ASOT_900_Anthem",
+    "ASOT_2023_Anthem",
+    "FSOE_550_Anthem",
     "Anthem",
     "FSOE",
-    "Elektroshok Records",
-    "Deep House Atjazz Record Company",
-    "Deep House South Africa Records",
-    "Deep House South Africa",
-    "Antidote Music",
+    "Elektroshok_Records",
+    "Deep_House_Atjazz_Record_Company",
+    "Deep_House_South_Africa_Records",
+    "Deep_House_South_Africa",
+    "Antidote_Music",
     "4K",
 ]
 BLACKLIST = list(map(lambda x: x.lower(), BLACKLIST))
@@ -68,10 +68,11 @@ def sanitize(name):
 def collect_songs(root):
     songs = {}
     for path in root.rglob("*.mp3"):
-        trimmed_path = Path(*path.parts[1:])
+        new_path = Path(path).resolve()
+        # new_path = Path(*path.parts[1:])
         words = set(sanitize(path.stem).split(" "))
         size_mb = path.stat().st_size / (1024 * 1024)
-        songs[trimmed_path] = SongInfo(words, size_mb)
+        songs[new_path] = SongInfo(words, size_mb)
     
     return songs
 
@@ -103,15 +104,17 @@ def strip_blacklist(name):
 
 def write_group(f, group, is_size=False):
     for metric, p1, p2 in group:
-        s1 = strip_blacklist(p1.stem)
-        s2 = strip_blacklist(p2.stem)
+        # s1 = strip_blacklist(p1.stem)
+        # s2 = strip_blacklist(p2.stem)
         
         label = f"{metric:.6f} MB diff" if is_size else f"{metric} words"
-        spacing = max(len(s1), len(s2)) + 6
+        # spacing = max(len(s1), len(s2)) + 6
 
         f.write(f"{label}:\n")
-        f.write(s1.ljust(spacing) + f"[{p1.parent}]\n")
-        f.write(s2.ljust(spacing) + f"[{p2.parent}]\n\n")
+        f.write(f"{p1}\n")
+        f.write(f"{p2}\n\n")
+        # f.write(s1.ljust(spacing) + f"[{p1.parent}]\n")
+        # f.write(s2.ljust(spacing) + f"[{p2.parent}]\n\n")
 
 def write_results(results, out_same, out_diff, is_size=False):
     if is_size:

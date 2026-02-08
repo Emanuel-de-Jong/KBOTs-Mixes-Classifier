@@ -7,25 +7,25 @@ import s0_utils.global_params as g
 PLAYLISTS_TO_REMOVE = [
     # Too vague
     "Gamer",
-    "Pioneer EDM",
+    "Pioneer_EDM",
     "Pioneer",
     "Romantic",
-    "Chill EDM",
-    "Groovy EDM",
+    "Chill_EDM",
+    "Groovy_EDM",
     # Pending
     "Pending",
-    "Pending Genre",
-    "Pending Second Chance",
-    "Pending Trance",
+    "Pending_Genre",
+    "Pending_Second_Chance",
+    "Pending_Trance",
 ]
 PLAYLISTS_TO_MERGE = {
     # New
-    "Dark and Psych Pop": ["Dark Pop", "Psych Pop"],
-    "Dark and Psych Rock": ["Dark Rock", "Psych Rock"],
-    "Vocal Trance": ["Downbeat Vocal Trance", "Upbeat Vocal Trance"],
+    "Dark_and_Psych_Pop": ["Dark_Pop", "Psych_Pop"],
+    "Dark_and_Psych_Rock": ["Dark_Rock", "Psych_Rock"],
+    "Vocal_Trance": ["Downbeat_Vocal_Trance", "Upbeat_Vocal_Trance"],
     # Combined
-    "Hardstyle": ["Mainstream Hardstyle"],
-    "Mainstream Vocal Psytrance": ["Pending Mainstream Vocal Psytrance"],
+    "Hardstyle": ["Mainstream_Hardstyle"],
+    "Mainstream_Vocal_Psytrance": ["Pending_Mainstream_Vocal_Psytrance"],
 }
 
 # Clean folder names
@@ -38,7 +38,7 @@ for folder in os.listdir(g.TRAIN_PLAYLISTS_DIR):
         if new_name.lower().endswith(" mix"):
             new_name = new_name[:-4]
         
-        new_name = new_name.strip()
+        new_name = new_name.strip().replace(" ", "_")
         new_path = g.TRAIN_PLAYLISTS_DIR / new_name
 
         if os.path.basename(new_path) in PLAYLISTS_TO_REMOVE:
@@ -77,6 +77,7 @@ for p in g.TRAIN_DIR.rglob("*.mp3"):
     new_stem = unidecode.unidecode(old_stem)
     new_stem = re.sub(r'[^a-zA-Z0-9\s\.\-\_\,]', '', new_stem)
     new_stem = re.sub(r'\s+', ' ', new_stem).strip()
+    new_stem = new_stem.replace(" ", "_")
     
     if new_stem and new_stem != old_stem:
         new_filename = new_stem + p.suffix
