@@ -69,7 +69,6 @@ def collect_songs(root):
     songs = {}
     for path in root.rglob("*.mp3"):
         new_path = Path(path).resolve()
-        # new_path = Path(*path.parts[1:])
         words = set(sanitize(path.stem).split("_"))
         size_mb = path.stat().st_size / (1024 * 1024)
         songs[new_path] = SongInfo(words, size_mb)
@@ -100,21 +99,23 @@ def strip_blacklist(name):
     for phrase in BLACKLIST:
         sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized, flags=re.IGNORECASE)
     
-    return sanitized
+    return sanitized.replace("_", " ").replace("-", "█")
 
 def write_group(f, group, is_size=False):
     for metric, p1, p2 in group:
-        # s1 = strip_blacklist(p1.stem)
-        # s2 = strip_blacklist(p2.stem)
+        s1 = strip_blacklist(p1.stem)
+        s2 = strip_blacklist(p2.stem)
         
         label = f"{metric:.6f} MB diff" if is_size else f"{metric} words"
-        # spacing = max(len(s1), len(s2)) + 6
+        spacing = max(len(s1), len(s2)) + 6
 
         f.write(f"{label}:\n")
-        f.write(f"{p1}\n")
-        f.write(f"{p2}\n\n")
-        # f.write(s1.ljust(spacing) + f"[{p1.parent}]\n")
-        # f.write(s2.ljust(spacing) + f"[{p2.parent}]\n\n")
+        if is_size:
+            f.write(f"{p1}\n")
+            f.write(f"{p2}\n\n")
+        else:
+            f.write(s1.ljust(spacing) + f"{p1}\n")
+            f.write(s2.ljust(spacing) + f"{p2}\n\n")
 
 def write_results(results, out_same, out_diff, is_size=False):
     if is_size:
