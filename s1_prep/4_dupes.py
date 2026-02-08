@@ -2,14 +2,22 @@ import re
 import s0_utils.global_params as g
 from pathlib import Path
 from itertools import combinations
+from enum import Enum
 
-MIN_WORD_MATCHES = 5
+# Word count
+MIN_WORD_COUNT_MATCHES = 5
+# Word perc
+MIN_WORD_PERC_RATIO = 0.3
+MIN_WORD_PERC_COUNT = 3
+# Size
 MAX_MB_DIFF = 0.005
 
-WORDS_SAME_GENRE_FILE = Path("s1_prep/4_dupes_words_same_genre.log")
-WORDS_DIFFERENT_GENRE_FILE = Path("s1_prep/4_dupes_words_different_genre.log")
-SIZE_SAME_GENRE_FILE = Path("s1_prep/4_dupes_size_same_genre.log")
-SIZE_DIFFERENT_GENRE_FILE = Path("s1_prep/4_dupes_size_different_genre.log")
+WORD_COUNT_SAME_GENRE_FILE = Path("s1_prep/4_word_count_same_genre.log")
+WORD_COUNT_DIFFERENT_GENRE_FILE = Path("s1_prep/4_word_count_different_genre.log")
+WORD_PERC_SAME_GENRE_FILE = Path("s1_prep/4_word_perc_same_genre.log")
+WORD_PERC_DIFFERENT_GENRE_FILE = Path("s1_prep/4_word_perc_different_genre.log")
+SIZE_SAME_GENRE_FILE = Path("s1_prep/4_size_same_genre.log")
+SIZE_DIFFERENT_GENRE_FILE = Path("s1_prep/4_size_different_genre.log")
 
 BLACKLIST = [
     "As_Played_on_Uplifting_Only",
@@ -51,9 +59,15 @@ BLACKLIST = [
 ]
 BLACKLIST = list(map(lambda x: x.lower(), BLACKLIST))
 
+class CompareType(Enum):
+    word_count = 0
+    word_perc = 1
+    size = 2
+
 class SongInfo:
     def __init__(self, words, size_mb):
         self.words = words
+        self.word_count = len(words)
         self.size_mb = size_mb
 
 def sanitize(name):
@@ -70,27 +84,45 @@ def collect_songs(root):
     for path in root.rglob("*.mp3"):
         new_path = Path(path).resolve()
         words = set(sanitize(path.stem).split("_"))
+        if len(words) < MIN_WORD_PERC_COUNT:
+            continue
+
         size_mb = path.stat().st_size / (1024 * 1024)
         songs[new_path] = SongInfo(words, size_mb)
     
     return songs
 
-def compare_songs_words(songs):
+def compare_songs_word_count(songs):
     results = []
     for (path1, s1), (path2, s2) in combinations(songs.items(), 2):
         matches = len(s1.words & s2.words)
-        if matches >= MIN_WORD_MATCHES:
+        if matches >= MIN_WORD_COUNT_MATCHES:
+            min_wc = min(s1.word_count, s2.word_count)
             p1, p2 = sorted((str(path1), str(path2)))
-            results.append((matches, p1, p2))
+            results.append((matches, min_wc, p1, p2))
+    
+    return results
+
+def compare_songs_word_perc(songs):
+    results = []
+    for (path1, s1), (path2, s2) in combinations(songs.items(), 2):
+        common = len(s1.words & s2.words)
+        min_wc = min(s1.word_count, s2.word_count)
+        ratio = common / min_wc
+        if ratio >= MIN_WORD_PERC_RATIO:
+            p1, p2 = sorted((str(path1), str(path2)))
+            results.append((ratio, min_wc, p1, p2))
     
     return results
 
 def compare_songs_size(songs):
     results = []
     for (path1, s1), (path2, s2) in combinations(songs.items(), 2):
-        if abs(s1.size_mb - s2.size_mb) <= MAX_MB_DIFF:
+        diff = abs(s1.size_mb - s2.size_mb)
+        if diff <= MAX_MB_DIFF:
+            min_wc = min(s1.word_count, s2.word_count)
             p1, p2 = sorted((str(path1), str(path2)))
-            results.append((abs(s1.size_mb - s2.size_mb), p1, p2))
+            results.append((diff, min_wc, p1, p2))
     
     return results
 
@@ -101,31 +133,37 @@ def strip_blacklist(name):
     
     return sanitized.replace("_", " ").replace("-", "█")
 
-def write_group(f, group, is_size=False):
-    for metric, p1, p2 in group:
+def write_group(f, group, compare_type):
+    for metric, _, p1, p2 in group:
         s1 = strip_blacklist(p1.stem)
         s2 = strip_blacklist(p2.stem)
         
-        label = f"{metric:.6f} MB diff" if is_size else f"{metric} words"
+        if compare_type == CompareType.size:
+            label = f"{metric:.6f} MB diff"
+        elif compare_type == CompareType.word_perc:
+            label = f"{metric:.4f} ratio"
+        else:
+            label = f"{metric} words"
+
         spacing = max(len(s1), len(s2)) + 6
 
         f.write(f"{label}:\n")
-        if is_size:
+        if compare_type == CompareType.size:
             f.write(f"{p1}\n")
             f.write(f"{p2}\n\n")
         else:
             f.write(s1.ljust(spacing) + f"{p1}\n")
             f.write(s2.ljust(spacing) + f"{p2}\n\n")
 
-def write_results(results, out_same, out_diff, is_size=False):
-    if is_size:
-        results.sort(key=lambda x: (x[0], x[1], x[2]))
+def write_results(results, out_same, out_diff, compare_type):
+    if compare_type == CompareType.size:
+        results.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
     else:
-        results.sort(key=lambda x: (-x[0], x[1], x[2]))
+        results.sort(key=lambda x: (-x[0], x[1], x[2], x[3]))
     
     same_genre = []
     different_genre = []
-    for metric, p1, p2 in results:
+    for metric, min_wc, p1, p2 in results:
         p1 = Path(p1)
         p2 = Path(p2)
 
@@ -133,22 +171,40 @@ def write_results(results, out_same, out_diff, is_size=False):
         p2_genre = p2.parent.parent.name if "watchv" in str(p2) else p2.parent.name
 
         if p1_genre == p2_genre:
-            same_genre.append((metric, p1, p2))
+            same_genre.append((metric, min_wc, p1, p2))
         else:
-            different_genre.append((metric, p1, p2))
+            different_genre.append((metric, min_wc, p1, p2))
     
     with out_same.open("w", encoding="utf-8") as f:
-        write_group(f, same_genre, is_size)
+        write_group(f, same_genre, compare_type)
     
     with out_diff.open("w", encoding="utf-8") as f:
-        write_group(f, different_genre, is_size)
+        write_group(f, different_genre, compare_type)
 
 songs = collect_songs(g.TRAIN_DIR)
 
-word_results = compare_songs_words(songs)
-write_results(word_results, WORDS_SAME_GENRE_FILE, WORDS_DIFFERENT_GENRE_FILE)
+word_results = compare_songs_word_count(songs)
+write_results(
+    word_results,
+    WORD_COUNT_SAME_GENRE_FILE,
+    WORD_COUNT_DIFFERENT_GENRE_FILE,
+    CompareType.word_count,
+)
+
+ratio_results = compare_songs_word_perc(songs)
+write_results(
+    ratio_results,
+    WORD_PERC_SAME_GENRE_FILE,
+    WORD_PERC_DIFFERENT_GENRE_FILE,
+    CompareType.word_perc,
+)
 
 size_results = compare_songs_size(songs)
-write_results(size_results, SIZE_SAME_GENRE_FILE, SIZE_DIFFERENT_GENRE_FILE, is_size=True,)
+write_results(
+    size_results,
+    SIZE_SAME_GENRE_FILE,
+    SIZE_DIFFERENT_GENRE_FILE,
+    CompareType.size,
+)
 
 print("Done!")
