@@ -62,15 +62,15 @@ def sanitize(name):
         sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized)
     
     sanitized = re.sub(r"[.':\-]", "", sanitized)
-    sanitized = re.sub(r"[^A-Za-z0-9 ]+", " ", sanitized)
-    return re.sub(r"\s+", " ", sanitized).strip()
+    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", sanitized)
+    return re.sub(r"_+", "_", sanitized).strip()
 
 def collect_songs(root):
     songs = {}
     for path in root.rglob("*.mp3"):
         new_path = Path(path).resolve()
         # new_path = Path(*path.parts[1:])
-        words = set(sanitize(path.stem).split(" "))
+        words = set(sanitize(path.stem).split("_"))
         size_mb = path.stat().st_size / (1024 * 1024)
         songs[new_path] = SongInfo(words, size_mb)
     
@@ -96,7 +96,7 @@ def compare_songs_size(songs):
     return results
 
 def strip_blacklist(name):
-    sanitized = name.replace("_", " ")
+    sanitized = name
     for phrase in BLACKLIST:
         sanitized = re.sub(rf"{re.escape(phrase)}", "", sanitized, flags=re.IGNORECASE)
     
