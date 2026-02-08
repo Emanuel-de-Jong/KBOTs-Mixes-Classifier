@@ -9,8 +9,8 @@ from tqdm import tqdm
 from s0_utils.Mert import Mert
 
 class GenreOutliers():
-    MAX_CHUNKS = 15
-    CONTRAST_FACTOR = 1.25
+    MAX_CHUNKS = 6
+    CONTRAST_FACTOR = 1.5
 
     def __init__(self, use_cache=True):
         self.use_cache = use_cache
@@ -171,8 +171,11 @@ class GenreOutliers():
             print("No data.")
             return None
 
-        results = out["results"]
         outliers = out["outliers"]
+        if len(outliers) == 0:
+            return None
+
+        results = out["results"]
 
         lines = []
         lines.append(f"= {genre} =")
@@ -180,15 +183,12 @@ class GenreOutliers():
         lines.append(f"Median distance: {out['median']:.6f}")
         lines.append(f"MAD: {out['mad']:.6f}")
 
-        if len(outliers) == 0:
-            lines.append("No clear outliers found.")
-        else:
-            for _, row in outliers.iterrows():
-                lines.append(str(row["song"]))
-                lines.append(f"\tdistance: {row['distance']:.6f}")
-                lines.append(f"\tz: {row['robust_z']:.3f}")
+        for _, row in outliers.iterrows():
+            lines.append(str(row["song"]))
+            lines.append(f"\tdistance: {row['distance']:.6f}")
+            lines.append(f"\tz: {row['robust_z']:.3f}")
 
-            lines.append("")
+        lines.append("")
 
         return "\n".join(lines)
 

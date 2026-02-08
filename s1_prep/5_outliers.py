@@ -28,6 +28,9 @@ for genre, count in sorted(genre_counts.items()):
 
     compute_outliers_sum_time += compute_outliers_time
 
+    # if "Chillstep" in genre:
+    #     break
+
 with open(OUTLIERS_FILE, "w") as f:
     for genre, out in sorted(out_by_genre.items()):
         results_str = genre_outliers.results_to_string(genre, out)
