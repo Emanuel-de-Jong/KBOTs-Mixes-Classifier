@@ -52,4 +52,5 @@ You'll have to install deno and let yt-dlp know about it:
 ## Roadmap
 - Normalize volume before MERT step
 - Remove outliers after MERT step
+- Remove MERT layer with weird clipping range?
 - 2x weight on non public songs

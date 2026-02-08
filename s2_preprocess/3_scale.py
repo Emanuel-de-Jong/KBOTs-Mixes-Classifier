@@ -14,8 +14,10 @@ scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
 
 if is_scale_tools_loaded:
+    print("Loading scale tools...")
     scale_tools = joblib.load(SCALE_TOOLS_PATH)
 else:
+    print("Generating scale tools...")
     sample_loaded = False
     for data_path in g.iter_data_paths(2, g.DataSetType.train):
         data = g.load_data(data_path)
@@ -77,6 +79,7 @@ else:
 
     joblib.dump(scale_tools, SCALE_TOOLS_PATH)
 
+print("\nScaling...")
 for data_set_type in g.DataSetType:
     out_idx = 0
     out_rows = []
