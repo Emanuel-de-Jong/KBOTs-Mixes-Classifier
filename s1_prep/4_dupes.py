@@ -7,7 +7,7 @@ from enum import Enum
 # Word count
 MIN_WORD_COUNT_MATCHES = 5
 # Word perc
-MIN_WORD_PERC_RATIO = 0.3
+MIN_WORD_PERC_RATIO = 0.74
 MIN_WORD_PERC_COUNT = 3
 # Size
 MAX_MB_DIFF = 0.005
@@ -84,9 +84,6 @@ def collect_songs(root):
     for path in root.rglob("*.mp3"):
         new_path = Path(path).resolve()
         words = set(sanitize(path.stem).split("_"))
-        if len(words) < MIN_WORD_PERC_COUNT:
-            continue
-
         size_mb = path.stat().st_size / (1024 * 1024)
         songs[new_path] = SongInfo(words, size_mb)
     
@@ -106,8 +103,11 @@ def compare_songs_word_count(songs):
 def compare_songs_word_perc(songs):
     results = []
     for (path1, s1), (path2, s2) in combinations(songs.items(), 2):
-        common = len(s1.words & s2.words)
         min_wc = min(s1.word_count, s2.word_count)
+        if min_wc < MIN_WORD_PERC_COUNT:
+            continue
+        
+        common = len(s1.words & s2.words)
         ratio = common / min_wc
         if ratio >= MIN_WORD_PERC_RATIO:
             p1, p2 = sorted((str(path1), str(path2)))
@@ -181,8 +181,10 @@ def write_results(results, out_same, out_diff, compare_type):
     with out_diff.open("w", encoding="utf-8") as f:
         write_group(f, different_genre, compare_type)
 
+print("Collecting...")
 songs = collect_songs(g.TRAIN_DIR)
 
+print("Comparing word count...")
 word_results = compare_songs_word_count(songs)
 write_results(
     word_results,
@@ -191,6 +193,7 @@ write_results(
     CompareType.word_count,
 )
 
+print("Comparing word perc...")
 ratio_results = compare_songs_word_perc(songs)
 write_results(
     ratio_results,
@@ -199,6 +202,7 @@ write_results(
     CompareType.word_perc,
 )
 
+print("Comparing size...")
 size_results = compare_songs_size(songs)
 write_results(
     size_results,
