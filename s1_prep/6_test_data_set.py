@@ -1,4 +1,5 @@
 import shutil
+import random
 import s0_utils.global_params as g
 
 TESTS_PER_GENRE = 3
@@ -8,7 +9,8 @@ if not g.TEST_DIR.exists():
         if not subdir.is_dir():
             continue
 
-        mp3_files = sorted(subdir.glob("*.mp3"))
+        mp3_files = list(subdir.glob("*.mp3"))
+        random.shuffle(mp3_files)
         if len(mp3_files) == 0:
             continue
 
@@ -33,7 +35,8 @@ if not g.TEST_DIR.exists():
         if not public_subdir.exists():
             continue
 
-        public_mp3_files = sorted(public_subdir.rglob("*.mp3"))
+        public_mp3_files = list(public_subdir.rglob("*.mp3"))
+        random.shuffle(public_mp3_files)
         for i in range(tests_remaining):
             src_file = public_mp3_files[i]
             dest_file = test_subdir / src_file.name

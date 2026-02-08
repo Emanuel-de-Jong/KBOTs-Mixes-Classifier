@@ -8,7 +8,7 @@ from pathlib import Path
 MAX_CHUNKS_TRAIN = 18
 MAX_CHUNKS_TEST = -1
 
-SONGS_BATCH_SIZE = 30
+SONGS_BATCH_SIZE = 50
 
 songs_train = pd.read_csv(g.CACHE_DIR / "labels_train.csv")
 songs_test = pd.read_csv(g.CACHE_DIR / "labels_test.csv")

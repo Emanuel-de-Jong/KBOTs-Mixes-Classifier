@@ -50,4 +50,6 @@ You'll have to install deno and let yt-dlp know about it:
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
 
 ## Roadmap
+- Normalize volume before MERT step
+- Remove outliers after MERT step
 - 2x weight on non public songs
