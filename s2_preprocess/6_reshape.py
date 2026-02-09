@@ -11,7 +11,7 @@ def reshape_data(feature_data):
         :,
         :g.DATA_COUNTS[g.DataSectionType.time],
         :g.DATA_COUNTS[g.DataSectionType.feature],
-        g.DATA_LAYER_START:g.DATA_LAYER_END + 1
+        :g.DATA_COUNTS[g.DataSectionType.layer]
     ]
     
     axis_mapping = {
