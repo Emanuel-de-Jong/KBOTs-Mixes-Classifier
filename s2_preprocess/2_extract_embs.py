@@ -43,9 +43,9 @@ def extract(data_set_type):
                 if not isinstance(emb, np.ndarray):
                     print(f"Skipping emb from {song.filepath}: returned {type(emb)} instead of ndarray.")
                     continue
-                if emb.shape != (Mert.TIME_STEPS, 1024, 25):
-                    print(f"Skipping emb from {song.filepath}: wrong shape {emb.shape}.")
-                    continue
+                # if emb.shape != (Mert.TIME_STEPS, 1024, 25):
+                #     print(f"Skipping emb from {song.filepath}: wrong shape {emb.shape}.")
+                #     continue
 
                 data.append({
                     'label': song_label,

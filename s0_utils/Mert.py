@@ -91,7 +91,7 @@ class Mert():
                 with torch.no_grad():
                     outputs = self.model(**inputs, output_hidden_states=True)
                 
-                emb = torch.stack(outputs.hidden_states).squeeze().cpu()
+                emb = torch.stack(outputs.hidden_states)[8:16].squeeze().cpu()
                 emb = torch.nn.functional.adaptive_avg_pool1d(
                     emb.permute(0, 2, 1), output_size=Mert.TIME_STEPS
                 ).permute(0, 2, 1)

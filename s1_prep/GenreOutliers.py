@@ -61,8 +61,6 @@ class GenreOutliers():
             for emb in song_embs:
                 if not isinstance(emb, np.ndarray):
                     continue
-                if emb.shape != (Mert.TIME_STEPS, 1024, 25):
-                    continue
 
                 song_embeddings.append({
                     "song": path,

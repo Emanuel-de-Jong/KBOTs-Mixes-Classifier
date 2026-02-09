@@ -15,7 +15,7 @@ LOSS = 'categorical_crossentropy'
 METRICS = ['accuracy']
 
 def create_model(layer_array):
-    layer_array.insert(0, layers.Input(shape=(Mert.TIME_STEPS, 1024, 25)))
+    layer_array.insert(0, layers.Input(shape=(Mert.TIME_STEPS, 1024, 8)))
     layer_array.append(layers.Dense(g.LABEL_COUNT, activation='softmax'))
     return Sequential(layer_array)
 

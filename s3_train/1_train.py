@@ -86,6 +86,39 @@ def draw_acc_and_loss_graphs(history, name):
     plt.savefig(TRAINING_DIR/ f'test_acc_loss_{name}.png', bbox_inches='tight')
     plt.close()
 
+def draw_confusion_matrix(y_true, y_pred_sk, name=""):
+    cm = confusion_matrix(y_true, y_pred_sk)
+
+    per_label = []
+    for i, label in enumerate(g.LABELS):
+        total = cm[i].sum()
+        correct = cm[i, i]
+        acc = correct / total if total > 0 else 0.0
+
+        row = cm[i].copy()
+        row[i] = 0
+        wrong_idx = row.argmax()
+        wrong_count = row[wrong_idx]
+
+        wrong_label = g.LABELS[wrong_idx] if wrong_count > 0 else None
+        per_label.append((acc, label, wrong_label))
+
+    per_label.sort(key=lambda x: x[0])
+
+    logger.writeln("\nPer-label accuracy (sorted):")
+    for acc, label, wrong_label in per_label:
+        if wrong_label is not None:
+            logger.writeln(f"{acc:.2f} {label} ({wrong_label})")
+        else:
+            logger.writeln(f"{acc:.2f} {label}")
+
+    disp = ConfusionMatrixDisplay(cm, display_labels=g.LABELS)
+    _, ax = plt.subplots(figsize=(20, 22), dpi=200)
+    disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
+    plt.tight_layout(pad=3.0)
+    plt.savefig(TRAINING_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
+    plt.close()
+
 def test(model, history, name=""):
     draw_acc_and_loss_graphs(history, name)
 
@@ -106,17 +139,10 @@ def test(model, history, name=""):
         del X_test, y_test, y_pred
         gc.collect()
 
-    report = classification_report(y_true, y_pred_sk, target_names = g.LABELS)
+    report = classification_report(y_true, y_pred_sk, target_names=g.LABELS)
     logger.writeln(report)
 
-    cm = confusion_matrix(y_true, y_pred_sk)
-    disp = ConfusionMatrixDisplay(cm, display_labels = g.LABELS)
-
-    _, ax = plt.subplots(figsize=(20, 22), dpi=200)
-    disp.plot(ax=ax, xticks_rotation=90, colorbar=True)
-    plt.tight_layout(pad=3.0)
-    plt.savefig(TRAINING_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
-    plt.close()
+    draw_confusion_matrix(y_true, y_pred_sk, name)
 
     test_loss, test_accuracy = model.evaluate(
         test_seq,
