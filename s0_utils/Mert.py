@@ -3,12 +3,12 @@ import subprocess
 import tempfile
 import torch
 import os
+import s0_utils.global_params as g
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 
 class Mert():
     CHUNK_LENGTH_SECONDS = 10
-    TIME_STEPS = 6
     START_SKIP_SECONDS = 0
     END_SKIP_SECONDS = 0
     MODEL_NAME = "m-a-p/MERT-v1-330M"
@@ -91,9 +91,9 @@ class Mert():
                 with torch.no_grad():
                     outputs = self.model(**inputs, output_hidden_states=True)
                 
-                emb = torch.stack(outputs.hidden_states)[8:16].squeeze().cpu()
+                emb = torch.stack(outputs.hidden_states)[(g.DATA_LAYER_START-1):g.DATA_LAYER_END].squeeze().cpu()
                 emb = torch.nn.functional.adaptive_avg_pool1d(
-                    emb.permute(0, 2, 1), output_size=Mert.TIME_STEPS
+                    emb.permute(0, 2, 1), output_size=g.DATA_COUNTS[g.DataSectionType.time]
                 ).permute(0, 2, 1)
                 
                 emb = emb.numpy()

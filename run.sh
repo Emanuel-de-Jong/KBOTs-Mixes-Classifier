@@ -28,6 +28,7 @@ declare -A STEPS_2=(
   [3]="3_scale"
   [4]="4_balance"
   [5]="5_shuffle"
+  [6]="6_reshape"
 )
 
 declare -A STEPS_3=(

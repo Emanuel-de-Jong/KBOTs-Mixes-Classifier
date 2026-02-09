@@ -8,7 +8,7 @@ import s0_utils.global_params as g
 from keras.utils import to_categorical, Sequence
 
 class DiskShardedSequence(Sequence):
-    def __init__(self, shard_paths, batch_size=256, shuffle=True, **kwargs):
+    def __init__(self, shard_paths, batch_size=g.MODEL_BATCH_SIZE, shuffle=True, **kwargs):
         super().__init__(**kwargs)
         self.shard_paths = shard_paths
         self.batch_size = batch_size

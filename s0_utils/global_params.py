@@ -10,8 +10,23 @@ class DataSetType(Enum):
     validate = 1
     test = 2
 
+class DataSectionType(Enum):
+    time = 0
+    feature = 1
+    layer = 2
+
+DATA_LAYER_START = 8
+DATA_LAYER_END = 15
+DATA_COUNTS = {
+    DataSectionType.time: 6,
+    DataSectionType.feature: 1024,
+    DataSectionType.layer: DATA_LAYER_END - DATA_LAYER_START + 1
+}
+DATA_ORDER = [DataSectionType.time, DataSectionType.feature, DataSectionType.layer]
+DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
+
 DATA_BATCH_SIZE = 7_000
-ZARR_CHUNK_SIZE = 256
+MODEL_BATCH_SIZE = 256
 
 NAME = "global"
 MODELS = {
@@ -103,14 +118,14 @@ def save_zarr(data, step, data_set_type, batch_idx):
     root.create_array(
         name="data",
         data=X,
-        chunks=(min(ZARR_CHUNK_SIZE, len(X)),) + X.shape[1:],
+        chunks=(min(MODEL_BATCH_SIZE, len(X)),) + X.shape[1:],
         compressors=[zarr.codecs.BloscCodec(cname="lz4", clevel=1, shuffle="shuffle")],
     )
 
     root.create_array(
         name="label",
         data=y,
-        chunks=(min(ZARR_CHUNK_SIZE, len(y)),),
+        chunks=(min(MODEL_BATCH_SIZE, len(y)),),
         compressors=[zarr.codecs.BloscCodec(cname="lz4", clevel=1, shuffle="shuffle")],
     )
 

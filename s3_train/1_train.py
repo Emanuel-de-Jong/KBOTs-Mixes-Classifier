@@ -128,7 +128,7 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_zarr_data_paths(5, g.DataSetType.test))
+    test_data_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
     test_seq = DiskShardedSequence(test_data_paths, shuffle=False)
     for i in range(len(test_seq)):
         X_test, y_test = test_seq[i]
@@ -156,12 +156,12 @@ def train(model_func):
     logger.writeln(name)
 
     train_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(5, g.DataSetType.train)),
+        list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
         shuffle=True
     )
 
     validate_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(5, g.DataSetType.validate)),
+        list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
         shuffle=False
     )
 
