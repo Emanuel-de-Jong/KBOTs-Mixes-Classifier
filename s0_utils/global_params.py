@@ -15,12 +15,19 @@ class DataSectionType(Enum):
     feature = 1
     layer = 2
 
-DATA_LAYER_START = 8
-DATA_LAYER_END = 15
+# 0-24. But maybe don't use 24?
+#     clip_min   clip_max
+# 0  -6.267006  16.034060
+# 1  -9.345669  14.299644
+# 2  -9.852882  14.021239
+# 22 -5.666114   9.925220
+# 23 -5.706382   9.931857
+# 24 -0.257531   0.291407
+DATA_LAYER_INDEXES = [2, 5, 7] + list(range(9, 14+1)) + [16, 18, 21]
 DATA_COUNTS = {
     DataSectionType.time: 6,
     DataSectionType.feature: 1024,
-    DataSectionType.layer: DATA_LAYER_END - DATA_LAYER_START + 1
+    DataSectionType.layer: len(DATA_LAYER_INDEXES)
 }
 DATA_ORDER = [DataSectionType.time, DataSectionType.feature, DataSectionType.layer]
 DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
