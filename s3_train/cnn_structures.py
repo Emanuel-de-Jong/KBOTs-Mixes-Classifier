@@ -73,9 +73,9 @@ def m16(name, train_seq, validate_seq):
     # early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
 
     training_data = model.fit(
-        train_seq[0],
-        train_seq[1],
-        # train_seq,
+        # train_seq[0],
+        # train_seq[1],
+        train_seq,
         batch_size=g.MODEL_BATCH_SIZE,
         epochs=5000,
         validation_data=validate_seq,
