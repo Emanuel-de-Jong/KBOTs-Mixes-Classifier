@@ -50,7 +50,13 @@ You'll have to install deno and let yt-dlp know about it:
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
 
 ## Roadmap
+- Experiments:
+    - Input shape (for example layers as width/sequential layers)
+    - Window size
+    - Window shape
+    - More rows instead of time (changes batch size!)
+    - Different batch sizes
 - Normalize volume before MERT step
 - Remove outliers after MERT step
-- Remove MERT layer with weird clipping range?
+- Different scaling algorithm
 - 2x weight on non public songs

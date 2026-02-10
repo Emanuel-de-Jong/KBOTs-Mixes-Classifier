@@ -3,8 +3,23 @@ import shutil
 import numpy as np
 import zarr
 import s0_utils.global_params as g
+from pathlib import Path
 
 SHOULD_PASS = False
+
+def del_last_model():
+    for path in g.CACHE_DIR.glob("data_6*"):
+        shutil.rmtree(path, ignore_errors=True)
+
+    shutil.rmtree(Path("s3_train") / "training", ignore_errors=True)
+
+    test_log = Path("s3_train") / "2_test.log"
+    if test_log.exists():
+        test_log.unlink()
+
+    model_path = g.MODELS_DIR / f"model_{g.NAME}.keras"
+    if model_path.exists():
+        model_path.unlink()
 
 def reshape_data(feature_data):
     feature_data = feature_data[
@@ -25,6 +40,9 @@ def reshape_data(feature_data):
         transpose_order.append(axis_mapping[section])
     
     return np.transpose(feature_data, transpose_order)
+
+if not SHOULD_PASS:
+    del_last_model()
 
 for data_set_type in g.DataSetType:
     current_batch_index = 0

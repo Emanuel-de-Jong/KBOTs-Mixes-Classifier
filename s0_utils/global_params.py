@@ -25,7 +25,8 @@ class DataSectionType(Enum):
 # 24 -0.257531   0.291407
 DATA_LAYER_INDEXES = [2, 5, 7] + list(range(9, 14+1)) + [16, 18, 21]
 DATA_COUNTS = {
-    DataSectionType.time: 6,
+    DataSectionType.time: 16,
+    # DataSectionType.time: 6,
     DataSectionType.feature: 1024,
     DataSectionType.layer: len(DATA_LAYER_INDEXES)
 }
