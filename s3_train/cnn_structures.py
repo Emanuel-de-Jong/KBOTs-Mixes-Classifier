@@ -74,7 +74,7 @@ def m16(name, train_seq, validation_data):
 
     training_data = model.fit(
         train_seq,
-        batch_size=32,
+        batch_size=g.MODEL_BATCH_SIZE,
         epochs=5000,
         validation_data=validation_data,
         callbacks=[reduce_lr, early_stopping],
