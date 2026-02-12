@@ -121,61 +121,6 @@ def draw_confusion_matrix(y_true, y_pred_sk, name=""):
     plt.savefig(TRAINING_DIR / f'test_matrix_{name}.png', bbox_inches='tight')
     plt.close()
 
-# def _count_zarr_rows(paths):
-#     total = 0
-#     for p in paths:
-#         z = zarr.open(p, mode='r')
-#         total += z['label'].shape[0]
-#     return total
-
-# train_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.train))
-# validate_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.validate))
-# test_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
-
-# n_train = _count_zarr_rows(train_paths)
-# n_validate = _count_zarr_rows(validate_paths)
-# n_test = _count_zarr_rows(test_paths)
-
-# X_train = np.empty((n_train,) + g.DATA_SHAPE, dtype=np.float32)
-# y_train = np.empty((n_train,), dtype=np.int64)
-
-# X_validate = np.empty((n_validate,) + g.DATA_SHAPE, dtype=np.float32)
-# y_validate = np.empty((n_validate,), dtype=np.int64)
-
-# X_test = np.empty((n_test,) + g.DATA_SHAPE, dtype=np.float32)
-# y_test = np.empty((n_test,), dtype=np.int64)
-
-# pos = 0
-# for p in train_paths:
-#     z = zarr.open(p, mode='r')
-#     m = z['label'].shape[0]
-#     X_train[pos:pos+m] = z['data'][:]
-#     y_train[pos:pos+m] = z['label'][:]
-#     pos += m
-
-# pos = 0
-# for p in validate_paths:
-#     z = zarr.open(p, mode='r')
-#     m = z['label'].shape[0]
-#     X_validate[pos:pos+m] = z['data'][:]
-#     y_validate[pos:pos+m] = z['label'][:]
-#     pos += m
-
-# pos = 0
-# for p in test_paths:
-#     z = zarr.open(p, mode='r')
-#     m = z['label'].shape[0]
-#     X_test[pos:pos+m] = z['data'][:]
-#     y_test[pos:pos+m] = z['label'][:]
-#     pos += m
-
-# y_train_hot = to_categorical(y_train, g.LABEL_COUNT)
-# y_validate_hot = to_categorical(y_validate, g.LABEL_COUNT)
-# y_test_hot = to_categorical(y_test, g.LABEL_COUNT)
-
-# train_seq = (X_train, y_train_hot)
-# validate_seq = (X_validate, y_validate_hot)
-
 def test(model, history, name=""):
     draw_acc_and_loss_graphs(history, name)
 
@@ -207,20 +152,71 @@ def test(model, history, name=""):
     )
     logger.writeln(f"Test Accuracy: {test_accuracy:.4f} | Loss: {test_loss:.4f}")
 
+def count_zarr_rows(paths):
+    total = 0
+    for p in paths:
+        z = zarr.open(p, mode='r')
+        total += z['label'].shape[0]
+    return total
+
+def get_training_sequences():
+    train_seq, validate_seq = None, None
+    if g.USE_SHARDS_IN_TRAINING:
+        train_seq = DiskShardedSequence(
+            list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
+            shuffle=True
+        )
+
+        validate_seq = DiskShardedSequence(
+            list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
+            shuffle=False
+        )
+    else:
+        data_load_start_time = time.perf_counter()
+        train_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.train))
+        validate_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.validate))
+
+        train_count = count_zarr_rows(train_paths)
+        validate_count = count_zarr_rows(validate_paths)
+
+        X_train = np.empty((train_count,) + g.DATA_SHAPE, dtype=np.float32)
+        X_validate = np.empty((train_count,) + g.DATA_SHAPE, dtype=np.float32)
+
+        y_train = np.empty((validate_count,), dtype=np.int64)
+        y_validate = np.empty((validate_count,), dtype=np.int64)
+
+        pos = 0
+        for p in train_paths:
+            z = zarr.open(p, mode='r')
+            m = z['label'].shape[0]
+            X_train[pos:pos+m] = z['data'][:]
+            y_train[pos:pos+m] = z['label'][:]
+            pos += m
+
+        pos = 0
+        for p in validate_paths:
+            z = zarr.open(p, mode='r')
+            m = z['label'].shape[0]
+            X_validate[pos:pos+m] = z['data'][:]
+            y_validate[pos:pos+m] = z['label'][:]
+            pos += m
+
+        y_train_hot = to_categorical(y_train, g.LABEL_COUNT)
+        y_validate_hot = to_categorical(y_validate, g.LABEL_COUNT)
+
+        train_seq = (X_train, y_train_hot)
+        validate_seq = (X_validate, y_validate_hot)
+        data_load_time = time.perf_counter() - data_load_start_time
+        print(f"Loading data into ram took: {data_load_time:.2f} seconds.")
+    
+    return train_seq, validate_seq
+
 def train(model_func):
     name = g.NAME
     # name = model_func.__name__
     logger.writeln(name)
 
-    train_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
-        shuffle=True
-    )
-
-    validate_seq = DiskShardedSequence(
-        list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
-        shuffle=False
-    )
+    train_seq, validate_seq = get_training_sequences()
 
     start_time = time.time()
     model, training_data = model_func(name, train_seq, validate_seq)

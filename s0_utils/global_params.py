@@ -36,11 +36,14 @@ DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
 DATA_BATCH_SIZE = 7_000
 MODEL_BATCH_SIZE = 256
 
-NAME = "global"
+USE_SHARDS_IN_TRAINING = True
+
+NAME = "edm"
 MODELS = {
-    "global": [],
+    # "global": [],
     # "general_pop": [],
     # "rock": [],
+    "edm": [],
     # "edm_hard": [],
     # "edm_easy": [
     #     "Bassline",
