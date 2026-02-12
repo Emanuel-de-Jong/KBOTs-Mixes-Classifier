@@ -21,13 +21,13 @@ else:
     sample_loaded = False
     for data_path in g.iter_data_paths(2, g.DataSetType.train):
         data = g.load_data(data_path)
-        feature_dim = data.iloc[0]["data"].shape[-1]
+        channel_dim = data.iloc[0]["data"].shape[-1]
         break
 
-    clip_min = np.empty(feature_dim, dtype=np.float32)
-    clip_max = np.empty(feature_dim, dtype=np.float32)
+    clip_min = np.empty(channel_dim, dtype=np.float32)
+    clip_max = np.empty(channel_dim, dtype=np.float32)
 
-    for f in range(feature_dim):
+    for f in range(channel_dim):
         values = []
 
         for data_path in g.iter_data_paths(2, g.DataSetType.train):
@@ -52,7 +52,7 @@ else:
         "clip_max": clip_max,
     }
 
-    print("Clipping ranges per feature:")
+    print("Clipping ranges per channel_dim:")
     print(pd.DataFrame({
         "clip_min": clip_min,
         "clip_max": clip_max
