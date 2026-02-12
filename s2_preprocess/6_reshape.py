@@ -5,8 +5,6 @@ import zarr
 import s0_utils.global_params as g
 from pathlib import Path
 
-SHOULD_PASS = False
-
 def del_last_model():
     for path in g.CACHE_DIR.glob("data_6*"):
         shutil.rmtree(path, ignore_errors=True)
@@ -25,14 +23,14 @@ def reshape_data(feature_data):
     feature_data = feature_data[
         :,
         :g.DATA_COUNTS[g.DataSectionType.time],
-        :g.DATA_COUNTS[g.DataSectionType.feature],
-        :g.DATA_COUNTS[g.DataSectionType.layer]
+        :g.DATA_COUNTS[g.DataSectionType.layer],
+        :g.DATA_COUNTS[g.DataSectionType.feature]
     ]
     
     axis_mapping = {
         g.DataSectionType.time: 1,
-        g.DataSectionType.feature: 2,
-        g.DataSectionType.layer: 3
+        g.DataSectionType.layer: 2,
+        g.DataSectionType.feature: 3
     }
     
     transpose_order = [0]
@@ -42,20 +40,12 @@ def reshape_data(feature_data):
     return np.transpose(feature_data, transpose_order)
 
 print("Reshaping...")
-
-if not SHOULD_PASS:
-    del_last_model()
+# del_last_model()
 
 for data_set_type in g.DataSetType:
     current_batch_index = 0
 
     for source_zarr_path in g.iter_zarr_data_paths(5, data_set_type):
-        if SHOULD_PASS:
-            destination_path = g.CACHE_DIR / source_zarr_path.name.replace("data_5_", "data_6_")
-            shutil.copytree(source_zarr_path, destination_path)
-            current_batch_index += 1
-            continue
-
         source_zarr = zarr.open(source_zarr_path, mode="r")
         total_samples = source_zarr["label"].shape[0]
 
