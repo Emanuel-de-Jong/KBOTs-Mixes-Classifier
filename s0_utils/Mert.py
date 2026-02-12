@@ -93,14 +93,13 @@ class Mert():
                 
                 emb = torch.stack(outputs.hidden_states).squeeze().cpu()
                 emb = emb[g.DATA_LAYER_INDEXES]
+
+                # Always ordered (layer, time, feature)
                 emb = torch.nn.functional.adaptive_avg_pool1d(
                     emb.permute(0, 2, 1), output_size=g.DATA_COUNTS[g.DataSectionType.time]
                 ).permute(0, 2, 1)
                 
                 emb = emb.numpy()
-                # emb = (emb - emb.mean(axis=0)) / emb.std(axis=0)
-                emb = emb.transpose(1, 2, 0)
-                
                 embs.append(emb)
 
             embs = np.array(embs)

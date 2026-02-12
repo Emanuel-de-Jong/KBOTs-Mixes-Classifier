@@ -8,6 +8,34 @@ from sklearn.preprocessing import MinMaxScaler
 
 g.DATA_BATCH_SIZE = 7_000
 
+# (min, max)
+CLIPS_BY_LAYER = []
+CLIPS_BY_LAYER[0] = (-7, 17)
+CLIPS_BY_LAYER[1] = (-10, 15)
+CLIPS_BY_LAYER[2] = (-10, 15)
+CLIPS_BY_LAYER[3] = (-10, 15)
+CLIPS_BY_LAYER[4] = (-10, 15)
+CLIPS_BY_LAYER[5] = (-10, 15)
+CLIPS_BY_LAYER[6] = (-10, 16)
+CLIPS_BY_LAYER[7] = (-10, 16)
+CLIPS_BY_LAYER[8] = (-10, 16)
+CLIPS_BY_LAYER[9] = (-10, 16)
+CLIPS_BY_LAYER[10] = (-10, 16)
+CLIPS_BY_LAYER[11] = (-10, 16)
+CLIPS_BY_LAYER[12] = (-10, 16)
+CLIPS_BY_LAYER[13] = (-9, 16)
+CLIPS_BY_LAYER[14] = (-9, 16)
+CLIPS_BY_LAYER[15] = (-9, 15)
+CLIPS_BY_LAYER[16] = (-9, 15)
+CLIPS_BY_LAYER[17] = (-8, 13)
+CLIPS_BY_LAYER[18] = (-8, 13)
+CLIPS_BY_LAYER[19] = (-7, 12)
+CLIPS_BY_LAYER[20] = (-7, 12)
+CLIPS_BY_LAYER[21] = (-6, 11)
+CLIPS_BY_LAYER[22] = (-6, 10)
+CLIPS_BY_LAYER[23] = (-6, 10)
+CLIPS_BY_LAYER[24] = (-0.35, 0.35)
+
 SCALE_TOOLS_PATH = g.MODELS_DIR / f"scale_tools_{g.NAME}.joblib"
 
 scale_tools = {}
