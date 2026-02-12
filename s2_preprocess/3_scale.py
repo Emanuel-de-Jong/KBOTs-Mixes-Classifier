@@ -8,34 +8,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 g.DATA_BATCH_SIZE = 7_000
 
-# (min, max)
-CLIPS_BY_LAYER = []
-CLIPS_BY_LAYER[0] = (-7, 17)
-CLIPS_BY_LAYER[1] = (-10, 15)
-CLIPS_BY_LAYER[2] = (-10, 15)
-CLIPS_BY_LAYER[3] = (-10, 15)
-CLIPS_BY_LAYER[4] = (-10, 15)
-CLIPS_BY_LAYER[5] = (-10, 15)
-CLIPS_BY_LAYER[6] = (-10, 16)
-CLIPS_BY_LAYER[7] = (-10, 16)
-CLIPS_BY_LAYER[8] = (-10, 16)
-CLIPS_BY_LAYER[9] = (-10, 16)
-CLIPS_BY_LAYER[10] = (-10, 16)
-CLIPS_BY_LAYER[11] = (-10, 16)
-CLIPS_BY_LAYER[12] = (-10, 16)
-CLIPS_BY_LAYER[13] = (-9, 16)
-CLIPS_BY_LAYER[14] = (-9, 16)
-CLIPS_BY_LAYER[15] = (-9, 15)
-CLIPS_BY_LAYER[16] = (-9, 15)
-CLIPS_BY_LAYER[17] = (-8, 13)
-CLIPS_BY_LAYER[18] = (-8, 13)
-CLIPS_BY_LAYER[19] = (-7, 12)
-CLIPS_BY_LAYER[20] = (-7, 12)
-CLIPS_BY_LAYER[21] = (-6, 11)
-CLIPS_BY_LAYER[22] = (-6, 10)
-CLIPS_BY_LAYER[23] = (-6, 10)
-CLIPS_BY_LAYER[24] = (-0.35, 0.35)
-
 SCALE_TOOLS_PATH = g.MODELS_DIR / f"scale_tools_{g.NAME}.joblib"
 
 scale_tools = {}
@@ -49,13 +21,13 @@ else:
     sample_loaded = False
     for data_path in g.iter_data_paths(2, g.DataSetType.train):
         data = g.load_data(data_path)
-        channel_dim = data.iloc[0]["data"].shape[-1]
+        feature_dim = data.iloc[0]["data"].shape[-1]
         break
 
-    clip_min = np.empty(channel_dim, dtype=np.float32)
-    clip_max = np.empty(channel_dim, dtype=np.float32)
+    clip_min = np.empty(feature_dim, dtype=np.float32)
+    clip_max = np.empty(feature_dim, dtype=np.float32)
 
-    for f in range(channel_dim):
+    for f in range(feature_dim):
         values = []
 
         for data_path in g.iter_data_paths(2, g.DataSetType.train):
@@ -80,7 +52,7 @@ else:
         "clip_max": clip_max,
     }
 
-    print("Clipping ranges per channel_dim:")
+    print("Clipping ranges per layer:")
     print(pd.DataFrame({
         "clip_min": clip_min,
         "clip_max": clip_max
