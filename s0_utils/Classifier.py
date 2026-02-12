@@ -25,6 +25,7 @@ class Classifier():
                 return None, None
             
             embs = self.scale_embs(embs)
+            embs = embs.transpose(0, 1, 3, 2)
         
         embs_probs = self.model.predict(embs)
         
@@ -39,10 +40,22 @@ class Classifier():
         return results, embs
     
     def scale_embs(self, embs):
-        og_shape = embs.shape
-        embs_2d = embs.reshape(-1, embs.shape[-1])
-        embs_2d = np.clip(embs_2d, self.scale_tools["clip_min"], self.scale_tools["clip_max"])
-        return self.scale_tools["scaler"].transform(embs_2d).reshape(og_shape)
+        clip_min = self.scale_tools["clip_min"]
+        clip_max = self.scale_tools["clip_max"]
+
+        range_vals = clip_max - clip_min
+        range_vals[range_vals == 0] = 1.0
+
+        embs = np.clip(
+            embs,
+            clip_min[None, :, None],
+            clip_max[None, :, None]
+        )
+
+        embs = (embs - clip_min[None, :, None]) / range_vals[None, :, None]
+        embs = embs * 2.0 - 1.0
+
+        return embs.astype(np.float32, copy=False)
     
     def print_top(self, top):
         for i in range(len(top)):

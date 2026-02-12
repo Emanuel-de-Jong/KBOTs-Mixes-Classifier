@@ -71,20 +71,6 @@ class GenreOutliers():
         if len(df) == 0:
             return df
 
-        all_vals = np.concatenate([x.reshape(-1, x.shape[-1]) for x in df["data"]], axis=0)
-        clip_min = np.percentile(all_vals, 1, axis=0)
-        clip_max = np.percentile(all_vals, 99, axis=0)
-        scaler = MinMaxScaler(feature_range=(-1, 1))
-        scaler.fit(np.clip(all_vals, clip_min, clip_max))
-
-        scaled = []
-        for arr in df["data"]:
-            flat = arr.reshape(-1, arr.shape[-1])
-            flat = np.clip(flat, clip_min, clip_max)
-            flat = scaler.transform(flat)
-            scaled.append(flat.reshape(arr.shape))
-
-        df["data"] = scaled
         return df
 
     def compute_outliers(self, song_embeddings):
@@ -104,8 +90,8 @@ class GenreOutliers():
         X = np.stack([song_tensors[s] for s in songs], axis=0)
 
         layer_vars = []
-        for l in range(X.shape[-1]):
-            flat = X[..., l].reshape(n, -1)
+        for layer_idx in range(X.shape[2]):
+            flat = X[:, :, layer_idx, :].reshape(n, -1)
             layer_vars.append(np.var(flat, axis=0).mean())
 
         layer_vars = np.asarray(layer_vars)
@@ -146,10 +132,10 @@ class GenreOutliers():
 
     def weighted_layerwise_cosine(self, a, b, weights):
         d = 0.0
-        for l in range(a.shape[-1]):
-            va = self.l2_normalize(a[..., l].reshape(-1))
-            vb = self.l2_normalize(b[..., l].reshape(-1))
-            d += weights[l] * (1.0 - float(np.dot(va, vb)))
+        for layer_idx in range(a.shape[1]):
+            va = self.l2_normalize(a[:, layer_idx, :].reshape(-1))
+            vb = self.l2_normalize(b[:, layer_idx, :].reshape(-1))
+            d += weights[layer_idx] * (1.0 - float(np.dot(va, vb)))
         return float(d)
 
     def l2_normalize(self, x, eps=1e-12):
