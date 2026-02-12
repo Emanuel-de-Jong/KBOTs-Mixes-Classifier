@@ -180,9 +180,9 @@ def get_training_sequences():
         validate_count = count_zarr_rows(validate_paths)
 
         X_train = np.empty((train_count,) + g.DATA_SHAPE, dtype=np.float32)
-        X_validate = np.empty((train_count,) + g.DATA_SHAPE, dtype=np.float32)
+        X_validate = np.empty((validate_count,) + g.DATA_SHAPE, dtype=np.float32)
 
-        y_train = np.empty((validate_count,), dtype=np.int64)
+        y_train = np.empty((train_count,), dtype=np.int64)
         y_validate = np.empty((validate_count,), dtype=np.int64)
 
         pos = 0

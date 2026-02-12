@@ -41,6 +41,8 @@ def reshape_data(feature_data):
     
     return np.transpose(feature_data, transpose_order)
 
+print("Reshaping...")
+
 if not SHOULD_PASS:
     del_last_model()
 
