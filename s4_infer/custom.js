@@ -21,6 +21,7 @@ function showSongStats(songName) {
 
     statsHtml = `
         <div class="song-title">${songName}</div>
+        <div class="models-grid">
     `;
 
     for (const modelName in results[songName]) {
@@ -53,6 +54,10 @@ function showSongStats(songName) {
         `;
     }
 
+    statsHtml += `
+        </div>
+    `;
+
     statsContent.innerHTML = statsHtml;
 }
 
@@ -69,6 +74,15 @@ songEntries.forEach(function (entryElement) {
         showSongStats(songName);
     });
 });
+
+if (songEntries.length > 0) {
+    let firstEntryElement = songEntries[0];
+    firstEntryElement.classList.add("active");
+
+    let firstSongName = firstEntryElement.getAttribute("data-song-name");
+
+    showSongStats(firstSongName);
+}
 
 searchInput.addEventListener("input", function () {
     let searchValue = searchInput.value.toLowerCase();
