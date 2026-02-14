@@ -3,14 +3,19 @@ import subprocess
 import tempfile
 import torch
 import os
+import random
 import s0_utils.global_params as g
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 from sklearn.utils import resample
 
 class Mert():
-    CHUNK_LENGTH_SECONDS = 10
     START_SKIP_SECONDS = 0
     END_SKIP_SECONDS = 0
+
+    CHUNK_LENGTH_SECONDS = 1
+    WINDOW_LENGTH_SECONDS = CHUNK_LENGTH_SECONDS * (45 // CHUNK_LENGTH_SECONDS)
+    MIN_WINDOW_LENGTH_SECONDS = 10
+
     MODEL_NAME = "m-a-p/MERT-v1-330M"
     ERROR_LOG_NAME = "error.log"
 
@@ -58,53 +63,55 @@ class Mert():
         # print(f"Processing: {os.path.basename(path)}")
         
         try:
-            audio_samples, resample_rate = self.load_audio_ffmpeg(path)
-            
-            samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
-            
+            samples, resample_rate = self.load_audio_ffmpeg(path)
+
             start_skip_samples = int(self.START_SKIP_SECONDS * resample_rate)
             end_skip_samples = int(self.END_SKIP_SECONDS * resample_rate)
+            samples = samples[start_skip_samples:len(samples)-end_skip_samples]
+            sample_count = len(samples)
             
-            total_samples = len(audio_samples)
-            usable_samples = total_samples - start_skip_samples - end_skip_samples
-            
-            if usable_samples < samples_per_chunk:
-                self.error(f"{path} is too short after skipping! Usable: {usable_samples}, needed: {samples_per_chunk}")
+            samples_min_window = int(self.MIN_WINDOW_LENGTH_SECONDS * resample_rate)
+            if sample_count < samples_min_window:
+                self.error(f"{path} is too short after skipping! Usable: {sample_count}, needed: {samples_min_window}")
                 return None
             
-            num_full_chunks = usable_samples // samples_per_chunk
-            
-            chunks = []
-            for i in range(num_full_chunks):
-                start_idx = start_skip_samples + (i * samples_per_chunk)
-                end_idx = start_idx + samples_per_chunk
-                chunk = audio_samples[start_idx:end_idx]
-                chunks.append(chunk.numpy())
+            samples_per_window = int(self.WINDOW_LENGTH_SECONDS * resample_rate)
+            samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
 
-            if max_chunks != -1 and len(chunks) > max_chunks:
-                chunks = resample(chunks, replace=False, n_samples=max_chunks, random_state=1)
-            
+            windows = []
+            max_windows = (sample_count // samples_per_window) + 1
+            for i in range(max_windows):
+                start_idx = i * samples_per_window
+                end_idx = min(start_idx + samples_per_window, sample_count)
+                if end_idx - start_idx < samples_min_window:
+                    break
+
+                end_idx = (end_idx // samples_per_chunk) * samples_per_chunk
+
+                windows.append(samples[start_idx:end_idx].numpy())
+
             embs = []
-            for chunk in chunks:
-                inputs = self.processor(chunk, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
-
+            for window in windows:
+                inputs = self.processor(window, sampling_rate=resample_rate, return_tensors="pt").to(self.device)
                 with torch.no_grad():
                     outputs = self.model(**inputs, output_hidden_states=True)
                 
-                emb = torch.stack(outputs.hidden_states).squeeze().cpu()
-                emb = emb[g.DATA_LAYER_INDEXES]
+                out = torch.stack(outputs.hidden_states).squeeze().cpu()
+                out = out[g.DATA_LAYER_INDEXES]
 
-                emb = torch.nn.functional.adaptive_avg_pool1d(
-                    emb.permute(0, 2, 1), output_size=g.DATA_COUNTS[g.DataSectionType.time]
+                out = torch.nn.functional.adaptive_avg_pool1d(
+                    out.permute(0, 2, 1), output_size=len(window) // samples_per_chunk
                 ).permute(2, 0, 1) # Always ordered (time, layer, feature)
-                
-                emb = emb.numpy()
-                embs.append(emb)
 
-            embs = np.array(embs)
+                for emb in out:
+                    embs.append(emb.unsqueeze(0).numpy())
+
+            random.shuffle(embs)
+            if max_chunks != -1:
+                embs = embs[:max_chunks]
             
             # print(f"Success! Generated {len(embs)} embs")
-            return embs
+            return np.array(embs)
         
         except Exception as e:
             self.error(f"{path} is corrupt! Error: {e}")

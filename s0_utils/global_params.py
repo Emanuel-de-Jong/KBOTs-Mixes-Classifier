@@ -25,14 +25,13 @@ class DataSectionType(Enum):
 # 24 -0.257531   0.291407
 DATA_LAYER_INDEXES = [2, 5, 7] + list(range(9, 14+1)) + [16, 18, 21]
 DATA_COUNTS = {
-    DataSectionType.time: 16,
-    # DataSectionType.time: 6,
+    DataSectionType.time: 1,
     DataSectionType.feature: 1024,
     DataSectionType.layer: len(DATA_LAYER_INDEXES)
 }
 
 # Untill s2_preprocess.6_reshape, the structure is always (time, layer, feature)
-DATA_ORDER = [DataSectionType.time, DataSectionType.feature, DataSectionType.layer]
+DATA_ORDER = [DataSectionType.layer, DataSectionType.feature, DataSectionType.time]
 DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
 
 DATA_BATCH_SIZE = 7_000

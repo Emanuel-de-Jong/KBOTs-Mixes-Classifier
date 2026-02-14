@@ -5,7 +5,7 @@ from s0_utils.Mert import Mert
 from tqdm import tqdm
 from pathlib import Path
 
-MAX_CHUNKS_TRAIN = 18
+MAX_CHUNKS_TRAIN = 180
 MAX_CHUNKS_TEST = -1
 
 SONGS_BATCH_SIZE = 250
