@@ -19,6 +19,8 @@ from keras.models import load_model
 from keras.utils import to_categorical
 from s0_utils.Logger import Logger
 
+LAST_PREPROCESS_STEP = 7
+
 TRAINING_DIR = Path("s3_train/training")
 TRAINING_DIR.mkdir(exist_ok=True)
 
@@ -130,7 +132,7 @@ def test(model, history, name=""):
     y_true = []
     y_pred_sk = []
 
-    test_data_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.test))
+    test_data_paths = list(g.iter_zarr_data_paths(LAST_PREPROCESS_STEP, g.DataSetType.test))
     test_seq = DiskShardedSequence(test_data_paths, shuffle=False)
     for i in range(len(test_seq)):
         X_test, y_test = test_seq[i]
@@ -163,18 +165,18 @@ def get_training_sequences():
     train_seq, validate_seq = None, None
     if g.USE_SHARDS_IN_TRAINING:
         train_seq = DiskShardedSequence(
-            list(g.iter_zarr_data_paths(6, g.DataSetType.train)),
+            list(g.iter_zarr_data_paths(LAST_PREPROCESS_STEP, g.DataSetType.train)),
             shuffle=True
         )
 
         validate_seq = DiskShardedSequence(
-            list(g.iter_zarr_data_paths(6, g.DataSetType.validate)),
+            list(g.iter_zarr_data_paths(LAST_PREPROCESS_STEP, g.DataSetType.validate)),
             shuffle=False
         )
     else:
         data_load_start_time = time.perf_counter()
-        train_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.train))
-        validate_paths = list(g.iter_zarr_data_paths(6, g.DataSetType.validate))
+        train_paths = list(g.iter_zarr_data_paths(LAST_PREPROCESS_STEP, g.DataSetType.train))
+        validate_paths = list(g.iter_zarr_data_paths(LAST_PREPROCESS_STEP, g.DataSetType.validate))
 
         train_count = count_zarr_rows(train_paths)
         validate_count = count_zarr_rows(validate_paths)

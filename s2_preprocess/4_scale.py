@@ -6,9 +6,10 @@ import os
 import s0_utils.global_params as g
 from sklearn.preprocessing import MinMaxScaler
 
-g.DATA_BATCH_SIZE = 7_000
-
+STEP = 4
 SCALE_TOOLS_PATH = g.MODELS_DIR / f"scale_tools_{g.NAME}.joblib"
+
+g.DATA_BATCH_SIZE = 7_000
 
 scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)
@@ -19,7 +20,7 @@ if is_scale_tools_loaded:
 else:
     print("Generating scale tools...")
     sample_loaded = False
-    for data_path in g.iter_data_paths(2, g.DataSetType.train):
+    for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
         data = g.load_data(data_path)
         layer_dim = data.iloc[0]["data"].shape[1]
         break
@@ -30,7 +31,7 @@ else:
     for layer_idx in range(layer_dim):
         values = []
 
-        for data_path in g.iter_data_paths(2, g.DataSetType.train):
+        for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
             data = g.load_data(data_path)
 
             layer_vals = np.concatenate(
@@ -58,7 +59,7 @@ else:
         "clip_max": clip_max
     }))
 
-    for data_path in g.iter_data_paths(2, g.DataSetType.train):
+    for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
         data = g.load_data(data_path)
 
         all_values = np.concatenate(
@@ -84,7 +85,7 @@ for data_set_type in g.DataSetType:
     out_idx = 0
     out_rows = []
 
-    for data_path in g.iter_data_paths(2, data_set_type):
+    for data_path in g.iter_data_paths(STEP-1, data_set_type):
         data = g.load_data(data_path)
 
         all_values = np.concatenate(
@@ -114,7 +115,7 @@ for data_set_type in g.DataSetType:
             out_rows.append(row)
 
             if len(out_rows) >= g.DATA_BATCH_SIZE:
-                g.save_data(pd.DataFrame(out_rows), 3, data_set_type, out_idx)
+                g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
                 out_idx += 1
                 out_rows = []
 
@@ -122,4 +123,4 @@ for data_set_type in g.DataSetType:
         gc.collect()
 
     if out_rows:
-        g.save_data(pd.DataFrame(out_rows), 3, data_set_type, out_idx)
+        g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)

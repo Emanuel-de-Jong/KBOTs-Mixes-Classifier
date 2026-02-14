@@ -59,11 +59,18 @@ class Mert():
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
     
+    def volume_normalize(self, samples, target_dbfs=-20.0, eps=1e-8):
+        rms = torch.sqrt(torch.mean(samples ** 2) + eps)
+        target_rms = 10 ** (target_dbfs / 20.0)
+        gain = target_rms / rms
+        return samples * gain
+    
     def run(self, path, max_chunks=-1):
         # print(f"Processing: {os.path.basename(path)}")
         
         try:
             samples, resample_rate = self.load_audio_ffmpeg(path)
+            # samples = self.volume_normalize(samples)
 
             start_skip_samples = int(self.START_SKIP_SECONDS * resample_rate)
             end_skip_samples = int(self.END_SKIP_SECONDS * resample_rate)

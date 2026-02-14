@@ -6,8 +6,10 @@ import pandas as pd
 import s0_utils.global_params as g
 from tqdm import tqdm
 
-g.DATA_BATCH_SIZE = 14_000
+STEP = 6
 BUCKET_COUNT = 500
+
+g.DATA_BATCH_SIZE = 14_000
 
 def clear_temp_dir():
     for path in g.TEMP_DIR.iterdir():
@@ -36,7 +38,7 @@ for data_set_type in tqdm(
         g.DataSetType,
         desc="Data Sets",
         position=0):
-    step = 3 if data_set_type == g.DataSetType.test else 4
+    step = STEP-2 if data_set_type == g.DataSetType.test else STEP-1
     data_paths = list(g.iter_data_paths(step, data_set_type))
     for data_path in tqdm(
             data_paths,
@@ -66,7 +68,7 @@ for data_set_type in tqdm(
         
         if len(data.index) >= g.DATA_BATCH_SIZE:
             data = data.sample(frac=1).reset_index(drop=True)
-            g.save_zarr(data, 5, data_set_type, batch_idx)
+            g.save_zarr(data, STEP, data_set_type, batch_idx)
             batch_idx += 1
 
             data = None
@@ -76,7 +78,7 @@ for data_set_type in tqdm(
     
     if data is not None and not data.empty:
         data = data.sample(frac=1).reset_index(drop=True)
-        g.save_zarr(data, 5, data_set_type, batch_idx)
+        g.save_zarr(data, STEP, data_set_type, batch_idx)
     
     clear_temp_dir()
 

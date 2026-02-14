@@ -5,6 +5,8 @@ from s0_utils.Mert import Mert
 from tqdm import tqdm
 from pathlib import Path
 
+STEP = 2
+
 MAX_CHUNKS_TRAIN = 180
 MAX_CHUNKS_TEST = -1
 
@@ -50,7 +52,7 @@ def extract(data_set_type):
                     'is_public': song.is_public,
                     'data': emb})
         
-        g.save_data(pd.DataFrame(data), 2, data_set_type, i)
+        g.save_data(pd.DataFrame(data), STEP, data_set_type, i)
 
 extract(g.DataSetType.train)
 extract(g.DataSetType.test)

@@ -3,6 +3,8 @@ import numpy as np
 import gc
 import s0_utils.global_params as g
 
+STEP = 5
+
 VALIDATE_PERC = 0.25
 VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
@@ -11,7 +13,7 @@ TRAIN_SAMPLE_TARGET_QUANTILE = 0.75
 g.DATA_BATCH_SIZE = 7_000
 
 dfs = []
-for data_path in g.iter_data_paths(3, g.DataSetType.train):
+for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
     dfs.append(g.load_data(data_path))
 
 train_data = pd.concat(dfs, ignore_index=True)
@@ -79,7 +81,7 @@ print("\n== Validate label counts ==")
 for label, count in validate_data["label"].value_counts().items():
     print(f"{g.LABELS[label]}: {count}")
 
-g.save_data_batched(validate_data, 4, g.DataSetType.validate)
+g.save_data_batched(validate_data, STEP, g.DataSetType.validate)
 
 validate_idxs = validate_data.index.unique()
 
@@ -160,4 +162,4 @@ print("\n== Train label counts after resample ==")
 for label, count in train_data["label"].value_counts().items():
     print(f"{g.LABELS[label]}: {count}")
 
-g.save_data_batched(train_data, 4, g.DataSetType.train)
+g.save_data_batched(train_data, STEP, g.DataSetType.train)
