@@ -6,14 +6,13 @@ import os
 import random
 import s0_utils.global_params as g
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
-from sklearn.utils import resample
 
 class Mert():
     START_SKIP_SECONDS = 0
     END_SKIP_SECONDS = 0
 
     CHUNK_LENGTH_SECONDS = 1
-    WINDOW_LENGTH_SECONDS = CHUNK_LENGTH_SECONDS * (45 // CHUNK_LENGTH_SECONDS)
+    WINDOW_LENGTH_SECONDS = CHUNK_LENGTH_SECONDS * (30 // CHUNK_LENGTH_SECONDS)
     MIN_WINDOW_LENGTH_SECONDS = 10
 
     MODEL_NAME = "m-a-p/MERT-v1-330M"
