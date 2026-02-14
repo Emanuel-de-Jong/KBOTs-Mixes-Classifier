@@ -11,7 +11,7 @@ data_sets/train/public_playlists/*
 !data_sets/train/public_playlists/.gitkeep
 s1_prep/dls/
 s3_train/training/
-s4_infer/batch_results.yaml
+s4_infer/results.js
 s4_infer/batch/*
 !s4_infer/batch/.gitkeep
 
