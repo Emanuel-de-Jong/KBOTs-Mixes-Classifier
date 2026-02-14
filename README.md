@@ -54,9 +54,13 @@ You'll have to install deno and let yt-dlp know about it:
     - Input shape (for example layers as width/sequential layers)
     - Window size
     - Window shape
-    - More rows instead of time (changes batch size!)
-    - Different batch sizes
-- Normalize volume before MERT step
-- Remove outliers after MERT step
+    - Batch size
 - Different scaling algorithm
+- Inference NN decision tree:
+    - Is edm?
+        - Yes: edm model (50 songs)
+        - No:
+            - Is non_general? (9 songs)
+                - Yes: non_general model
+                - No: general model (5 songs)
 - 2x weight on non public songs
