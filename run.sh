@@ -25,10 +25,11 @@ declare -A STEPS_1=(
 declare -A STEPS_2=(
   [1]="1_gen_labels"
   [2]="2_extract_embs"
-  [3]="3_scale"
-  [4]="4_balance"
-  [5]="5_shuffle"
-  [6]="6_reshape"
+  [3]="3_outliers"
+  [4]="4_scale"
+  [5]="5_balance"
+  [6]="6_shuffle"
+  [7]="7_reshape"
 )
 
 declare -A STEPS_3=(
