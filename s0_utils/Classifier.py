@@ -25,7 +25,7 @@ class Classifier():
                 return None, None
             
             embs = self.scale_embs(embs)
-            embs = embs.transpose(0, 1, 3, 2)
+            embs = self.reshape_data(embs)
         
         embs_probs = self.model.predict(embs)
         
@@ -42,20 +42,37 @@ class Classifier():
     def scale_embs(self, embs):
         clip_min = self.scale_tools["clip_min"]
         clip_max = self.scale_tools["clip_max"]
+        scaler = self.scale_tools["scaler"]
 
-        range_vals = clip_max - clip_min
-        range_vals[range_vals == 0] = 1.0
-
-        embs = np.clip(
-            embs,
-            clip_min[None, :, None],
-            clip_max[None, :, None]
+        embs_2d = embs.transpose(0, 1, 3, 2).reshape(-1, embs.shape[2])
+        embs_2d = np.clip(
+            embs_2d,
+            clip_min,
+            clip_max
         )
 
-        embs = (embs - clip_min[None, :, None]) / range_vals[None, :, None]
-        embs = embs * 2.0 - 1.0
+        embs_scaled = scaler.transform(embs_2d)
+        embs_scaled = embs_scaled.reshape(
+            embs.shape[0],
+            embs.shape[1],
+            embs.shape[3],
+            embs.shape[2]
+        ).transpose(0, 1, 3, 2)
 
-        return embs.astype(np.float32, copy=False)
+        return embs_scaled.astype(np.float32, copy=False)
+    
+    def reshape_data(self, embs):
+        axis_mapping = {
+            g.DataSectionType.time: 1,
+            g.DataSectionType.layer: 2,
+            g.DataSectionType.feature: 3
+        }
+
+        transpose_order = [0]
+        for section in g.DATA_ORDER:
+            transpose_order.append(axis_mapping[section])
+
+        return np.transpose(embs, transpose_order)
     
     def print_top(self, top):
         for i in range(len(top)):
