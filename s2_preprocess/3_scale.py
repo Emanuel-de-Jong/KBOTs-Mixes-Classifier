@@ -47,6 +47,7 @@ else:
         gc.collect()
 
     scale_tools = {
+        "scaler": MinMaxScaler(feature_range=(-1, 1)),
         "clip_min": clip_min,
         "clip_max": clip_max,
     }
@@ -57,12 +58,28 @@ else:
         "clip_max": clip_max
     }))
 
+    for data_path in g.iter_data_paths(2, g.DataSetType.train):
+        data = g.load_data(data_path)
+
+        all_values = np.concatenate(
+            [arr.transpose(0, 2, 1).reshape(-1, arr.shape[1]) for arr in data["data"]],
+            axis=0
+        )
+
+        all_values = np.clip(
+            all_values,
+            clip_min,
+            clip_max
+        )
+
+        scale_tools["scaler"].partial_fit(all_values)
+
+        del all_values
+        gc.collect()
+
     joblib.dump(scale_tools, SCALE_TOOLS_PATH)
 
 print("\nScaling...")
-range_vals = scale_tools["clip_max"] - scale_tools["clip_min"]
-range_vals[range_vals == 0] = 1.0
-
 for data_set_type in g.DataSetType:
     out_idx = 0
     out_rows = []
@@ -70,19 +87,29 @@ for data_set_type in g.DataSetType:
     for data_path in g.iter_data_paths(2, data_set_type):
         data = g.load_data(data_path)
 
+        all_values = np.concatenate(
+            [arr.transpose(0, 2, 1).reshape(-1, arr.shape[1]) for arr in data["data"]],
+            axis=0
+        )
+
+        all_values = np.clip(
+            all_values,
+            scale_tools["clip_min"],
+            scale_tools["clip_max"]
+        )
+
+        all_scaled = scale_tools["scaler"].transform(all_values)
+
+        offset = 0
         for _, row in data.iterrows():
             arr = row["data"]
+            element_count = arr.shape[0] * arr.shape[2]
 
-            arr = np.clip(
-                arr,
-                scale_tools["clip_min"][None, :, None],
-                scale_tools["clip_max"][None, :, None]
-            )
+            scaled = all_scaled[offset:offset + element_count]
+            scaled = scaled.reshape(arr.shape[0], arr.shape[2], arr.shape[1])
+            row["data"] = scaled.transpose(0, 2, 1).astype(np.float32, copy=False)
 
-            arr = (arr - scale_tools["clip_min"][None, :, None]) / range_vals[None, :, None]
-            arr = arr * 2.0 - 1.0
-
-            row["data"] = arr.astype(np.float32, copy=False)
+            offset += element_count
 
             out_rows.append(row)
 
@@ -91,6 +118,7 @@ for data_set_type in g.DataSetType:
                 out_idx += 1
                 out_rows = []
 
+        del all_values, all_scaled
         gc.collect()
 
     if out_rows:

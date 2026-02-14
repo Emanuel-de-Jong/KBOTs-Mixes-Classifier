@@ -30,6 +30,8 @@ DATA_COUNTS = {
     DataSectionType.feature: 1024,
     DataSectionType.layer: len(DATA_LAYER_INDEXES)
 }
+
+# Untill s2_preprocess.6_reshape, the structure is always (time, layer, feature)
 DATA_ORDER = [DataSectionType.time, DataSectionType.feature, DataSectionType.layer]
 DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
 
