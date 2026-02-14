@@ -6,8 +6,10 @@ import sys
 import s0_utils.global_params as g
 
 STEP = 3
+
 MAX_REMOVE_PERC = 0.1
 MIN_SONG_ROWS = 10
+Z_SCORE_TRES = 3.5
 
 g.DATA_BATCH_SIZE = 3_000
 
@@ -23,19 +25,19 @@ for data_set_type in g.DataSetType:
                 g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
                 out_idx += 1
                 out_rows = []
+    
+    if len(out_rows) > 0:
+        g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
 
 sys.exit(0)
 
 labels = joblib.load(g.MODELS_DIR / f"labels_{g.NAME}.joblib")
 label_nums = list(range(len(labels)))
-
 for data_set_type in g.DataSetType:
     out_idx = 0
     out_rows = []
-
     for label_value in label_nums:
         label_parts = []
-
         for data_path in g.iter_data_paths(STEP-1, data_set_type):
             data = g.load_data(data_path)
             label_data = data[data["label"] == label_value]
@@ -49,31 +51,57 @@ for data_set_type in g.DataSetType:
         del label_parts
         gc.collect()
 
-        row_vectors = []
+        row_tensors = []
         for arr in label_data["data"]:
-            row_vec = arr.mean(axis=0).reshape(-1).astype(np.float32, copy=False)
-            row_vectors.append(row_vec)
+            tensor = arr.reshape(arr.shape[1], arr.shape[2]).astype(np.float32, copy=False)
+            row_tensors.append(tensor)
 
-        if len(row_vectors) <= 1:
+        if len(row_tensors) <= 2:
             for _, row in label_data.iterrows():
                 out_rows.append(row)
                 if len(out_rows) >= g.DATA_BATCH_SIZE:
                     g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
                     out_idx += 1
                     out_rows = []
-            del label_data, row_vectors
+            del label_data, row_tensors
             gc.collect()
             continue
 
-        row_vectors = np.stack(row_vectors, axis=0)
+        row_tensors = np.stack(row_tensors, axis=0)
 
-        median_vec = np.median(row_vectors, axis=0)
-        abs_dev = np.abs(row_vectors - median_vec)
-        mad_vec = np.median(abs_dev, axis=0)
-        mad_vec = np.where(mad_vec < 1e-8, 1e-8, mad_vec)
+        layer_vars = []
+        for layer_idx in range(row_tensors.shape[1]):
+            flat = row_tensors[:, layer_idx, :].reshape(row_tensors.shape[0], -1)
+            layer_vars.append(np.var(flat, axis=0).mean())
 
-        robust_z = abs_dev / mad_vec
-        row_scores = robust_z.mean(axis=1)
+        layer_vars = np.asarray(layer_vars, dtype=np.float32)
+        layer_weights = layer_vars / (layer_vars.sum() + 1e-12)
+
+        centroid = np.median(row_tensors, axis=0)
+
+        centroid_norm = centroid / (np.linalg.norm(centroid, axis=1, keepdims=True) + 1e-12)
+
+        distances = np.zeros(len(row_tensors), dtype=np.float32)
+
+        for row_idx in range(len(row_tensors)):
+            tensor = row_tensors[row_idx]
+            tensor_norm = tensor / (np.linalg.norm(tensor, axis=1, keepdims=True) + 1e-12)
+
+            layer_dist = 0.0
+            for layer_idx in range(tensor.shape[0]):
+                cosine_sim = np.sum(tensor_norm[layer_idx] * centroid_norm[layer_idx])
+                layer_dist += layer_weights[layer_idx] * (1.0 - cosine_sim)
+
+            distances[row_idx] = layer_dist
+
+        med = np.median(distances)
+        mad = np.median(np.abs(distances - med))
+        if mad < 1e-12:
+            scale = np.std(distances) + 1e-12
+        else:
+            scale = mad * 1.4826
+
+        robust_z = (distances - med) / scale
 
         remove_cap = int(np.floor(len(label_data) * MAX_REMOVE_PERC))
 
@@ -81,11 +109,14 @@ for data_set_type in g.DataSetType:
 
         if remove_cap > 0:
             song_counts = label_data["song"].value_counts().to_dict()
-            sorted_local_index = np.argsort(-row_scores)
+            sorted_local_index = np.argsort(-robust_z)
 
             removed_count = 0
             for local_pos in sorted_local_index:
+                if robust_z[local_pos] < Z_SCORE_TRES:
+                    break
                 if removed_count >= remove_cap:
+                    print("Remove cap reached!")
                     break
 
                 song_name = label_data.at[local_pos, "song"]
@@ -98,7 +129,6 @@ for data_set_type in g.DataSetType:
                 removed_count += 1
 
         filtered_label_data = label_data.loc[keep_mask]
-
         for _, row in filtered_label_data.iterrows():
             out_rows.append(row)
             if len(out_rows) >= g.DATA_BATCH_SIZE:
@@ -106,7 +136,7 @@ for data_set_type in g.DataSetType:
                 out_idx += 1
                 out_rows = []
 
-        del label_data, filtered_label_data, row_vectors, median_vec, abs_dev, mad_vec, robust_z, row_scores, keep_mask
+        del label_data, filtered_label_data, row_tensors, layer_vars, layer_weights, centroid, centroid_norm, distances, robust_z, keep_mask
         gc.collect()
 
     if len(out_rows) > 0:
