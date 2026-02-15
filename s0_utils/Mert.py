@@ -69,7 +69,7 @@ class Mert():
         
         try:
             samples, resample_rate = self.load_audio_ffmpeg(path)
-            # samples = self.volume_normalize(samples)
+            samples = self.volume_normalize(samples)
 
             start_skip_samples = int(self.START_SKIP_SECONDS * resample_rate)
             end_skip_samples = int(self.END_SKIP_SECONDS * resample_rate)
