@@ -57,6 +57,10 @@ header h1 {
     padding: 0.6rem 0.8rem;
     cursor: pointer;
     border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
 }
 
 .song-entry:hover {
@@ -66,6 +70,42 @@ header h1 {
 .song-entry.active {
     background-color: #0d6efd;
     color: #fff;
+}
+
+.song-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.song-remove {
+    flex: 0 0 auto;
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1.6rem;
+    text-align: center;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    color: #6c757d;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.song-entry.active .song-remove {
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+.song-remove:hover {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+#download-results {
+    margin-top: 0.8rem;
 }
 
 #stats {

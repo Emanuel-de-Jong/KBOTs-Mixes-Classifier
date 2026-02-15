@@ -2,20 +2,49 @@ let songList = document.querySelector("#songs #list");
 let statsContent = document.querySelector("#stats-content");
 let searchInput = document.querySelector("#search");
 let headerTitle = document.querySelector("#header-title");
+let downloadResultsButton = document.querySelector("#download-results");
 
-let songNames = Object.keys(results);
+let deletedSongsStorageKey = "deletedSongs";
+let deletedSongNames = new Set(JSON.parse(localStorage.getItem(deletedSongsStorageKey) || "[]"));
+
+let songNames = Object.keys(results).filter((songName) => !deletedSongNames.has(songName));
 
 songList.innerHTML = songNames
     .map(
         (songName) => `
     <div class="song-entry" data-song-name="${songName}">
-        <span>${songName}</span>
+        <span class="song-label">${songName}</span>
+        <button type="button" class="song-remove" data-remove-song-name="${songName}" aria-label="Remove">×</button>
     </div>
 `,
     )
     .join("");
 
 let songEntries = document.querySelectorAll(".song-entry");
+let songRemoveButtons = document.querySelectorAll(".song-remove");
+
+function persistDeletedSongs() {
+    localStorage.setItem(deletedSongsStorageKey, JSON.stringify(Array.from(deletedSongNames)));
+}
+
+function removeSong(songName) {
+    deletedSongNames.add(songName);
+    persistDeletedSongs();
+
+    let songEntry = songList.querySelector(`.song-entry[data-song-name="${CSS.escape(songName)}"]`);
+    if (songEntry) songEntry.remove();
+
+    songEntries = document.querySelectorAll(".song-entry");
+    songRemoveButtons = document.querySelectorAll(".song-remove");
+
+    let activeEntry = songList.querySelector(".song-entry.active");
+    if (!activeEntry && songEntries.length) songEntries[0].click();
+
+    if (!songEntries.length) {
+        headerTitle.textContent = "";
+        statsContent.innerHTML = "";
+    }
+}
 
 function joinAlternatives(alts) {
     if (!alts || alts.length === 0) return "";
@@ -143,13 +172,51 @@ songEntries.forEach(
         }),
 );
 
+songRemoveButtons.forEach(
+    (button) =>
+        (button.onclick = (event) => {
+            event.stopPropagation();
+            removeSong(button.dataset.removeSongName);
+        }),
+);
+
 if (songEntries.length) songEntries[0].click();
 
 searchInput.oninput = () => {
     let searchValue = searchInput.value.toLowerCase();
 
     songEntries.forEach(
-        (entry) =>
-            (entry.style.display = entry.dataset.songName.toLowerCase().includes(searchValue) ? "block" : "none"),
+        (entry) => (entry.style.display = entry.dataset.songName.toLowerCase().includes(searchValue) ? "flex" : "none"),
     );
 };
+
+function buildFilteredResultsObject() {
+    let filteredResults = {};
+    let deletedSongNameArray = Array.from(deletedSongNames);
+
+    Object.keys(results).forEach((songName) => {
+        if (deletedSongNameArray.includes(songName)) return;
+        filteredResults[songName] = results[songName];
+    });
+
+    return filteredResults;
+}
+
+function downloadFilteredResultsJs() {
+    let filteredResults = buildFilteredResultsObject();
+    let fileContents = "let results = " + JSON.stringify(filteredResults, null, 4) + ";\n";
+
+    let blob = new Blob([fileContents], { type: "application/javascript;charset=utf-8" });
+    let blobUrl = URL.createObjectURL(blob);
+
+    let downloadLink = document.createElement("a");
+    downloadLink.href = blobUrl;
+    downloadLink.download = "results.js";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+
+    URL.revokeObjectURL(blobUrl);
+}
+
+downloadResultsButton.onclick = downloadFilteredResultsJs;
