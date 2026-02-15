@@ -35,42 +35,58 @@ g.DATA_BATCH_SIZE = 3_000
 
 labels = joblib.load(g.MODELS_DIR / f"labels_{g.NAME}.joblib")
 label_nums = list(range(len(labels)))
+label_file_map = {label_value: [] for label_value in label_nums}
+
+data_paths = list(g.iter_data_paths(STEP-1, g.DataSetType.train))
+for file_idx, data_path in enumerate(data_paths):
+    data = g.load_data(data_path)
+
+    present_labels = data["label"].unique()
+    for label_value in present_labels:
+        if label_value in label_file_map:
+            label_file_map[label_value].append(file_idx)
+
+    del data
+    gc.collect()
 
 out_idx = 0
 out_rows = []
 for label_value in label_nums:
-    label_parts = []
-    for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
-        data = g.load_data(data_path)
-        label_data = data[data["label"] == label_value]
-        if len(label_data) > 0:
-            label_parts.append(label_data)
+    file_indices = label_file_map[label_value]
 
-    if len(label_parts) == 0:
+    if len(file_indices) == 0:
         continue
+
+    label_parts = []
+    for file_idx in file_indices:
+        data = g.load_data(data_paths[file_idx])
+        label_data_part = data[data["label"] == label_value]
+        if len(label_data_part) > 0:
+            label_parts.append(label_data_part)
+        del data
 
     label_data = pd.concat(label_parts, ignore_index=True)
     del label_parts
     gc.collect()
 
-    row_tensors = []
-    for arr in label_data["data"]:
-        tensor = arr.reshape(arr.shape[1], arr.shape[2]).astype(np.float32, copy=False)
-        row_tensors.append(tensor)
+    first_arr = label_data["data"].iloc[0]
+    tensor_shape = (len(label_data), first_arr.shape[1], first_arr.shape[2])
+    row_tensors = np.empty(tensor_shape, dtype=np.float32)
+
+    for tensor_idx, arr in enumerate(label_data["data"]):
+        row_tensors[tensor_idx] = arr.reshape(arr.shape[1], arr.shape[2])
 
     if len(row_tensors) <= 2:
-        for _, row in label_data.iterrows():
-            out_rows.append(row)
+        for row in label_data.itertuples(index=False):
+            out_rows.append(pd.Series(row._asdict()))
             if len(out_rows) >= g.DATA_BATCH_SIZE:
                 if not IS_DUMMY_RUN:
-                    g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
+                    g.save_data(pd.DataFrame(out_rows), STEP, g.DataSetType.train, out_idx)
                 out_idx += 1
                 out_rows = []
         del label_data, row_tensors
         gc.collect()
         continue
-
-    row_tensors = np.stack(row_tensors, axis=0)
 
     layer_vars = []
     for layer_idx in range(row_tensors.shape[1]):
@@ -127,16 +143,17 @@ for label_value in label_nums:
         print(log)
 
     filtered_label_data = label_data.loc[keep_mask]
-    for _, row in filtered_label_data.iterrows():
-        out_rows.append(row)
+    for row in filtered_label_data.itertuples(index=False):
+        out_rows.append(pd.Series(row._asdict()))
         if len(out_rows) >= g.DATA_BATCH_SIZE:
             if not IS_DUMMY_RUN:
                 g.save_data(pd.DataFrame(out_rows), STEP, g.DataSetType.train, out_idx)
             out_idx += 1
             out_rows = []
 
-    del label_data, filtered_label_data, row_tensors, layer_vars, layer_weights
-    del centroid, centroid_norm, distances, robust_z, keep_mask
+    del label_data, filtered_label_data, row_tensors
+    del layer_vars, layer_weights, centroid, centroid_norm
+    del distances, robust_z, keep_mask
     gc.collect()
 
 if len(out_rows) > 0:
