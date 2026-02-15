@@ -17,14 +17,13 @@ class Result():
 
         self.top_1_rate = self.top1_hits / self.result_count
         self.top_3_rate = self.top3_hits / self.result_count
-
-        # 2/3 correct is enough
-        self.is_top_1 = (3 * self.top1_hits) >= (2 * self.result_count)
-        self.is_top_3 = (3 * self.top3_hits) >= (2 * self.result_count)
     
     def to_str(self):
-        return f"[{self.correct_label}] top: {self.is_top_1} ({self.top1_hits}/{self.result_count})" \
-            + f" | top 3: {self.is_top_3} ({self.top3_hits}/{self.result_count})"
+        top1_perc = round(self.top_1_rate * 100, 2)
+        top3_perc = round(self.top_3_rate * 100, 2)
+
+        return f"[{self.correct_label}] top 1: ({self.top1_hits}/{self.result_count}) ({top1_perc}%)" \
+            + f" | top 3: ({self.top3_hits}/{self.result_count}) ({top3_perc}%)"
 
 classifier = Classifier(g.NAME)
 
@@ -64,19 +63,21 @@ for playlist_dir in tqdm(playlist_dirs, total=len(playlist_dirs)):
 
     results.append(result)
 
-results.sort(key=lambda r: (r.is_top_1, r.is_top_3))
+results.sort(key=lambda r: (r.top_1_rate, r.top_3_rate))
 
 print("\n\n")
 for r in results:
     logger.writeln(r.to_str())
 
 result_count = len(results)
-top_1_pass_count = sum(1 for r in results if r.is_top_1)
-top_1_fail_count = result_count - top_1_pass_count
-top_1_perc = round(top_1_pass_count/(top_1_pass_count+top_1_fail_count)*100, 4)
-top_3_pass_count = sum(1 for r in results if r.is_top_3)
-top_3_fail_count = result_count - top_3_pass_count
-top_3_perc = round(top_3_pass_count/(top_3_pass_count+top_3_fail_count)*100, 4)
 
-logger.writeln(f"\n[Top 1] Pass: ({top_1_pass_count}/{result_count}) ({top_1_perc}%) | Fail: ({top_1_fail_count}/{result_count})")
-logger.writeln(f"[Top 3] Pass: ({top_3_pass_count}/{result_count}) ({top_3_perc}%) | Fail: ({top_3_fail_count}/{result_count})")
+total_top1_hits = sum(r.top1_hits for r in results)
+total_top3_hits = sum(r.top3_hits for r in results)
+total_song_count = sum(r.result_count for r in results)
+
+top_1_perc = round(total_top1_hits / total_song_count * 100, 2)
+top_3_perc = round(total_top3_hits / total_song_count * 100, 2)
+
+logger.writeln("")
+logger.writeln(f"[Top 1] Score: ({total_top1_hits}/{total_song_count}) ({top_1_perc}%)")
+logger.writeln(f"[Top 3] Score: ({total_top3_hits}/{total_song_count}) ({top_3_perc}%)")
