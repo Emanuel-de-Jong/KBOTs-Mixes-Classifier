@@ -2,6 +2,7 @@ let songList = document.querySelector("#songs #list");
 let statsContent = document.querySelector("#stats-content");
 let statsPlaceholder = document.querySelector("#stats-placeholder");
 let searchInput = document.querySelector("#search");
+let headerTitle = document.querySelector("#header-title");
 
 songListHtml = "";
 for (const songName in results) {
@@ -139,8 +140,14 @@ function renderModelBlock(modelName, genreList, isConclusion) {
 
     let blockHtml = `
         <div class="${modelBlockClass}">
-            <div class="model-name">${modelName}</div>
+            <div class="model-content">
     `;
+
+    if (!isConclusion) {
+        blockHtml += `
+                <div class="model-name">${modelName}</div>
+        `;
+    }
 
     for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
         let genreName = genreList[genreIndex].genre;
@@ -216,6 +223,7 @@ function renderModelBlock(modelName, genreList, isConclusion) {
     }
 
     blockHtml += `
+            </div>
         </div>
     `;
 
@@ -224,14 +232,19 @@ function renderModelBlock(modelName, genreList, isConclusion) {
 
 function showSongStats(songName) {
     statsPlaceholder.style.display = "none";
+    headerTitle.textContent = songName;
 
     statsHtml = `
-        <div class="song-title">${songName}</div>
-        <div class="models-grid">
+        <div class="conclusion-section">
     `;
 
     let conclusionGenres = calculateConclusionModel(songName);
     statsHtml += renderModelBlock("Conclusion", conclusionGenres, true);
+
+    statsHtml += `
+        </div>
+        <div class="models-grid">
+    `;
 
     for (const modelName in results[songName]) {
         let genreList = results[songName][modelName];
