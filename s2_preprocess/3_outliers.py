@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import joblib
 import gc
-import sys
 import s0_utils.global_params as g
 
 STEP = 3
@@ -11,7 +10,7 @@ MAX_REMOVE_PERC = 0.02
 MIN_SONG_ROWS = 50
 Z_SCORE_TRES = 1.2
 
-IS_DUMMY_RUN = True
+IS_DUMMY_RUN = False
 
 g.DATA_BATCH_SIZE = 3_000
 

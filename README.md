@@ -55,6 +55,7 @@ You'll have to install deno and let yt-dlp know about it:
     - Window size
     - Window shape
     - Batch size
+- ResNet
 - Different scaling algorithm
 - Inference NN decision tree:
     - Is edm?

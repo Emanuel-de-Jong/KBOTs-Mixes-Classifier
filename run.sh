@@ -38,8 +38,8 @@ declare -A STEPS_3=(
 )
 
 declare -A STEPS_4=(
-  [1]="run"
-  [2]="run_batch"
+  [1]="1_run"
+  [2]="2_run_batch"
 )
 
 steps_var="STEPS_${category}"
