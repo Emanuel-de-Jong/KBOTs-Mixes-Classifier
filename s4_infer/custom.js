@@ -84,6 +84,144 @@ function getCommentEntry(modelName, genreName) {
     return null;
 }
 
+function calculateConclusionModel(songName) {
+    let modelResults = results[songName];
+    let genreTotals = {};
+    let modelCount = 0;
+
+    for (const modelName in modelResults) {
+        let genreList = modelResults[modelName];
+        modelCount++;
+
+        for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
+            let genreName = genreList[genreIndex].genre;
+            let probability = genreList[genreIndex].prob;
+
+            if (!genreTotals[genreName]) {
+                genreTotals[genreName] = 0;
+            }
+
+            genreTotals[genreName] += probability;
+        }
+    }
+
+    let genreAverages = [];
+
+    for (const genreName in genreTotals) {
+        genreAverages.push({
+            genre: genreName,
+            prob: genreTotals[genreName] / modelCount,
+        });
+    }
+
+    genreAverages.sort(function (a, b) {
+        return b.prob - a.prob;
+    });
+
+    return genreAverages.slice(0, 3);
+}
+
+function renderModelBlock(modelName, genreList, isConclusion) {
+    let modelBlockClass = "model-block";
+    if (isConclusion) {
+        modelBlockClass += " model-conclusion";
+    }
+
+    if (genreList && genreList.length > 0) {
+        let topProbability = genreList[0].prob;
+
+        if (topProbability >= 75) {
+            modelBlockClass += " model-good";
+        } else if (topProbability < 50) {
+            modelBlockClass += " model-bad";
+        }
+    }
+
+    let blockHtml = `
+        <div class="${modelBlockClass}">
+            <div class="model-name">${modelName}</div>
+    `;
+
+    for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
+        let genreName = genreList[genreIndex].genre;
+        let probability = genreList[genreIndex].prob;
+
+        let commentEntry = getCommentEntry(isConclusion ? "all" : modelName, genreName);
+        let hasComment = commentEntry && (commentEntry.alts || commentEntry.comment);
+
+        let commentHtml = "";
+        if (hasComment) {
+            commentHtml += `
+                <div class="genre-comment">
+                    <span class="comment-type">${commentEntry.type}</span>
+            `;
+
+            if (commentEntry.alts && commentEntry.alts.length > 0) {
+                let alternativesText = joinAlternatives(commentEntry.alts);
+
+                let formattedAlternatives = alternativesText
+                    .split(/,\s*|\s+or\s+/)
+                    .filter(function (altText) {
+                        return altText && altText.trim().length > 0;
+                    })
+                    .map(function (altText) {
+                        return `<span class="comment-alt">${altText.trim()}</span>`;
+                    });
+
+                if (commentEntry.alts.length === 1) {
+                    commentHtml += `
+                        <span class="comment-alts">Could also be ${formattedAlternatives[0]}.</span>
+                    `;
+                } else if (commentEntry.alts.length === 2) {
+                    commentHtml += `
+                        <span class="comment-alts">Could also be ${formattedAlternatives[0]} or ${formattedAlternatives[1]}.</span>
+                    `;
+                } else {
+                    let allButLast = formattedAlternatives.slice(0, -1).join(", ");
+                    let lastAlt = formattedAlternatives[formattedAlternatives.length - 1];
+
+                    commentHtml += `
+                        <span class="comment-alts">Could also be ${allButLast} or ${lastAlt}.</span>
+                    `;
+                }
+            } else if (commentEntry.comment) {
+                commentHtml += `
+                    <span class="comment-text-inline">${commentEntry.comment}</span>
+                `;
+            }
+
+            if (commentEntry.comment && commentEntry.alts && commentEntry.alts.length > 0) {
+                commentHtml += `
+                    <div class="comment-text">${commentEntry.comment}</div>
+                `;
+            }
+
+            commentHtml += `
+                </div>
+            `;
+        }
+
+        blockHtml += `
+            <div class="genre-row${hasComment ? " genre-has-comment" : ""}">
+                <div class="genre-label">
+                    <span>${genreIndex + 1}. ${genreName}</span>
+                    <span>${probability.toFixed(2)}%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: ${probability}%"></div>
+                </div>
+                ${commentHtml}
+            </div>
+        `;
+    }
+
+    blockHtml += `
+        </div>
+    `;
+
+    return blockHtml;
+}
+
 function showSongStats(songName) {
     statsPlaceholder.style.display = "none";
 
@@ -92,99 +230,12 @@ function showSongStats(songName) {
         <div class="models-grid">
     `;
 
+    let conclusionGenres = calculateConclusionModel(songName);
+    statsHtml += renderModelBlock("Conclusion", conclusionGenres, true);
+
     for (const modelName in results[songName]) {
         let genreList = results[songName][modelName];
-
-        let modelBlockClass = "model-block";
-        if (genreList && genreList.length > 0) {
-            let topProbability = genreList[0].prob;
-
-            if (topProbability >= 75) {
-                modelBlockClass += " model-good";
-            } else if (topProbability < 50) {
-                modelBlockClass += " model-bad";
-            }
-        }
-
-        statsHtml += `
-            <div class="${modelBlockClass}">
-                <div class="model-name">${modelName}</div>
-        `;
-
-        for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
-            let genreName = genreList[genreIndex].genre;
-            let probability = genreList[genreIndex].prob;
-
-            let commentEntry = getCommentEntry(modelName, genreName);
-            let hasComment = commentEntry && (commentEntry.comment || (commentEntry.alts && commentEntry.alts.length > 0));
-
-            let commentHtml = "";
-            if (hasComment) {
-                let typeLabel = commentEntry.type;
-
-                commentHtml += `
-                    <div class="genre-comment">
-                        <span class="comment-type">${typeLabel}</span>
-                `;
-
-                if (commentEntry.comment) {
-                    commentHtml += `
-                        <span class="comment-text">${commentEntry.comment}</span>
-                    `;
-                }
-
-                if (commentEntry.alts && commentEntry.alts.length > 0) {
-                    let alternativesText = joinAlternatives(commentEntry.alts);
-
-                    let formattedAlternatives = alternativesText
-                        .split(/,\s*|\s+or\s+/)
-                        .filter(function (altText) {
-                            return altText && altText.trim().length > 0;
-                        })
-                        .map(function (altText) {
-                            return `<span class="comment-alt">${altText.trim()}</span>`;
-                        });
-
-                    if (commentEntry.alts.length === 1) {
-                        commentHtml += `
-                            <span class="comment-alts">Could also be ${formattedAlternatives[0]}.</span>
-                        `;
-                    } else if (commentEntry.alts.length === 2) {
-                        commentHtml += `
-                            <span class="comment-alts">Could also be ${formattedAlternatives[0]} or ${formattedAlternatives[1]}.</span>
-                        `;
-                    } else {
-                        let allButLast = formattedAlternatives.slice(0, -1).join(", ");
-                        let lastAlt = formattedAlternatives[formattedAlternatives.length - 1];
-
-                        commentHtml += `
-                            <span class="comment-alts">Could also be ${allButLast} or ${lastAlt}.</span>
-                        `;
-                    }
-                }
-
-                commentHtml += `
-                    </div>
-                `;
-            }
-
-            statsHtml += `
-                <div class="genre-row${hasComment ? " genre-has-comment" : ""}">
-                    <div class="genre-label">
-                        <span>${genreIndex + 1}. ${genreName}</span>
-                        <span>${probability.toFixed(2)}%</span>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: ${probability}%"></div>
-                    </div>
-                    ${commentHtml}
-                </div>
-            `;
-        }
-
-        statsHtml += `
-            </div>
-        `;
+        statsHtml += renderModelBlock(modelName, genreList, false);
     }
 
     statsHtml += `
