@@ -32,6 +32,7 @@ for name in models.keys():
 
 results = {}
 song_paths = list(BATCH_DIR.glob("*.mp3"))
+song_paths.sort()
 for song_path in tqdm(song_paths, total=len(song_paths)):
     embs = None
     if song_path in cache:
