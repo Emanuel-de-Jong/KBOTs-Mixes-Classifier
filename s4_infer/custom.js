@@ -1,296 +1,155 @@
 let songList = document.querySelector("#songs #list");
 let statsContent = document.querySelector("#stats-content");
-let statsPlaceholder = document.querySelector("#stats-placeholder");
 let searchInput = document.querySelector("#search");
 let headerTitle = document.querySelector("#header-title");
 
-songListHtml = "";
-for (const songName in results) {
-    songListHtml += `
-        <div class="song-entry" data-song-name="${songName}">
-            <span>${songName}</span>
-        </div>
-    `;
-}
+let songNames = Object.keys(results);
 
-songList.innerHTML = songListHtml;
+songList.innerHTML = songNames
+    .map(
+        (songName) => `
+    <div class="song-entry" data-song-name="${songName}">
+        <span>${songName}</span>
+    </div>
+`,
+    )
+    .join("");
 
 let songEntries = document.querySelectorAll(".song-entry");
 
 function joinAlternatives(alts) {
     if (!alts || alts.length === 0) return "";
     if (alts.length === 1) return alts[0];
-    if (alts.length === 2) return `${alts[0]} or ${alts[1]}`;
-
-    let allButLast = alts.slice(0, -1).join(", ");
-    let lastAlt = alts[alts.length - 1];
-    return `${allButLast} or ${lastAlt}`;
+    return alts.slice(0, -1).join(", ") + " or " + alts[alts.length - 1];
 }
 
-function findCommentEntryInGroup(commentGroup, genreName, typeFallback) {
-    if (!commentGroup || typeof commentGroup !== "object") return null;
+function findCommentEntry(group, genreName, fallbackType) {
+    if (!group) return null;
 
-    let directEntry = commentGroup[genreName];
-    if (directEntry && (directEntry.comment || directEntry.alts)) {
-        return {
-            comment: directEntry.comment,
-            alts: directEntry.alts,
-            type: typeFallback,
-        };
-    }
+    if (group[genreName]) return { ...group[genreName], type: fallbackType };
 
-    for (const subcategoryName in commentGroup) {
-        let subcategoryGroup = commentGroup[subcategoryName];
-
-        if (!subcategoryGroup || typeof subcategoryGroup !== "object") continue;
-
-        let subcategoryEntry = subcategoryGroup[genreName];
-        if (subcategoryEntry && (subcategoryEntry.comment || subcategoryEntry.alts)) {
-            return {
-                comment: subcategoryEntry.comment,
-                alts: subcategoryEntry.alts,
-                type: subcategoryName,
-            };
-        }
-    }
+    for (const type in group) if (group[type][genreName]) return { ...group[type][genreName], type };
 
     return null;
 }
 
 function getCommentEntry(modelName, genreName) {
-    let allGroup = comments && comments.all ? comments.all : null;
-    let allEntry = findCommentEntryInGroup(allGroup, genreName, "all");
-
-    if (allEntry) {
-        return {
-            comment: allEntry.comment,
-            alts: allEntry.alts,
-            type: allEntry.type,
-            source: "all",
-        };
-    }
-
-    let modelGroup = comments && comments[modelName] ? comments[modelName] : null;
-    let modelEntry = findCommentEntryInGroup(modelGroup, genreName, "model");
-
-    if (modelEntry) {
-        return {
-            comment: modelEntry.comment,
-            alts: modelEntry.alts,
-            type: "model",
-            source: "model",
-        };
-    }
-
-    return null;
+    return (
+        findCommentEntry(comments.all, genreName, "all") || findCommentEntry(comments[modelName], genreName, "model")
+    );
 }
 
-function calculateConclusionModel(songName) {
-    let modelResults = results[songName];
-    let genreTotals = {};
-    let modelCount = 0;
+function calculateConclusion(songName) {
+    let totals = {};
+    let models = results[songName];
 
-    for (const modelName in modelResults) {
-        let genreList = modelResults[modelName];
-        modelCount++;
+    Object.values(models).forEach((genreList) =>
+        genreList.forEach((g) => (totals[g.genre] = (totals[g.genre] || 0) + g.prob)),
+    );
 
-        for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
-            let genreName = genreList[genreIndex].genre;
-            let probability = genreList[genreIndex].prob;
+    let modelCount = Object.keys(models).length;
 
-            if (!genreTotals[genreName]) {
-                genreTotals[genreName] = 0;
-            }
+    return Object.entries(totals)
+        .map(([genre, prob]) => ({ genre, prob: prob / modelCount }))
+        .sort((a, b) => b.prob - a.prob)
+        .slice(0, 3);
+}
 
-            genreTotals[genreName] += probability;
-        }
-    }
+function renderComment(entry) {
+    if (!entry) return "";
 
-    let genreAverages = [];
+    let alts = entry.alts?.length
+        ? `<span class="comment-alts">Could also be ${joinAlternatives(entry.alts)
+              .split(/,\s*|\s+or\s+/)
+              .map((a) => `<span class="comment-alt">${a}</span>`)
+              .join(", ")
+              .replace(/, ([^,]*)$/, " or $1")}.</span>`
+        : "";
 
-    for (const genreName in genreTotals) {
-        genreAverages.push({
-            genre: genreName,
-            prob: genreTotals[genreName] / modelCount,
-        });
-    }
+    let textInline = entry.comment && !entry.alts ? `<span class="comment-text-inline">${entry.comment}</span>` : "";
 
-    genreAverages.sort(function (a, b) {
-        return b.prob - a.prob;
-    });
+    let textBlock = entry.comment && entry.alts ? `<div class="comment-text">${entry.comment}</div>` : "";
 
-    return genreAverages.slice(0, 3);
+    return `
+        <div class="genre-comment">
+            <span class="comment-type">${entry.type}</span>
+            ${alts}${textInline}${textBlock}
+        </div>
+    `;
 }
 
 function renderModelBlock(modelName, genreList, isConclusion) {
-    let modelBlockClass = "model-block";
-    if (isConclusion) {
-        modelBlockClass += " model-conclusion";
-    }
+    let topProb = genreList[0]?.prob || 0;
 
-    if (genreList && genreList.length > 0) {
-        let topProbability = genreList[0].prob;
+    let className =
+        "model-block" +
+        (isConclusion ? " model-conclusion" : "") +
+        (topProb >= 75 ? " model-good" : topProb < 50 ? " model-bad" : "");
 
-        if (topProbability >= 75) {
-            modelBlockClass += " model-good";
-        } else if (topProbability < 50) {
-            modelBlockClass += " model-bad";
-        }
-    }
-
-    let blockHtml = `
-        <div class="${modelBlockClass}">
+    return `
+        <div class="${className}">
             <div class="model-content">
-    `;
 
-    if (!isConclusion) {
-        blockHtml += `
-                <div class="model-name">${modelName}</div>
-        `;
-    }
+                ${!isConclusion ? `<div class="model-name">${modelName}</div>` : ""}
 
-    for (let genreIndex = 0; genreIndex < genreList.length; genreIndex++) {
-        let genreName = genreList[genreIndex].genre;
-        let probability = genreList[genreIndex].prob;
+                ${genreList
+                    .map((g, i) => {
+                        let commentEntry = getCommentEntry(isConclusion ? "all" : modelName, g.genre);
 
-        let commentEntry = getCommentEntry(isConclusion ? "all" : modelName, genreName);
-        let hasComment = commentEntry && (commentEntry.alts || commentEntry.comment);
+                        return `
+                        <div class="genre-row${commentEntry ? " genre-has-comment" : ""}">
+                            <div class="genre-label">
+                                <span>${i + 1}. ${g.genre}</span>
+                                <span>${g.prob.toFixed(2)}%</span>
+                            </div>
 
-        let commentHtml = "";
-        if (hasComment) {
-            commentHtml += `
-                <div class="genre-comment">
-                    <span class="comment-type">${commentEntry.type}</span>
-            `;
+                            <div class="progress">
+                                <div class="progress-bar" style="width:${g.prob}%"></div>
+                            </div>
 
-            if (commentEntry.alts && commentEntry.alts.length > 0) {
-                let alternativesText = joinAlternatives(commentEntry.alts);
-
-                let formattedAlternatives = alternativesText
-                    .split(/,\s*|\s+or\s+/)
-                    .filter(function (altText) {
-                        return altText && altText.trim().length > 0;
+                            ${renderComment(commentEntry)}
+                        </div>
+                    `;
                     })
-                    .map(function (altText) {
-                        return `<span class="comment-alt">${altText.trim()}</span>`;
-                    });
+                    .join("")}
 
-                if (commentEntry.alts.length === 1) {
-                    commentHtml += `
-                        <span class="comment-alts">Could also be ${formattedAlternatives[0]}.</span>
-                    `;
-                } else if (commentEntry.alts.length === 2) {
-                    commentHtml += `
-                        <span class="comment-alts">Could also be ${formattedAlternatives[0]} or ${formattedAlternatives[1]}.</span>
-                    `;
-                } else {
-                    let allButLast = formattedAlternatives.slice(0, -1).join(", ");
-                    let lastAlt = formattedAlternatives[formattedAlternatives.length - 1];
-
-                    commentHtml += `
-                        <span class="comment-alts">Could also be ${allButLast} or ${lastAlt}.</span>
-                    `;
-                }
-            } else if (commentEntry.comment) {
-                commentHtml += `
-                    <span class="comment-text-inline">${commentEntry.comment}</span>
-                `;
-            }
-
-            if (commentEntry.comment && commentEntry.alts && commentEntry.alts.length > 0) {
-                commentHtml += `
-                    <div class="comment-text">${commentEntry.comment}</div>
-                `;
-            }
-
-            commentHtml += `
-                </div>
-            `;
-        }
-
-        blockHtml += `
-            <div class="genre-row${hasComment ? " genre-has-comment" : ""}">
-                <div class="genre-label">
-                    <span>${genreIndex + 1}. ${genreName}</span>
-                    <span>${probability.toFixed(2)}%</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" style="width: ${probability}%"></div>
-                </div>
-                ${commentHtml}
-            </div>
-        `;
-    }
-
-    blockHtml += `
             </div>
         </div>
     `;
-
-    return blockHtml;
 }
 
 function showSongStats(songName) {
-    statsPlaceholder.style.display = "none";
     headerTitle.textContent = songName;
 
-    statsHtml = `
+    statsContent.innerHTML = `
         <div class="conclusion-section">
-    `;
-
-    let conclusionGenres = calculateConclusionModel(songName);
-    statsHtml += renderModelBlock("Conclusion", conclusionGenres, true);
-
-    statsHtml += `
+            ${renderModelBlock("Conclusion", calculateConclusion(songName), true)}
         </div>
+
         <div class="models-grid">
-    `;
-
-    for (const modelName in results[songName]) {
-        let genreList = results[songName][modelName];
-        statsHtml += renderModelBlock(modelName, genreList, false);
-    }
-
-    statsHtml += `
+            ${Object.entries(results[songName])
+                .map(([model, genres]) => renderModelBlock(model, genres, false))
+                .join("")}
         </div>
     `;
-
-    statsContent.innerHTML = statsHtml;
 }
 
-songEntries.forEach(function (entryElement) {
-    entryElement.addEventListener("click", function () {
-        songEntries.forEach(function (removeElement) {
-            removeElement.classList.remove("active");
-        });
+songEntries.forEach(
+    (entry) =>
+        (entry.onclick = () => {
+            songEntries.forEach((e) => e.classList.remove("active"));
+            entry.classList.add("active");
+            showSongStats(entry.dataset.songName);
+        }),
+);
 
-        entryElement.classList.add("active");
+if (songEntries.length) songEntries[0].click();
 
-        let songName = entryElement.getAttribute("data-song-name");
-
-        showSongStats(songName);
-    });
-});
-
-if (songEntries.length > 0) {
-    let firstEntryElement = songEntries[0];
-    firstEntryElement.classList.add("active");
-
-    let firstSongName = firstEntryElement.getAttribute("data-song-name");
-
-    showSongStats(firstSongName);
-}
-
-searchInput.addEventListener("input", function () {
+searchInput.oninput = () => {
     let searchValue = searchInput.value.toLowerCase();
 
-    songEntries.forEach(function (entryElement) {
-        let songName = entryElement.getAttribute("data-song-name").toLowerCase();
-
-        if (songName.includes(searchValue)) {
-            entryElement.style.display = "block";
-        } else {
-            entryElement.style.display = "none";
-        }
-    });
-});
+    songEntries.forEach(
+        (entry) =>
+            (entry.style.display = entry.dataset.songName.toLowerCase().includes(searchValue) ? "block" : "none"),
+    );
+};
