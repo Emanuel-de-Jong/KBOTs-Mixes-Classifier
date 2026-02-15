@@ -236,4 +236,4 @@ if model is None:
     train(cnns.m16)
 
 else:
-    test(model, history)
+    test(model, history, g.NAME)

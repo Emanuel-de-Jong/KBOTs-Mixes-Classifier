@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
+import sys
 import gc
 import s0_utils.global_params as g
 
@@ -14,23 +15,24 @@ IS_DUMMY_RUN = False
 
 g.DATA_BATCH_SIZE = 3_000
 
-# for data_set_type in g.DataSetType:
-#     out_idx = 0
-#     out_rows = []
-#     for data_path in g.iter_data_paths(STEP-1, data_set_type):
-#         data = g.load_data(data_path)
+# SKIPPING OUTLIERS FOR NOW
+for data_set_type in g.DataSetType:
+    out_idx = 0
+    out_rows = []
+    for data_path in g.iter_data_paths(STEP-1, data_set_type):
+        data = g.load_data(data_path)
 
-#         for _, row in data.iterrows():
-#             out_rows.append(row)
-#             if len(out_rows) >= g.DATA_BATCH_SIZE:
-#                 g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
-#                 out_idx += 1
-#                 out_rows = []
+        for _, row in data.iterrows():
+            out_rows.append(row)
+            if len(out_rows) >= g.DATA_BATCH_SIZE:
+                g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
+                out_idx += 1
+                out_rows = []
     
-#     if len(out_rows) > 0:
-#         g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
+    if len(out_rows) > 0:
+        g.save_data(pd.DataFrame(out_rows), STEP, data_set_type, out_idx)
 
-# sys.exit(0)
+sys.exit(0)
 
 labels = joblib.load(g.MODELS_DIR / f"labels_{g.NAME}.joblib")
 label_nums = list(range(len(labels)))
