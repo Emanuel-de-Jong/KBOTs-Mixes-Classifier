@@ -34,7 +34,7 @@ DATA_COUNTS = {
 DATA_ORDER = [DataSectionType.layer, DataSectionType.feature, DataSectionType.time]
 DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
 
-DATA_BATCH_SIZE = 7_000
+DATA_BATCH_SIZE = 20_000
 MODEL_BATCH_SIZE = 256
 
 USE_SHARDS_IN_TRAINING = False

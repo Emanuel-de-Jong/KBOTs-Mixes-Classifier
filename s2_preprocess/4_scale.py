@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 STEP = 4
 SCALE_TOOLS_PATH = g.MODELS_DIR / f"scale_tools_{g.NAME}.joblib"
 
-g.DATA_BATCH_SIZE = 7_000
+g.DATA_BATCH_SIZE = 20_000
 
 scale_tools = {}
 is_scale_tools_loaded = os.path.exists(SCALE_TOOLS_PATH)

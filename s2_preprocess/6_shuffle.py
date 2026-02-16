@@ -9,7 +9,7 @@ from tqdm import tqdm
 STEP = 6
 BUCKET_COUNT = 500
 
-g.DATA_BATCH_SIZE = 14_000
+g.DATA_BATCH_SIZE = 20_480
 
 def clear_temp_dir():
     for path in g.TEMP_DIR.iterdir():

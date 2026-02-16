@@ -13,7 +13,7 @@ Z_SCORE_TRES = 1.2
 
 IS_DUMMY_RUN = False
 
-g.DATA_BATCH_SIZE = 3_000
+g.DATA_BATCH_SIZE = 10_000
 
 # SKIPPING OUTLIERS FOR NOW
 for data_set_type in g.DataSetType:

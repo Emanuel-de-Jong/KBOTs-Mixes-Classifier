@@ -72,9 +72,7 @@ def m16(name, train_seq, validate_seq):
     model.summary()
     
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=4, factor=0.25)
-    # reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=8, factor=0.5)
     early_stopping = EarlyStopping(monitor='val_loss', patience=18, restore_best_weights=True)
-    # early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
 
     training_data = fit_model(model, train_seq, validate_seq, [reduce_lr, early_stopping])
 

@@ -10,7 +10,7 @@ VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
 TRAIN_SAMPLE_TARGET_QUANTILE = 0.75
 
-g.DATA_BATCH_SIZE = 7_000
+g.DATA_BATCH_SIZE = 20_000
 
 dfs = []
 for data_path in g.iter_data_paths(STEP-1, g.DataSetType.train):
