@@ -221,7 +221,7 @@ def train(model_func):
     train_seq, validate_seq = get_training_sequences()
 
     start_time = time.time()
-    model, training_data = model_func(name, train_seq, validate_seq)
+    model, training_data = model_func(train_seq, validate_seq)
     elapsed_time = time.time() - start_time
     logger.writeln(f"Training took {elapsed_time:.2f} seconds or {elapsed_time/60:.2f} minutes.")
 
@@ -233,7 +233,7 @@ def train(model_func):
 
 # model, history = load_existing_model()
 if model is None:
-    train(cnns.m16)
+    train(cnns.model)
 
 else:
     test(model, history, g.NAME)

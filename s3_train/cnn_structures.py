@@ -4,7 +4,7 @@ os.environ["KERAS_BACKEND"] = "torch"
 
 import numpy as np
 import s0_utils.global_params as g
-from keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping, ModelCheckpoint, BackupAndRestore
 from keras.models import Sequential
 from sklearn.utils import class_weight
 from keras import layers, regularizers
@@ -20,6 +20,19 @@ def create_model(layer_array):
     return Sequential(layer_array)
 
 def fit_model(model, train_seq, validate_seq, callbacks):
+    checkpoint_dir = g.CACHE_DIR / f'checkpoints_{g.NAME}'
+    checkpoint_dir.mkdir(exist_ok=True)
+    checkpoint = ModelCheckpoint(
+        g.MODELS_DIR / f'model_{g.NAME}.keras',
+        monitor='val_loss',
+        save_best_only=True,
+        save_weights_only=False
+    )
+
+    backup = BackupAndRestore(backup_dir=str(checkpoint_dir))
+    
+    callbacks = callbacks + [checkpoint, backup]
+
     training_data = None
     if g.USE_SHARDS_IN_TRAINING:
         training_data = model.fit(
@@ -41,7 +54,7 @@ def fit_model(model, train_seq, validate_seq, callbacks):
     
     return training_data
 
-def m16(name, train_seq, validate_seq):
+def model(train_seq, validate_seq):
     kernel_regularizer = regularizers.l2(0.0001)
     model = create_model([
         layers.Conv2D(64, (5,5), padding='same', activation='relu'),
