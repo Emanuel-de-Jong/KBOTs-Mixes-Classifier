@@ -9,7 +9,7 @@ from tqdm import tqdm
 from s0_utils.Mert import Mert
 
 class GenreOutliers():
-    MAX_CHUNKS = 6
+    MAX_WINDOWS = 5
     CONTRAST_FACTOR = 1.5
 
     def __init__(self, use_cache=True):
@@ -52,7 +52,7 @@ class GenreOutliers():
 
         song_embeddings = []
         for path in tqdm(mp3s, total=len(mp3s)):
-            song_embs = self.mert.run(str(path), self.MAX_CHUNKS)
+            song_embs = self.mert.run(str(path), -1, self.MAX_WINDOWS)
             if song_embs is None or not isinstance(song_embs, np.ndarray):
                 continue
             if song_embs.ndim != 4:

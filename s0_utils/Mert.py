@@ -64,7 +64,7 @@ class Mert():
         gain = target_rms / rms
         return samples * gain
     
-    def run(self, path, max_chunks=-1):
+    def run(self, path, max_chunks=-1, max_windows=-1):
         # print(f"Processing: {os.path.basename(path)}")
         
         try:
@@ -95,6 +95,10 @@ class Mert():
                 end_idx = (end_idx // samples_per_chunk) * samples_per_chunk
 
                 windows.append(samples[start_idx:end_idx].numpy())
+
+            if max_windows != -1:
+                random.shuffle(windows)
+                windows = windows[:max_windows]
 
             embs = []
             for window in windows:
