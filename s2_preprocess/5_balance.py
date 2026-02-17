@@ -6,6 +6,7 @@ import s0_utils.global_params as g
 STEP = 5
 
 VALIDATE_PERC = 0.25
+VALIDATE_MIN_SONG_COUNT = 3
 VALIDATE_MAX_NON_PUBLIC_PERC = 0.7
 
 TRAIN_SAMPLE_TARGET_QUANTILE = 0.8
@@ -49,6 +50,13 @@ for label in range(g.LABEL_COUNT):
             total_rows += len(song_rows)
             if total_rows == organic_validate_target:
                 break
+
+    if len(validate_songs) < VALIDATE_MIN_SONG_COUNT:
+        for song in songs:
+            if song not in validate_songs:
+                validate_songs.append(song)
+                if len(validate_songs) >= VALIDATE_MIN_SONG_COUNT:
+                    break
 
     label_validate_data = label_train_data[label_train_data['song'].isin(validate_songs)]
     all_validate_rows.append(label_validate_data)

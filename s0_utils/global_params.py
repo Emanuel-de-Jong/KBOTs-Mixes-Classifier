@@ -15,6 +15,15 @@ class DataSectionType(Enum):
     feature = 1
     layer = 2
 
+NAME = "edm_rock_pop"
+MODELS = {
+    # "global": [],
+    "edm_rock_pop": [],
+    # "edm": [],
+}
+
+USE_SHARDS_IN_TRAINING = True
+
 # 0-24. But maybe don't use 24?
 #     clip_min   clip_max
 # 0  -6.267006  16.034060
@@ -36,30 +45,6 @@ DATA_SHAPE = tuple(DATA_COUNTS[section] for section in DATA_ORDER)
 
 DATA_BATCH_SIZE = 20_000
 MODEL_BATCH_SIZE = 256
-
-USE_SHARDS_IN_TRAINING = True
-
-NAME = "edm"
-MODELS = {
-    # "global": [],
-    # "general_pop": [],
-    # "rock": [],
-    "edm": [],
-    # "edm_hard": [],
-    # "edm_easy": [
-    #     "Bassline",
-    #     "Breakcore",
-    #     "Chillstep",
-    #     "Future_Funk",
-    #     "Groovy_UK_Garage",
-    #     "Hardstyle",
-    #     "Lofi_Hip_Hop",
-    #     "Melodic_Extratone",
-    #     "Pioneer_Glitch_Hop",
-    #     "Rawstyle",
-    #     "Synthwave",
-    # ],
-}
 
 TRAIN_DIR = Path("data_sets") / "train"
 TRAIN_PLAYLISTS_DIR = TRAIN_DIR / "playlists"

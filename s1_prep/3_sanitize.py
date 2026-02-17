@@ -5,6 +5,8 @@ import os
 import s0_utils.global_params as g
 
 PLAYLISTS_TO_REMOVE = [
+    # Too small
+    "Chill Alternate Rock",
     # Too vague
     "Gamer",
     "Pioneer_EDM",
