@@ -2,7 +2,7 @@ import shutil
 import random
 import s0_utils.global_params as g
 
-TESTS_PER_GENRE = 2
+TESTS_PER_GENRE = 3
 
 if not g.TEST_DIR.exists():
     for subdir in g.TRAIN_PLAYLISTS_DIR.iterdir():

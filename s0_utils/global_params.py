@@ -15,13 +15,7 @@ class DataSectionType(Enum):
     feature = 1
     layer = 2
 
-NAME = "edm_rock_pop"
-MODELS = {
-    # "global": [],
-    "edm_rock_pop": [],
-    # "edm": [],
-}
-
+NAME = "edm"
 USE_SHARDS_IN_TRAINING = True
 
 # 0-24. But maybe don't use 24?

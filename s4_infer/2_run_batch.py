@@ -19,8 +19,10 @@ logger = Logger(BATCH_DIR / "batch.log")
 mert = Mert()
 
 models = {}
-for name in g.MODELS.keys():
-    models[name] = None
+for path in g.MODELS_DIR.iterdir():
+    if path.suffix == ".keras":
+        name = path.stem.replace("model_", "")
+        models[name] = None
 
 cache = {}
 if CACHE_PATH.exists():
@@ -43,7 +45,10 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
 
     tops = {}
     for model_name, model in models.items():
-        top, _ = model.infer(song_path, model.scale_embs(embs))
+        model_embs = model.scale_embs(embs)
+        model_embs = model.reshape_data(model_embs)
+
+        top, _ = model.infer(song_path, model_embs)
         if top is None or len(top) == 0:
             logger.writeln(f'[ERROR]: Inference failed on model: "{model_name}", song: "{song_path}"!')
             sys.exit(1)
