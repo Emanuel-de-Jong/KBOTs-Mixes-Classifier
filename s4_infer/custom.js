@@ -120,8 +120,8 @@ function renderModelBlock(modelName, genreList, isConclusion) {
     let secondProb = genreList[1]?.prob || 0;
     let probDiff = topProb - secondProb;
 
+    let isGreen = (topProb >= 35 && probDiff >= 10) || probDiff >= 20;
     let isRed = topProb < 20 || probDiff < 5;
-    let isGreen = topProb >= 35 && probDiff >= 10;
 
     let className =
         "model-block" +
