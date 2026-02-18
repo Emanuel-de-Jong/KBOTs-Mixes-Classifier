@@ -7,7 +7,8 @@ Finds the right playlist for a new song.
 
 | | |
 | :---: | :---: |
-| ![](/Screenshots/1-Stats-Matrix.png) | ![](/Screenshots/2-Stats-Graph.png) |
+| ![](/Screenshots/1-Batch-Inference-Site.png) | ![](/Screenshots/2-Stats-Matrix.png) |
+| ![](/Screenshots/3-Stats-Graph.png) | ![](/Screenshots/.png) |
 
 ## Requirements
 - python (tested on `3.11`)

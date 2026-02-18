@@ -5,6 +5,7 @@ let headerTitle = document.querySelector("#header-title");
 let downloadResultsButton = document.querySelector("#download-results");
 
 let deletedSongsStorageKey = "deletedSongs";
+let lastSelectedSongStorageKey = "lastSelectedSong";
 let deletedSongNames = new Set(JSON.parse(localStorage.getItem(deletedSongsStorageKey) || "[]"));
 
 let songNames = Object.keys(results).filter((songName) => !deletedSongNames.has(songName));
@@ -27,6 +28,10 @@ function persistDeletedSongs() {
     localStorage.setItem(deletedSongsStorageKey, JSON.stringify(Array.from(deletedSongNames)));
 }
 
+function persistLastSelectedSong(songName) {
+    localStorage.setItem(lastSelectedSongStorageKey, songName);
+}
+
 function removeSong(songName) {
     deletedSongNames.add(songName);
     persistDeletedSongs();
@@ -36,6 +41,9 @@ function removeSong(songName) {
 
     songEntries = document.querySelectorAll(".song-entry");
     songRemoveButtons = document.querySelectorAll(".song-remove");
+
+    let storedLastSelectedSong = localStorage.getItem(lastSelectedSongStorageKey);
+    if (storedLastSelectedSong === songName) localStorage.removeItem(lastSelectedSongStorageKey);
 
     let activeEntry = songList.querySelector(".song-entry.active");
     if (!activeEntry && songEntries.length) songEntries[0].click();
@@ -109,11 +117,16 @@ function renderComment(entry) {
 
 function renderModelBlock(modelName, genreList, isConclusion) {
     let topProb = genreList[0]?.prob || 0;
+    let secondProb = genreList[1]?.prob || 0;
+    let probDiff = topProb - secondProb;
+
+    let isRed = topProb < 20 || probDiff < 5;
+    let isGreen = topProb >= 35 && probDiff >= 10;
 
     let className =
         "model-block" +
         (isConclusion ? " model-conclusion" : "") +
-        (topProb >= 75 ? " model-good" : topProb < 50 ? " model-bad" : "");
+        (isGreen ? " model-good" : isRed ? " model-bad" : "");
 
     let prettyModelName = modelName.replaceAll("edm", "EDM");
     prettyModelName = prettyModelName
@@ -155,6 +168,7 @@ function renderModelBlock(modelName, genreList, isConclusion) {
 
 function showSongStats(songName) {
     headerTitle.textContent = songName;
+    persistLastSelectedSong(songName);
 
     statsContent.innerHTML = `
         <div class="conclusion-section">
@@ -186,7 +200,13 @@ songRemoveButtons.forEach(
         }),
 );
 
-if (songEntries.length) songEntries[0].click();
+let storedLastSelectedSong = localStorage.getItem(lastSelectedSongStorageKey);
+let storedEntry = storedLastSelectedSong
+    ? songList.querySelector(`.song-entry[data-song-name="${CSS.escape(storedLastSelectedSong)}"]`)
+    : null;
+
+if (storedEntry) storedEntry.click();
+else if (songEntries.length) songEntries[0].click();
 
 searchInput.oninput = () => {
     let searchValue = searchInput.value.toLowerCase();
