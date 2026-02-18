@@ -51,13 +51,23 @@ You'll have to install deno and let yt-dlp know about it:
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
 
 ## Roadmap
+- Finish comments.js
+- Release all experiment models
+- Generalize codebase (template files)
+- Update README
+
+### Far future
+- Rock and pop model with just a few renamed EDM genres
+- Copy Mert script into models or use model yaml file for values to batch inference models with different settings?
 - Experiments:
-    - Input shape (for example layers as width/sequential layers)
-    - Window size
-    - Window shape
+    - Input shape order
+    - Model window asymmetrical shape
+    - Model window bigger size
+	- ResNet
     - Batch size
-- ResNet
-- Different scaling algorithm
+	- Different scaling algorithm
+	- 1.5x weight on non public songs
+	- Mert chunk or window overlap
 - Inference NN decision tree:
     - Is edm?
         - Yes: edm model (50 songs)
@@ -65,4 +75,4 @@ You'll have to install deno and let yt-dlp know about it:
             - Is non_general? (9 songs)
                 - Yes: non_general model
                 - No: general model (5 songs)
-- 2x weight on non public songs
+- Public playlists for non EDM
