@@ -115,11 +115,17 @@ function renderModelBlock(modelName, genreList, isConclusion) {
         (isConclusion ? " model-conclusion" : "") +
         (topProb >= 75 ? " model-good" : topProb < 50 ? " model-bad" : "");
 
+    let prettyModelName = modelName.replaceAll("edm", "EDM");
+    prettyModelName = prettyModelName
+        .split('_')
+        .map(word => word[0].toUpperCase() + word.slice(1))
+        .join(' ');
+    
     return `
         <div class="${className}">
             <div class="model-content">
 
-                ${!isConclusion ? `<div class="model-name">${modelName}</div>` : ""}
+                ${!isConclusion ? `<div class="model-name">${prettyModelName}</div>` : ""}
 
                 ${genreList
                     .map((g, i) => {
