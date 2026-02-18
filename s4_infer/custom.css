@@ -41,8 +41,12 @@ header h1 {
     height: 100%;
 }
 
-#search {
+#search-group {
     margin-bottom: 0.8rem;
+}
+
+#sort {
+    max-width: 110px;
 }
 
 #list {

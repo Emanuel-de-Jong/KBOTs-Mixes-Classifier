@@ -1,6 +1,7 @@
 let songList = document.querySelector("#songs #list");
 let statsContent = document.querySelector("#stats-content");
 let searchInput = document.querySelector("#search");
+let sortSelect = document.querySelector("#sort");
 let headerTitle = document.querySelector("#header-title");
 let downloadResultsButton = document.querySelector("#download-results");
 
@@ -8,21 +9,101 @@ let deletedSongsStorageKey = "deletedSongs";
 let lastSelectedSongStorageKey = "lastSelectedSong";
 let deletedSongNames = new Set(JSON.parse(localStorage.getItem(deletedSongsStorageKey) || "[]"));
 
-let songNames = Object.keys(results).filter((songName) => !deletedSongNames.has(songName));
+let songConclusions = {};
+let songConclusionColors = {};
 
-songList.innerHTML = songNames
-    .map(
-        (songName) => `
+function calculateConclusion(songName) {
+    let totals = {};
+    let models = results[songName];
+
+    Object.values(models).forEach((genreList) =>
+        genreList.forEach((g) => (totals[g.genre] = (totals[g.genre] || 0) + g.prob)),
+    );
+
+    let modelCount = Object.keys(models).length;
+
+    return Object.entries(totals)
+        .map(([genre, prob]) => ({ genre, prob: prob / modelCount }))
+        .sort((a, b) => b.prob - a.prob)
+        .slice(0, 3);
+}
+
+function getConclusionColor(conclusion) {
+    let topProb = conclusion[0]?.prob || 0;
+    let secondProb = conclusion[1]?.prob || 0;
+    let probDiff = topProb - secondProb;
+
+    let isGreen = (topProb >= 35 && probDiff >= 10) || probDiff >= 20;
+    let isRed = topProb < 20 || probDiff < 5;
+
+    if (isGreen) return "green";
+    if (isRed) return "red";
+    return "neutral";
+}
+
+Object.keys(results).forEach((songName) => {
+    let conclusion = calculateConclusion(songName);
+    songConclusions[songName] = conclusion;
+    songConclusionColors[songName] = getConclusionColor(conclusion);
+});
+
+function sortSongNames(songNames) {
+    let sortValue = sortSelect.value;
+
+    if (sortValue === "name") {
+        return [...songNames].sort((a, b) => a.localeCompare(b));
+    }
+
+    let colorOrder = { green: 0, neutral: 1, red: 2 };
+
+    return [...songNames].sort((a, b) => {
+        let colorDiff = colorOrder[songConclusionColors[a]] - colorOrder[songConclusionColors[b]];
+        if (colorDiff !== 0) return colorDiff;
+        return a.localeCompare(b);
+    });
+}
+
+function renderSongList(songNames) {
+    let sortedSongNames = sortSongNames(songNames);
+
+    songList.innerHTML = sortedSongNames
+        .map(
+            (songName) => `
     <div class="song-entry" data-song-name="${songName}">
         <span class="song-label">${songName}</span>
         <button type="button" class="song-remove" data-remove-song-name="${songName}" aria-label="Remove">×</button>
     </div>
 `,
-    )
-    .join("");
+        )
+        .join("");
 
-let songEntries = document.querySelectorAll(".song-entry");
-let songRemoveButtons = document.querySelectorAll(".song-remove");
+    songEntries = document.querySelectorAll(".song-entry");
+    songRemoveButtons = document.querySelectorAll(".song-remove");
+
+    songEntries.forEach(
+        (entry) =>
+            (entry.onclick = () => {
+                songEntries.forEach((e) => e.classList.remove("active"));
+                entry.classList.add("active");
+                showSongStats(entry.dataset.songName);
+            }),
+    );
+
+    songRemoveButtons.forEach(
+        (button) =>
+            (button.onclick = (event) => {
+                event.stopPropagation();
+                removeSong(button.dataset.removeSongName);
+            }),
+    );
+}
+
+let songNames = Object.keys(results).filter((songName) => !deletedSongNames.has(songName));
+
+let songEntries;
+let songRemoveButtons;
+
+renderSongList(songNames);
 
 function persistDeletedSongs() {
     localStorage.setItem(deletedSongsStorageKey, JSON.stringify(Array.from(deletedSongNames)));
@@ -39,8 +120,9 @@ function removeSong(songName) {
     let songEntry = songList.querySelector(`.song-entry[data-song-name="${CSS.escape(songName)}"]`);
     if (songEntry) songEntry.remove();
 
-    songEntries = document.querySelectorAll(".song-entry");
-    songRemoveButtons = document.querySelectorAll(".song-remove");
+    songNames = songNames.filter((name) => name !== songName);
+
+    renderSongList(songNames);
 
     let storedLastSelectedSong = localStorage.getItem(lastSelectedSongStorageKey);
     if (storedLastSelectedSong === songName) localStorage.removeItem(lastSelectedSongStorageKey);
@@ -74,22 +156,6 @@ function getCommentEntry(modelName, genreName) {
     return (
         findCommentEntry(comments.all, genreName, "all") || findCommentEntry(comments[modelName], genreName, "model")
     );
-}
-
-function calculateConclusion(songName) {
-    let totals = {};
-    let models = results[songName];
-
-    Object.values(models).forEach((genreList) =>
-        genreList.forEach((g) => (totals[g.genre] = (totals[g.genre] || 0) + g.prob)),
-    );
-
-    let modelCount = Object.keys(models).length;
-
-    return Object.entries(totals)
-        .map(([genre, prob]) => ({ genre, prob: prob / modelCount }))
-        .sort((a, b) => b.prob - a.prob)
-        .slice(0, 3);
 }
 
 function renderComment(entry) {
@@ -172,7 +238,7 @@ function showSongStats(songName) {
 
     statsContent.innerHTML = `
         <div class="conclusion-section">
-            ${renderModelBlock("Conclusion", calculateConclusion(songName), true)}
+            ${renderModelBlock("Conclusion", songConclusions[songName], true)}
         </div>
 
         <div class="models-grid">
@@ -182,23 +248,6 @@ function showSongStats(songName) {
         </div>
     `;
 }
-
-songEntries.forEach(
-    (entry) =>
-        (entry.onclick = () => {
-            songEntries.forEach((e) => e.classList.remove("active"));
-            entry.classList.add("active");
-            showSongStats(entry.dataset.songName);
-        }),
-);
-
-songRemoveButtons.forEach(
-    (button) =>
-        (button.onclick = (event) => {
-            event.stopPropagation();
-            removeSong(button.dataset.removeSongName);
-        }),
-);
 
 let storedLastSelectedSong = localStorage.getItem(lastSelectedSongStorageKey);
 let storedEntry = storedLastSelectedSong
@@ -214,6 +263,16 @@ searchInput.oninput = () => {
     songEntries.forEach(
         (entry) => (entry.style.display = entry.dataset.songName.toLowerCase().includes(searchValue) ? "flex" : "none"),
     );
+};
+
+sortSelect.onchange = () => {
+    let activeSongName = songList.querySelector(".song-entry.active")?.dataset.songName;
+    renderSongList(songNames);
+
+    if (activeSongName) {
+        let newActiveEntry = songList.querySelector(`.song-entry[data-song-name="${CSS.escape(activeSongName)}"]`);
+        if (newActiveEntry) newActiveEntry.click();
+    }
 };
 
 function buildFilteredResultsObject() {
