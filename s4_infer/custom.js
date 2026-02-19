@@ -13,9 +13,12 @@ let songConclusions = {};
 let songConclusionColors = {};
 
 function calculateConclusion(songName) {
-    let totals = {};
-    let models = results[songName];
+    // Exclude Essentia models
+    let models = Object.values(results[songName]).filter(
+        (genreList) => !genreList.some((g) => g.genre.includes("-"))
+    );
 
+    let totals = {};
     Object.values(models).forEach((genreList) =>
         genreList.forEach((g) => (totals[g.genre] = (totals[g.genre] || 0) + g.prob)),
     );

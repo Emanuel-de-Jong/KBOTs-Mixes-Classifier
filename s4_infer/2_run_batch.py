@@ -12,6 +12,10 @@ from s0_utils.Mert import Mert
 
 TOP_COUNT = 3
 
+MODEL_POSITIONS = {
+    "pop_rock_edm": 0
+}
+
 BATCH_DIR = Path("s4_infer/batch")
 CACHE_PATH = BATCH_DIR / "cache.joblib"
 ESS_CACHE_PATH = BATCH_DIR / "ess_cache.joblib"
@@ -22,9 +26,7 @@ mert = Mert()
 ess = EssDiscogs()
 
 models = {}
-model_paths = list(g.MODELS_DIR.rglob("*.keras"))
-model_paths.sort()
-for path in model_paths:
+for path in g.MODELS_DIR.rglob("*.keras"):
     if path.suffix == ".keras":
         name = path.stem.replace("model_", "")
         models[name] = None
@@ -36,6 +38,15 @@ if CACHE_PATH.exists():
 
 for name in models.keys():
     models[name] = Classifier(name, mert)
+
+ordered_model_names = sorted(models.keys())
+for custom_name, custom_position in MODEL_POSITIONS.items():
+    if custom_name in ordered_model_names:
+        ordered_model_names.remove(custom_name)
+
+for custom_name, custom_position in sorted(MODEL_POSITIONS.items(), key=lambda item: item[1]):
+    if custom_name in models:
+        ordered_model_names.insert(custom_position, custom_name)
 
 results = {}
 def append_top(song_name, model_name, top):
@@ -67,8 +78,17 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
         embs = mert.run(song_path)
         ess_embs = ess.get_embs(song_path)
         cache[song_path] = (embs, ess_embs)
+    
+    top, _ = ess.infer(song_path, ess_embs)
+    if top is None or len(top) == 0:
+        logger.writeln(f'[ERROR]: Inference failed on model: "{ess.NAME}", song: "{song_path}"!')
+        sys.exit(1)
+    
+    append_top(song_name, ess.NAME, top)
 
-    for model_name, model in models.items():
+    for model_name in ordered_model_names:
+        model = models[model_name]
+
         model_embs = model.scale_embs(embs)
         model_embs = model.reshape_data(model_embs)
 
@@ -78,13 +98,6 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
             sys.exit(1)
 
         append_top(song_name, model_name, top)
-    
-    top, _ = ess.infer(song_path, ess_embs)
-    if top is None or len(top) == 0:
-        logger.writeln(f'[ERROR]: Inference failed on model: "{ess.NAME}", song: "{song_path}"!')
-        sys.exit(1)
-    
-    append_top(song_name, ess.NAME, top)
 
 joblib.dump(cache, CACHE_PATH)
 
