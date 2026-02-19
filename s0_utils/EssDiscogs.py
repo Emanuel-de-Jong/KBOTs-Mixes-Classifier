@@ -1,5 +1,8 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import essentia
+essentia.log.warningActive = False
 import json
 import numpy as np
 from pathlib import Path
@@ -15,22 +18,22 @@ class EssDiscogs():
 
     def __init__(self):
         self.embedding_model = TensorflowPredictMAEST(graphFilename=str(self.EMBEDDING_MODEL_PATH), output="PartitionedCall/Identity_12")
+        self.classify_model = TensorflowPredict(graphFilename=str(self.CLASSIFY_MODEL_PATH), inputs=["embeddings"], outputs=["PartitionedCall/Identity_1"])
 
         with open(self.LABELS_PATH, "r") as f:
             metadata = json.load(f)
 
         self.labels = metadata["classes"]
+        self.pool = Pool()
     
     def infer(self, path):
         audio = MonoLoader(filename=str(path), sampleRate=16000, resampleQuality=4)()
         embeddings = self.embedding_model(audio)
 
-        pool = Pool()
-        pool.set("embeddings", embeddings)
+        self.pool.clear()
+        self.pool.set("embeddings", embeddings)
 
-        model = TensorflowPredict(graphFilename=str(self.CLASSIFY_MODEL_PATH), inputs=["embeddings"], outputs=["PartitionedCall/Identity_1"])
-
-        probs_avg = model(pool)["PartitionedCall/Identity_1"]
+        probs_avg = self.classify_model(self.pool)["PartitionedCall/Identity_1"]
         probs_avg = np.mean(probs_avg, axis=0).flatten()
 
         top_indices = np.argsort(probs_avg)[::-1][:5]
