@@ -162,7 +162,7 @@ function renderComment(entry) {
     if (!entry) return "";
 
     let alts = entry.alts?.length
-        ? `<span class="comment-alts">Could also be ${joinAlternatives(entry.alts)
+        ? `<span class="comment-alts">Might be ${joinAlternatives(entry.alts)
               .split(/,\s*|\s+or\s+/)
               .map((a) => `<span class="comment-alt">${a}</span>`)
               .join(", ")
