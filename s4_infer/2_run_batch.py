@@ -14,6 +14,7 @@ TOP_COUNT = 3
 
 BATCH_DIR = Path("s4_infer/batch")
 CACHE_PATH = BATCH_DIR / "cache.joblib"
+ESS_CACHE_PATH = BATCH_DIR / "ess_cache.joblib"
 RESULTS_PATH = Path("s4_infer/results.js")
 
 logger = Logger(BATCH_DIR / "batch.log")
@@ -21,7 +22,9 @@ mert = Mert()
 ess = EssDiscogs()
 
 models = {}
-for path in g.MODELS_DIR.iterdir():
+model_paths = list(g.MODELS_DIR.rglob("*.keras"))
+model_paths.sort()
+for path in model_paths:
     if path.suffix == ".keras":
         name = path.stem.replace("model_", "")
         models[name] = None
@@ -57,14 +60,14 @@ song_paths.sort()
 for song_path in tqdm(song_paths, total=len(song_paths)):
     song_name = song_path.stem
 
-    embs = None
+    embs, ess_embs = None, None
     if song_path in cache:
-        embs = cache[song_path]
+        embs, ess_embs = cache[song_path]
     else:
         embs = mert.run(song_path)
-        cache[song_path] = embs
+        ess_embs = ess.get_embs(song_path)
+        cache[song_path] = (embs, ess_embs)
 
-    tops = {}
     for model_name, model in models.items():
         model_embs = model.scale_embs(embs)
         model_embs = model.reshape_data(model_embs)
@@ -76,7 +79,7 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
 
         append_top(song_name, model_name, top)
     
-    top = ess.infer(song_path)
+    top, _ = ess.infer(song_path, ess_embs)
     if top is None or len(top) == 0:
         logger.writeln(f'[ERROR]: Inference failed on model: "{ess.NAME}", song: "{song_path}"!')
         sys.exit(1)

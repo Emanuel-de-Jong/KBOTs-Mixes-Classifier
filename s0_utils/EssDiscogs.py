@@ -26,12 +26,16 @@ class EssDiscogs():
         self.labels = metadata["classes"]
         self.pool = Pool()
     
-    def infer(self, path):
+    def get_embs(self, path):
         audio = MonoLoader(filename=str(path), sampleRate=16000, resampleQuality=4)()
-        embeddings = self.embedding_model(audio)
+        return self.embedding_model(audio)
+
+    def infer(self, path, embs=None):
+        if embs is None:
+            embs = self.get_embs(path)
 
         self.pool.clear()
-        self.pool.set("embeddings", embeddings)
+        self.pool.set("embeddings", embs)
 
         probs_avg = self.classify_model(self.pool)["PartitionedCall/Identity_1"]
         probs_avg = np.mean(probs_avg, axis=0).flatten()
@@ -43,7 +47,7 @@ class EssDiscogs():
             prob_to_percent = int(probs_avg[idx] * 10000) / 100.0
             results.append((self.labels[idx], prob_to_percent))
 
-        return results
+        return results, embs
     
     def print_top(self, top):
         for i in range(len(top)):
