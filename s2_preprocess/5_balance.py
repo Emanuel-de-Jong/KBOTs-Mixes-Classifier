@@ -24,7 +24,7 @@ gc.collect()
 label_counts = train_data['label'].value_counts()
 
 all_validate_rows = []
-validate_target = label_counts.max() * VALIDATE_PERC
+validate_target = int(round(label_counts.max() * VALIDATE_PERC))
 for label in range(g.LABEL_COUNT):
     label_train_data = train_data[train_data["label"] == label]
 
@@ -43,6 +43,9 @@ for label in range(g.LABEL_COUNT):
     total_rows = 0
     validate_songs = []
     organic_validate_target = int(round(VALIDATE_PERC * len(label_train_data)))
+    if organic_validate_target > validate_target:
+        organic_validate_target = validate_target
+
     for song in songs:
         song_rows = label_train_data[label_train_data['song'] == song]
         if total_rows + len(song_rows) <= organic_validate_target:
@@ -61,7 +64,7 @@ for label in range(g.LABEL_COUNT):
     label_validate_data = label_train_data[label_train_data['song'].isin(validate_songs)]
     all_validate_rows.append(label_validate_data)
 
-    remaining_validate_target = int(validate_target - total_rows)
+    remaining_validate_target = validate_target - total_rows
     if remaining_validate_target > 0 and not label_validate_data.empty:
         song_sizes = label_validate_data.groupby('song').size().sort_values()
         repeated_songs = np.tile(
