@@ -48,7 +48,6 @@ CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 TEMP_DIR = Path("temp")
 MODELS_DIR = Path("models")
-MODELS_DIR.mkdir(exist_ok=True)
 DLS_DIR = Path("s1_prep") / "dls"
 DLS_DIR.mkdir(exist_ok=True)
 

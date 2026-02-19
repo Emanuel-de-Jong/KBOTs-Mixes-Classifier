@@ -2,7 +2,9 @@
 *.log
 /*.py
 cache/
-models/
+models/*
+!models/genre_discogs519-discogs-maest-30s-pw-519l-1.json
+!models/genre_discogs519-discogs-maest-30s-pw-519l-1.pb
 temp/
 data_sets/test/
 data_sets/train/playlists/*

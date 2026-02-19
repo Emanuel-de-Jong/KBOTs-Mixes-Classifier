@@ -5,6 +5,7 @@ import json
 import s0_utils.global_params as g
 from pathlib import Path
 from s0_utils.Classifier import Classifier
+from s0_utils.EssDiscogs import EssDiscogs
 from s0_utils.Logger import Logger
 from tqdm import tqdm
 from s0_utils.Mert import Mert
@@ -17,6 +18,7 @@ RESULTS_PATH = Path("s4_infer/results.js")
 
 logger = Logger(BATCH_DIR / "batch.log")
 mert = Mert()
+ess = EssDiscogs()
 
 models = {}
 for path in g.MODELS_DIR.iterdir():
@@ -33,9 +35,28 @@ for name in models.keys():
     models[name] = Classifier(name, mert)
 
 results = {}
-song_paths = list(BATCH_DIR.glob("*.mp3"))
+def append_top(song_name, model_name, top):
+    top = top[:TOP_COUNT]
+
+    top_dicts = []
+    for genre, prob in top:
+        top_dicts.append({
+            "genre": genre,
+            "prob": prob
+        })
+    
+    print(f"{song_name}: {top}")
+
+    if not song_name in results:
+        results[song_name] = {}
+    
+    results[song_name][model_name] = top_dicts
+
+song_paths = list(BATCH_DIR.rglob("*.mp3"))
 song_paths.sort()
 for song_path in tqdm(song_paths, total=len(song_paths)):
+    song_name = song_path.stem
+
     embs = None
     if song_path in cache:
         embs = cache[song_path]
@@ -53,20 +74,14 @@ for song_path in tqdm(song_paths, total=len(song_paths)):
             logger.writeln(f'[ERROR]: Inference failed on model: "{model_name}", song: "{song_path}"!')
             sys.exit(1)
 
-        top = top[:TOP_COUNT]
-
-        top_dicts = []
-        for genre, prob in top:
-            top_dicts.append({
-                "genre": genre,
-                "prob": prob
-            })
-        
-        print(f"{song_path}: {top}")
-        tops[model_name] = top_dicts
+        append_top(song_name, model_name, top)
     
-    song_name, _ = os.path.splitext(os.path.basename(song_path))
-    results[song_name] = tops
+    top = ess.infer(song_path)
+    if top is None or len(top) == 0:
+        logger.writeln(f'[ERROR]: Inference failed on model: "{ess.NAME}", song: "{song_path}"!')
+        sys.exit(1)
+    
+    append_top(song_name, ess.NAME, top)
 
 joblib.dump(cache, CACHE_PATH)
 

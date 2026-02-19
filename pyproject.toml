@@ -24,6 +24,7 @@ transformers = "==4.57.1"
 unidecode = "==1.4.0"
 yt-dlp = "==2026.1.31"
 zarr = "==3.1.5"
+essentia-tensorflow = "==2.1b6.dev1389"
 
 [[tool.poetry.source]]
 name = "pytorch-gpu"
