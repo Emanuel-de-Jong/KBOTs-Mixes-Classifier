@@ -85,8 +85,8 @@ class Mert():
             samples_per_chunk = int(self.CHUNK_LENGTH_SECONDS * resample_rate)
 
             windows = []
-            max_windows = (sample_count // samples_per_window) + 1
-            for i in range(max_windows):
+            window_count = (sample_count // samples_per_window) + 1
+            for i in range(window_count):
                 start_idx = i * samples_per_window
                 end_idx = min(start_idx + samples_per_window, sample_count)
                 if end_idx - start_idx < samples_min_window:

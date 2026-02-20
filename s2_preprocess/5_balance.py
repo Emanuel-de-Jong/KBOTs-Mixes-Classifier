@@ -64,29 +64,6 @@ for label in range(g.LABEL_COUNT):
     label_validate_data = label_train_data[label_train_data['song'].isin(validate_songs)]
     all_validate_rows.append(label_validate_data)
 
-    remaining_validate_target = validate_target - total_rows
-    if remaining_validate_target > 0 and not label_validate_data.empty:
-        song_sizes = label_validate_data.groupby('song').size().sort_values()
-        repeated_songs = np.tile(
-            song_sizes.index.values,
-            (remaining_validate_target // len(song_sizes)) + 1
-        )
-
-        new_rows = []
-        total_dup_rows = 0
-        for song in repeated_songs:
-            song_rows = label_validate_data[label_validate_data["song"] == song]
-
-            if total_dup_rows + len(song_rows) >= remaining_validate_target:
-                new_rows.append(song_rows[:remaining_validate_target - total_dup_rows])
-                break
-
-            new_rows.append(song_rows)
-            total_dup_rows += len(song_rows)
-
-        if new_rows:
-            all_validate_rows.append(pd.concat(new_rows))
-
 validate_data = pd.concat(all_validate_rows, ignore_index=False)
 print("\n== Validate label counts ==")
 for label, count in validate_data["label"].value_counts().items():
