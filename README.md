@@ -1,5 +1,5 @@
 # KBOT's Mixes Classifier
-Pipeline to train a model that can find the right playlist/genre for a new song. Supports 50+ labels!
+Pipeline to train a model that can find the right playlist/genre for a new song. Supports 50+ playlist!
 
 **Active Development:** 2025-10-13 - 2026-02-20<br>
 **Last Change:** 2026-02-20<br>
@@ -20,13 +20,13 @@ Sorry in advance for making you install both PyTorch and TensorFlow with each th
 2. `conda activate kbotsmixesclassifier`
 3. `conda install -c conda-forge -y cudatoolkit=11.2 cudnn=8.1 poetry=2.3.1`
 4. `poetry config virtualenvs.create false`
-5. `poetry install`.
+5. `poetry install`
 6. Download the Essentia Discogs model from [their site](https://essentia.upf.edu/models/feature-extractors/maest/discogs-maest-30s-pw-519l-2.pb). Or from this repos [release](https://github.com/Emanuel-de-Jong/KBOTs-Mixes-Classifier/releases/download/essentia-discogs-519/discogs-maest-30s-pw-519l-2.pb) if Essentia (re)moves it for some reason.
 7. Place the `.pb` file in the `models` directory.
-8. Scripts can be run with `./run.bat` on Windows or `./run.sh` on Linux/Mac in the format `RUN CATEGORY STEP`. For example: `./run.sh 1 6`.
+8. Scripts can be run with `./run.bat` on Windows or `./run.sh` on Linux/Mac in the format `RUN CATEGORY STEP`. For example: `./run.sh 1 6`
 
 ## Training
-1. Put playlist directories with MP3 files in `data_sets/train/playlists`.
+1. Put playlist directories containing MP3 files in `data_sets/train/playlists`.
 2. The rest can be done in 2 ways:
     - Manual:
         1. Go through `s1_prep`, `s2_preprocess` and `s3_train`. In each, running the scripts in numerical order.
@@ -40,18 +40,18 @@ Sorry in advance for making you install both PyTorch and TensorFlow with each th
 Lets you download playlists from YouTube for more training data.
 
 If you're going to use `s1_prep/1_dl.py` to download public playlists, you'll also want deno:
-1. Install deno with `curl -fsSL https://deno.land/install.sh | sh`.
+1. Install deno with `irm https://deno.land/install.ps1 | iex` on Windows or `curl -fsSL https://deno.land/install.sh | sh` on Linux/Mac.
 2. Find the path to deno with `which deno`.
-3. Put the path in the `js_runtimes` part of the yt-dlp config in `dl.py`.
+3. Put the path in the `js_runtimes` part of the yt-dlp config in `1_dl.py`.
 
 ## Inference
 For a single MP3 file placed anywhere:
-1. `./run.sh 4 1 PATH_TO_SONG.mp3`.
+1. `./run.sh 4 1 PATH_TO_SONG.mp3`
 2. The console logs will tell you the top 3 guesses.
 
 For a directory full of MP3 files:
 1. Put the MP3 files in the `s4_infer/batch` directory.
-2. `infer_batch.sh`.
+2. `infer_batch.sh`
 3. Open `s4_infer/index.html`. Or check out `s4_infer/results.js` if you want to use the results in your own program.
 
 ## Multiple models
