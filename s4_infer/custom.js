@@ -156,9 +156,23 @@ function findCommentEntry(group, genreName, fallbackType) {
 }
 
 function getCommentEntry(modelName, genreName) {
-    return (
-        findCommentEntry(comments.all, genreName, "all") || findCommentEntry(comments[modelName], genreName, "model")
-    );
+    let allEntry = findCommentEntry(comments.all, genreName, "all");
+    let modelEntry = modelName !== "all" ? findCommentEntry(comments[modelName], genreName, "model") : null;
+
+    if (modelName === "all") return allEntry;
+
+    if (modelEntry && allEntry) {
+        return {
+            type: allEntry.type,
+            comment: modelEntry.comment || allEntry.comment,
+            alts: [
+                ...(modelEntry.alts || []),
+                ...(allEntry.alts || []),
+            ],
+        };
+    }
+
+    return modelEntry || allEntry;
 }
 
 function renderComment(entry) {

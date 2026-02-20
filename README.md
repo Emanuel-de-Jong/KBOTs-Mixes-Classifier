@@ -58,7 +58,6 @@ Don't forget to add the source playlists for merging, even if they fall outside 
 ## Roadmap
 - Finish comments.js
 - Release all experiment models
-- Generalize codebase (template files)
 - Update README
 
 ### Far future
@@ -82,3 +81,4 @@ Don't forget to add the source playlists for merging, even if they fall outside 
                 - Yes: non_general model
                 - No: general model (5 songs)
 - Public playlists for non EDM
+- Generalize codebase (template files)
