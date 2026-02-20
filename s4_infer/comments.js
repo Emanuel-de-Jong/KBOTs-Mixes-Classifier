@@ -14,6 +14,23 @@ let comments = {
                 'alts': ['Chill_Alternate_Rock',],
             },
         },
+        'common': {
+            'Deep_House': {
+                'alts': ['Ambient_Techno',],
+            },
+            'Liquid_DnB': {
+                'alts': ['DnB',],
+            },
+            'Mainstream_Liquid_DnB': {
+                'alts': ['Liquid_DnB',],
+            },
+            'Progressive_House': {
+                'alts': ['Techno',],
+            },
+            'Psytrance': {
+                'alts': ['Goa_Trance',],
+            },
+        },
     },
     'edm_2_sec': {
         'Club': {
@@ -39,9 +56,6 @@ let comments = {
         },
         'Psytrance': {
             'alts': ['Goa_Trance',],
-        },
-        'Liquid_DnB': {
-            'alts': ['DnB',],
         },
     },
     'edm_balance': {

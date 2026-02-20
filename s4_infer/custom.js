@@ -162,6 +162,8 @@ function getCommentEntry(modelName, genreName) {
     if (modelName === "all") return allEntry;
 
     if (modelEntry && allEntry) {
+        if (allEntry.type === "common") return modelEntry;
+
         return {
             type: allEntry.type,
             comment: modelEntry.comment || allEntry.comment,
