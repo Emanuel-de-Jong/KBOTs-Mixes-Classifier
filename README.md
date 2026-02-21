@@ -45,6 +45,8 @@ If you're going to use `s1_prep/1_dl.py` to download public playlists, you'll al
 3. Put the path in the `js_runtimes` part of the yt-dlp config in `1_dl.py`.
 
 ## Inference
+To use my custom trained models, download them from the latest release (for example [Cache 1.2](https://github.com/Emanuel-de-Jong/KBOTs-Mixes-Classifier/releases/download/cache-1.2/inference.zip)) and extract the archive into the project.
+
 For a single MP3 file placed anywhere:
 1. `./run.sh 4 1 PATH_TO_SONG.mp3`
 2. The console logs will tell you the top 3 guesses.
@@ -59,12 +61,11 @@ To train and inference multiple models, follow this loop:
 1. Give your model a unique name by changing the `NAME` variable in `s0_utils/global_params.py`.
 2. Delete the `cache` directory.
 3. Clear the data_sets directories if you want to train on different data.
-4. Train as described in [Training](#Training).
+4. Train as described in the [Training](#Training) chapter.
 
 Batch inference automatically detects the different models in the `models` directory. `1_run.py` inference of a single MP3 uses the `NAME` value in `global_params`.
 
 ## Roadmap
-- Release all experiment models
 - Rock and pop model with just a few renamed EDM genres
 - Copy Mert script into models or use model yaml file for values to batch inference models with different settings?
 - Include Essentia Discogs genre predictions in training model input
