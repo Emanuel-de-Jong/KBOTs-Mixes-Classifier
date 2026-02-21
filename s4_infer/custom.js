@@ -50,26 +50,25 @@ Object.keys(results).forEach((songName) => {
     songConclusionColors[songName] = getConclusionColor(conclusion);
 });
 
-function sortSongNames(songNames) {
+function sortSongNames() {
     let sortValue = sortSelect.value;
 
     if (sortValue === "name") {
-        return [...songNames].sort((a, b) => a.localeCompare(b));
+        songNames = [...songNames].sort((a, b) => a.localeCompare(b));
+        return;
     }
 
     let colorOrder = { green: 0, neutral: 1, red: 2 };
 
-    return [...songNames].sort((a, b) => {
+    songNames = [...songNames].sort((a, b) => {
         let colorDiff = colorOrder[songConclusionColors[a]] - colorOrder[songConclusionColors[b]];
         if (colorDiff !== 0) return colorDiff;
         return a.localeCompare(b);
     });
 }
 
-function renderSongList(songNames) {
-    let sortedSongNames = sortSongNames(songNames);
-
-    songList.innerHTML = sortedSongNames
+function renderSongList() {
+    songList.innerHTML = songNames
         .map(
             (songName) => `
     <div class="song-entry" data-song-name="${songName}">
@@ -101,12 +100,14 @@ function renderSongList(songNames) {
     );
 }
 
-let songNames = Object.keys(results).filter((songName) => !deletedSongNames.has(songName));
+let songNames = Object.keys(results);
+songNames = songNames.filter((songName) => !deletedSongNames.has(songName));
+sortSongNames();
 
 let songEntries;
 let songRemoveButtons;
 
-renderSongList(songNames);
+renderSongList();
 
 function persistDeletedSongs() {
     localStorage.setItem(deletedSongsStorageKey, JSON.stringify(Array.from(deletedSongNames)));
@@ -117,6 +118,20 @@ function persistLastSelectedSong(songName) {
 }
 
 function removeSong(songName) {
+    let activeSongName = songList.querySelector(".song-entry.active")?.dataset.songName;
+
+    let songIndex = songNames.indexOf(songName);
+    let replacementSongName = null;
+
+    if (activeSongName === songName) {
+        if (songIndex !== -1) {
+            if (songIndex < songNames.length - 1) replacementSongName = songNames[songIndex + 1];
+            else if (songIndex > 0) replacementSongName = songNames[songIndex - 1];
+        }
+    } else {
+        replacementSongName = activeSongName;
+    }
+
     deletedSongNames.add(songName);
     persistDeletedSongs();
 
@@ -125,7 +140,12 @@ function removeSong(songName) {
 
     songNames = songNames.filter((name) => name !== songName);
 
-    renderSongList(songNames);
+    renderSongList();
+
+    if (replacementSongName) {
+        let replacementEntry = songList.querySelector(`.song-entry[data-song-name="${CSS.escape(replacementSongName)}"]`);
+        if (replacementEntry) replacementEntry.click();
+    }
 
     let storedLastSelectedSong = localStorage.getItem(lastSelectedSongStorageKey);
     if (storedLastSelectedSong === songName) localStorage.removeItem(lastSelectedSongStorageKey);
@@ -286,7 +306,9 @@ searchInput.oninput = () => {
 
 sortSelect.onchange = () => {
     let activeSongName = songList.querySelector(".song-entry.active")?.dataset.songName;
-    renderSongList(songNames);
+
+    sortSongNames();
+    renderSongList();
 
     if (activeSongName) {
         let newActiveEntry = songList.querySelector(`.song-entry[data-song-name="${CSS.escape(activeSongName)}"]`);
